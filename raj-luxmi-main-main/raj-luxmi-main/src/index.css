@@ -1,0 +1,257 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+@font-face {
+  font-family: 'Orange Avenue';
+  src: url('./assets/Fonts/OrangeAvenueDEMO-Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Marquee Animation */
+.animate-marquee {
+  display: inline-block;
+  animation: marquee 25s linear infinite;
+  /* Slower speed - changed from 15s to 25s */
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(100%);
+  }
+
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+/* Responsive header adjustments */
+@media (max-width: 640px) {
+  .mobile-header-spacing {
+    height: 6rem;
+    /* Adjust for larger header on mobile */
+  }
+}
+
+@layer base {
+  :root {
+    /* Rajalakshmi Royal Theme Palette 
+       Primary: #783838 (0 36% 35%)
+       Secondary: #9B4E4E (0 33% 46%)
+       Accent: #BF6A6A (0 37% 58%)
+       Hero BG: #421B1B (0 42% 18%)
+       Footer BG: #190808 (0 52% 6%)
+       Text Primary: #2E1212 (0 44% 13%)
+       Text On Dark: #FFEBE8 (8 100% 95%) 
+       Muted: #EDE3E2 (6 24% 91%)
+    */
+
+    --background: 8 100% 99%;
+    /* Very light cream/white */
+    --foreground: 0 44% 13%;
+    /* Text Primary #2E1212 */
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 44% 13%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 44% 13%;
+
+    /* Primary - Royal Red */
+    --primary: 0 36% 35%;
+    /* #783838 */
+    --primary-foreground: 8 100% 95%;
+    /* #FFEBE8 */
+    --primary-hover: 0 36% 30%;
+
+    /* Secondary - Muted Red/Rose */
+    --secondary: 0 33% 46%;
+    /* #9B4E4E */
+    --secondary-foreground: 8 100% 95%;
+
+    /* Accent - Soft Red */
+    --accent: 0 37% 58%;
+    /* #BF6A6A */
+    --accent-foreground: 8 100% 95%;
+
+    /* Custom Theme Colors */
+    --hero-bg: 0 42% 18%;
+    /* #421B1B */
+    --footer-bg: 0 52% 6%;
+    /* #190808 */
+
+    /* Support Colors */
+    --muted: 6 24% 91%;
+    /* #EDE3E2 */
+    --muted-foreground: 0 20% 40%;
+
+    --success: 142 70% 30%;
+    --success-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* UI Elements */
+    --border: 6 24% 85%;
+    --input: 0 0% 100%;
+    --ring: 0 36% 35%;
+    /* Primary matches ring */
+
+    /* Admin Theme Colors */
+    --admin-primary: 0 36% 35%;
+    --admin-secondary: 0 33% 46%;
+    --admin-accent: 0 37% 58%;
+    --admin-background: 8 100% 99%;
+    --admin-card: 0 0% 100%;
+
+    /* Shadows */
+    --shadow-soft: 0 8px 18px rgba(46, 18, 18, 0.06);
+    --shadow-medium: 0 12px 24px rgba(46, 18, 18, 0.1);
+    --shadow-large: 0 16px 40px rgba(46, 18, 18, 0.12);
+
+    --radius: 12px;
+
+    /* Sidebar */
+    --sidebar-background: 8 100% 99%;
+    --sidebar-foreground: 0 44% 13%;
+    --sidebar-primary: 0 36% 35%;
+    --sidebar-primary-foreground: 8 100% 95%;
+    --sidebar-accent: 6 24% 91%;
+    --sidebar-accent-foreground: 0 44% 13%;
+    --sidebar-border: 6 24% 85%;
+    --sidebar-ring: 0 36% 35%;
+
+    /* Typography */
+    --heading-font-family: 'Orange Avenue', sans-serif;
+    --heading-font-weight: 400;
+    --heading-font-style: normal;
+    --heading-letter-spacing: 0.05em;
+    --heading-text-transform: uppercase;
+    --text-h2: clamp(2rem, 5vw, 3.5rem);
+  }
+
+  .dark {
+    --background: 0 44% 13%;
+    --foreground: 8 100% 95%;
+
+    --card: 0 44% 13%;
+    --card-foreground: 8 100% 95%;
+
+    --popover: 0 44% 13%;
+    --popover-foreground: 8 100% 95%;
+
+    --primary: 0 36% 35%;
+    --primary-foreground: 8 100% 95%;
+
+    --secondary: 0 33% 46%;
+    --secondary-foreground: 8 100% 95%;
+
+    --muted: 0 42% 18%;
+    --muted-foreground: 6 24% 80%;
+
+    --accent: 0 42% 18%;
+    --accent-foreground: 8 100% 95%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 42% 25%;
+    --input: 0 42% 25%;
+    --ring: 0 36% 35%;
+
+    --sidebar-background: 0 42% 18%;
+    --sidebar-foreground: 8 100% 95%;
+    --sidebar-primary: 0 36% 35%;
+    --sidebar-primary-foreground: 8 100% 95%;
+    --sidebar-accent: 0 42% 25%;
+    --sidebar-accent-foreground: 8 100% 95%;
+    --sidebar-border: 0 42% 25%;
+    --sidebar-ring: 0 36% 35%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    letter-spacing: 0.01em;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-sans;
+    letter-spacing: 0.02em;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  /* User requested styling for home page headings */
+  h2,
+  :where(.prose h2) {
+    font-size: var(--text-h2);
+    line-height: 1.5;
+  }
+
+  .heading,
+  .h1,
+  .h2,
+  .h3,
+  .h4,
+  .h5,
+  .h6,
+  .prose :where(h1, h2, h3, h4, h5, h6),
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--heading-font-family);
+    font-weight: var(--heading-font-weight);
+    font-style: var(--heading-font-style);
+    letter-spacing: var(--heading-letter-spacing);
+    text-transform: var(--heading-text-transform);
+    overflow-wrap: anywhere;
+  }
+
+  .logo-glow {
+    text-shadow: 0 0 10px rgba(74, 74, 153, 0.5), 0 0 20px rgba(74, 74, 153, 0.3);
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+
+  @keyframes glow {
+    from {
+      text-shadow: 0 0 5px rgba(74, 74, 153, 0.5), 0 0 10px rgba(74, 74, 153, 0.3);
+    }
+
+    to {
+      text-shadow: 0 0 15px rgba(74, 74, 153, 0.7), 0 0 25px rgba(74, 74, 153, 0.5);
+    }
+  }
+}

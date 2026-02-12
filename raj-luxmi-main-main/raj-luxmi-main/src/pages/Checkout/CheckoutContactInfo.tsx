@@ -1,0 +1,158 @@
+import { useState } from 'react';
+import { User, Phone, Mail, Shield } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { validateContactInfo } from '@/utils/validation';
+
+interface ContactInfo {
+  name: string;
+  email: string;
+  phone: string;
+}
+
+interface CheckoutContactInfoProps {
+  customerInfo: ContactInfo;
+  setCustomerInfo: (info: ContactInfo) => void;
+  onNext: () => void;
+}
+
+const CheckoutContactInfo = ({ customerInfo, setCustomerInfo, onNext }: CheckoutContactInfoProps) => {
+  const [contactErrors, setContactErrors] = useState<string[]>([]);
+
+  const handleNext = () => {
+    const validation = validateContactInfo(customerInfo);
+    if (!validation.isValid) {
+      setContactErrors(validation.errors);
+      return;
+    }
+    setContactErrors([]);
+    onNext();
+  };
+
+  return (
+    <Card className="border-[#E6D5B8] bg-[#FFFDF7] shadow-sm">
+      <CardHeader className="border-b border-[#E6D5B8]">
+        <CardTitle className="flex items-center text-lg text-[#783838] uppercase font-instrument font-normal tracking-wide">
+          <User className="h-5 w-5 mr-2 text-[#8B2131]" />
+          Contact Information
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6 pt-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="name" className="text-xs font-normal text-[#2C1810] font-instrument uppercase tracking-wide">
+              Full Name *
+            </Label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#8B2131]/50 h-4 w-4" />
+              <Input
+                id="name"
+                type="text"
+                placeholder="Enter your full name"
+                value={customerInfo.name}
+                onChange={(e) => {
+                  setCustomerInfo({ ...customerInfo, name: e.target.value });
+                  // Clear errors when user starts typing
+                  if (contactErrors.length > 0) {
+                    setContactErrors([]);
+                  }
+                }}
+                className={`pl-10 h-12 border-[#E6D5B8] focus:ring-[#8B2131] bg-white text-[#2C1810] placeholder:text-[#5D4037]/50 font-instrument font-normal ${contactErrors.some(e => e.includes('name') || e.includes('Name')) ? 'border-red-500' : ''}`}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="phone" className="text-xs font-normal text-[#2C1810] font-instrument uppercase tracking-wide">
+              Phone Number *
+            </Label>
+            <div className="relative">
+              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#8B2131]/50 h-4 w-4" />
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="Enter your phone number"
+                value={customerInfo.phone}
+                onChange={(e) => {
+                  setCustomerInfo({ ...customerInfo, phone: e.target.value });
+                  if (contactErrors.length > 0) {
+                    setContactErrors([]);
+                  }
+                }}
+                className={`pl-10 h-12 border-[#E6D5B8] focus:ring-[#8B2131] bg-white text-[#2C1810] placeholder:text-[#5D4037]/50 font-instrument font-normal ${contactErrors.some(e => e.includes('phone') || e.includes('Phone')) ? 'border-red-500' : ''}`}
+                required
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="email" className="text-xs font-normal text-[#2C1810] font-instrument uppercase tracking-wide">
+            Email Address *
+          </Label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#8B2131]/50 h-4 w-4" />
+            <Input
+              id="email"
+              type="email"
+              placeholder="Enter your email address"
+              value={customerInfo.email}
+              onChange={(e) => {
+                setCustomerInfo({ ...customerInfo, email: e.target.value });
+                if (contactErrors.length > 0) {
+                  setContactErrors([]);
+                }
+              }}
+              className={`pl-10 h-12 border-[#E6D5B8] focus:ring-[#8B2131] bg-white text-[#2C1810] placeholder:text-[#5D4037]/50 font-instrument font-normal ${contactErrors.some(e => e.includes('email') || e.includes('Email')) ? 'border-red-500' : ''}`}
+              required
+            />
+          </div>
+        </div>
+
+        {/* Validation Errors */}
+        {contactErrors.length > 0 && (
+          <div className="bg-red-50 border border-red-200 rounded-sm p-4">
+            <div className="flex items-start space-x-3">
+              <div className="h-5 w-5 text-red-600 mt-0.5">⚠️</div>
+              <div>
+                <h4 className="font-medium text-red-900 text-sm mb-1">
+                  Please fix the following errors:
+                </h4>
+                <ul className="text-red-700 text-sm space-y-1">
+                  {contactErrors.map((error, index) => (
+                    <li key={index}>• {error}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="bg-[#EBF8FF] border border-[#BEE3F8] rounded-sm p-4">
+          <div className="flex items-start space-x-3">
+            <Shield className="h-5 w-5 text-[#2B6CB0] mt-0.5" />
+            <div>
+              <h4 className="font-normal text-[#2C5282] text-sm font-instrument uppercase tracking-wide">
+                Your information is secure
+              </h4>
+              <p className="text-[#3182CE] text-sm mt-1 font-instrument">
+                We use your contact details only for order updates and delivery coordination.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end pt-4">
+          <Button onClick={handleNext} size="lg" className="px-8 bg-[#8B2131] hover:bg-[#701a26] text-white font-instrument font-normal tracking-widest uppercase">
+            Continue to Location
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default CheckoutContactInfo;
