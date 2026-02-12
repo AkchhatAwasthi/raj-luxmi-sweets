@@ -228,7 +228,8 @@ const Checkout = () => {
   };
 
   const subtotal = cartItems.reduce((sum, item) => sum + (toNumber(item.price) * toNumber(item.quantity)), 0);
-  const tax = calculatePercentage(subtotal, settings.tax_rate);
+  // const tax = calculatePercentage(subtotal, settings.tax_rate);
+  const tax = 0; // Tax removed as per requirement
 
   const deliveryFee = meetsThreshold(subtotal, settings.free_delivery_threshold) ? 0 : toNumber(settings.delivery_charge);
   const estimatedDeliveryTime = `${settings.delivery_time_estimate || '3-5 business days'}`;

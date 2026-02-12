@@ -215,10 +215,12 @@ const CheckoutSummary = ({
                       {deliveryFee === 0 ? <span className="text-green-700">Free</span> : formatPrice(deliveryFee)}
                     </span>
                   </div>
-                  <div className="flex justify-between text-[#5D4037]">
-                    <span>Tax</span>
-                    <span className="font-normal text-[#2C1810] font-instrument">{formatPrice(tax)}</span>
-                  </div>
+                  {tax > 0 && (
+                    <div className="flex justify-between text-[#5D4037]">
+                      <span>Tax</span>
+                      <span className="font-normal text-[#2C1810] font-instrument">{formatPrice(tax)}</span>
+                    </div>
+                  )}
                   {paymentMethod === 'cod' && codFee > 0 && (
                     <div className="flex justify-between text-[#5D4037]">
                       <span>COD Fee</span>
