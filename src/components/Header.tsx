@@ -59,11 +59,7 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
         .select('*')
         .eq('is_active', true)
         .order('name');
-      if (catData) {
-        const pinned = catData.filter(c => c.name === FEATURED_CATEGORY);
-        const rest = catData.filter(c => c.name !== FEATURED_CATEGORY);
-        setCategories([...pinned, ...rest]);
-      }
+      if (catData) setCategories(catData);
 
       // 2. Mock Collections (Adapted for Rajluxmi Sweets)
       const mockCollections = [
@@ -226,6 +222,26 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
 
             {/* CENTER: Navigation (Desktop) */}
             <nav className="hidden lg:flex items-center gap-4 lg:gap-8 xl:gap-10 flex-1 justify-center">
+
+              {/* 🎉 Featured Festival Link */}
+              <Link
+                to={`/products?category=${FEATURED_CATEGORY}`}
+                className="relative group px-0.5 lg:px-1 py-1"
+              >
+                <span
+                  className="text-[10px] lg:text-xs font-kugile font-semibold tracking-[0.15em] uppercase transition-colors"
+                  style={{
+                    background: 'linear-gradient(90deg, #FF6B6B, #FF8E53, #FFC107, #4CAF50, #2196F3, #9C27B0)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                  }}
+                >
+                  {FEATURED_CATEGORY}
+                </span>
+                <span className="absolute bottom-0 left-1/2 w-0 h-[2px] transition-all duration-500 ease-out -translate-x-1/2 group-hover:w-full" style={{ background: 'linear-gradient(90deg, #FF6B6B, #FF8E53, #FFC107)' }} />
+              </Link>
+
               {/* New Arrivals - Mapped to Sort */}
               <Link
                 to="/products?sort=newest"
@@ -369,6 +385,11 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
               </div>
 
               <div className="py-2">
+                {/* 🎉 Featured Festival Link */}
+                <MobileMenuItem
+                  label={FEATURED_CATEGORY}
+                  path={`/products?category=${FEATURED_CATEGORY}`}
+                />
                 {/* Manual Links for Collections */}
                 <MobileMenuItem
                   label="New Arrivals"
