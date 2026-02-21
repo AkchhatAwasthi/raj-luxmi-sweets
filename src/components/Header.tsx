@@ -14,6 +14,7 @@ import {
 import SearchSidebar from './SearchSidebar';
 import { supabase } from '@/integrations/supabase/client';
 import logo from '@/assets/logo.png';
+import { FEATURED_CATEGORY } from '@/config/featuredCategory';
 
 interface HeaderProps {
   isAdminRoute?: boolean;
@@ -58,7 +59,11 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
         .select('*')
         .eq('is_active', true)
         .order('name');
-      if (catData) setCategories(catData);
+      if (catData) {
+        const pinned = catData.filter(c => c.name === FEATURED_CATEGORY);
+        const rest = catData.filter(c => c.name !== FEATURED_CATEGORY);
+        setCategories([...pinned, ...rest]);
+      }
 
       // 2. Mock Collections (Adapted for Rajluxmi Sweets)
       const mockCollections = [
@@ -98,15 +103,38 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
             {/* Arrow pointer */}
             <div className="absolute -top-2 left-6 w-4 h-4 bg-[#FFFDF7] border-t border-l border-[#D4B6A2]/30 rotate-45"></div>
 
-            {items.map((item, idx) => (
-              <div
-                key={idx}
-                onClick={() => onSelect(item.slug || item.name)}
-                className="px-6 py-3 text-xs font-kugile font-normal tracking-widest text-[#5C4638] hover:text-[#783838] hover:bg-[#E5D8C6]/20 transition-colors uppercase cursor-pointer relative z-10"
-              >
-                {item.name}
-              </div>
-            ))}
+            {items.map((item, idx) => {
+              const isHoliSpecial = item.name === FEATURED_CATEGORY;
+              return (
+                <div
+                  key={idx}
+                  onClick={() => onSelect(item.slug || item.name)}
+                  className={`px-6 py-3 text-xs font-kugile font-normal tracking-widest uppercase transition-colors cursor-pointer relative z-10 ${isHoliSpecial
+                    ? 'hover:bg-gradient-to-r hover:from-pink-50 hover:to-orange-50 border-l-2 border-transparent hover:border-pink-400'
+                    : 'text-[#5C4638] hover:text-[#783838] hover:bg-[#E5D8C6]/20'
+                    }`}
+                  style={isHoliSpecial ? {
+                    background: 'linear-gradient(90deg, #fff5f5, #fff8f0)',
+                    borderLeft: '3px solid transparent',
+                    borderImage: 'linear-gradient(180deg, #FF6B6B, #FF8E53, #FFC107, #4CAF50, #2196F3, #9C27B0) 1',
+                  } : {}}
+                >
+                  {isHoliSpecial ? (
+                    <span style={{
+                      background: 'linear-gradient(90deg, #FF6B6B, #FF8E53, #FFC107, #4CAF50, #2196F3, #9C27B0)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      backgroundClip: 'text',
+                      fontWeight: '600',
+                    }}>
+                      🎨 {item.name}
+                    </span>
+                  ) : (
+                    item.name
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

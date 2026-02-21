@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Plus, Star, Eye, Heart, ShoppingBag } from 'lucide-react';
 import { useStore, Product as StoreProduct } from '../store/useStore';
 import { formatPrice } from '../utils/currency';
+import { FEATURED_CATEGORY } from '@/config/featuredCategory';
 
 interface Product {
   id: string;
@@ -209,6 +210,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
 
         {/* Badges - Minimal & Squared */}
         <div className="absolute top-0 left-0 flex flex-col gap-1 p-2">
+          {/* Featured Festival Tag */}
+          {product.category === FEATURED_CATEGORY && (
+            <span className="bg-[#4A1C1F] text-white px-2 py-0.5 text-[9px] uppercase tracking-wider font-medium">
+              {FEATURED_CATEGORY}
+            </span>
+          )}
           {product.isBestSeller && (
             <span className="bg-[#2C1810] text-white px-2 py-0.5 text-[9px] uppercase tracking-wider font-medium">
               Best Seller
