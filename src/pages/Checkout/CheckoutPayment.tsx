@@ -40,7 +40,7 @@ const CheckoutPayment = ({
       <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
         {/* Online Payment Card */}
-        {settings.razorpay_enabled && (
+        {settings.cashfree_enabled && (
           <Label
             htmlFor="online"
             className={`relative flex flex-col p-6 cursor-pointer border rounded-lg transition-all duration-300 ${paymentMethod === 'online'
@@ -64,7 +64,7 @@ const CheckoutPayment = ({
 
             <div className="mt-4 flex items-center text-xs text-[#2C1810] font-medium bg-white/50 w-fit px-2 py-1 rounded border border-[#E6D5B8]">
               <ShieldCheck className="h-3 w-3 mr-1 text-green-600" />
-              Secured by Razorpay
+              Secured by Cashfree
             </div>
           </Label>
         )}

@@ -13,7 +13,7 @@ export function isValidEmail(email: string): boolean {
 export function isValidPhone(phone: string): boolean {
   // Remove all non-digit characters
   const cleanPhone = phone.replace(/\D/g, '');
-  
+
   // Check if it's a valid Indian mobile number
   // Should be 10 digits starting with 6, 7, 8, or 9
   // Or 11 digits starting with 0
@@ -25,7 +25,7 @@ export function isValidPhone(phone: string): boolean {
   } else if (cleanPhone.length === 12) {
     return /^91[6-9]/.test(cleanPhone);
   }
-  
+
   return false;
 }
 
@@ -141,7 +141,7 @@ export function validateAddressDetails(address: AddressDetails): ValidationResul
 // Format phone number for display
 export function formatPhoneNumber(phone: string): string {
   const cleanPhone = phone.replace(/\D/g, '');
-  
+
   if (cleanPhone.length === 10) {
     return `+91 ${cleanPhone.slice(0, 5)} ${cleanPhone.slice(5)}`;
   } else if (cleanPhone.length === 11 && cleanPhone.startsWith('0')) {
@@ -149,7 +149,7 @@ export function formatPhoneNumber(phone: string): string {
   } else if (cleanPhone.length === 12 && cleanPhone.startsWith('91')) {
     return `+${cleanPhone.slice(0, 2)} ${cleanPhone.slice(2, 7)} ${cleanPhone.slice(7)}`;
   }
-  
+
   return phone;
 }
 
@@ -206,7 +206,7 @@ export function validatePaymentMethod(
     }
   }
 
-  if (paymentMethod === 'online' && !settings.razorpay_enabled) {
+  if (paymentMethod === 'online' && !settings.cashfree_enabled) {
     errors.push('Online payment is not available');
   }
 

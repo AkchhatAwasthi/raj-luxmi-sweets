@@ -83,8 +83,5 @@ double_confirm_changes = true
 # If enabled, users need to confirm their email address before signing in.
 enable_confirmations = false
 
-[functions.create-razorpay-order]
-verify_jwt = true
-
-[functions.verify-razorpay-payment]
-verify_jwt = true
+[functions.create-cashfree-order]
+verify_jwt = false

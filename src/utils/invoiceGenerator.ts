@@ -4,71 +4,71 @@
  */
 
 interface InvoiceData {
-  invoice_number: string;
-  order_number: string;
-  invoice_date: string;
-  due_date: string;
-  order_date: string;
-  store_info: {
-    store_name: string;
-    store_address: string;
-    store_phone: string;
-    store_email: string;
-    currency_symbol: string;
-  };
-  customer_info: {
-    name: string;
-    email: string;
-    phone: string;
-  };
-  delivery_address: {
-    plotNumber?: string;
-    buildingName?: string;
-    street?: string;
-    landmark?: string;
-    pincode?: string;
-    complete_address?: string;
-    // Location fields removed - manual address entry only
-  };
-  items: any[];
-  pricing: {
-    subtotal: number;
-    tax: number;
-    delivery_fee: number;
-    cod_fee: number;
-    discount: number;
-    total: number;
-  };
-  payment_info: {
-    method: string;
-    status: string;
-    razorpay_payment_id?: string;
-  };
-  order_status: string;
-  coupon_code?: string;
-  special_instructions?: string;
+    invoice_number: string;
+    order_number: string;
+    invoice_date: string;
+    due_date: string;
+    order_date: string;
+    store_info: {
+        store_name: string;
+        store_address: string;
+        store_phone: string;
+        store_email: string;
+        currency_symbol: string;
+    };
+    customer_info: {
+        name: string;
+        email: string;
+        phone: string;
+    };
+    delivery_address: {
+        plotNumber?: string;
+        buildingName?: string;
+        street?: string;
+        landmark?: string;
+        pincode?: string;
+        complete_address?: string;
+        // Location fields removed - manual address entry only
+    };
+    items: any[];
+    pricing: {
+        subtotal: number;
+        tax: number;
+        delivery_fee: number;
+        cod_fee: number;
+        discount: number;
+        total: number;
+    };
+    payment_info: {
+        method: string;
+        status: string;
+        cf_payment_id?: string;
+    };
+    order_status: string;
+    coupon_code?: string;
+    special_instructions?: string;
 }
 
 // Generate HTML invoice template
 export function generateInvoiceHTML(data: InvoiceData): string {
-  const {
-    invoice_number,
-    order_number,
-    invoice_date,
-    due_date,
-    order_date,
-    store_info,
-    customer_info,
-    delivery_address,
-    items,
-    pricing,
-    payment_info,
-    order_status,
-    coupon_code,
-    special_instructions
-  } = data;
+    const {
+        invoice_number,
+        order_number,
+        invoice_date,
+        due_date,
+        order_date,
+        store_info,
+        customer_info,
+        delivery_address,
+        items,
+        pricing,
+        payment_info,
+        order_status,
+        coupon_code,
+        special_instructions
+    } = data;
 
-  return `
+    return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -536,7 +536,7 @@ export function generateInvoiceHTML(data: InvoiceData): string {
                     <h3>Payment Information</h3>
                     <p><strong>Payment Method:</strong> ${payment_info.method.toUpperCase()}</p>
                     <p><strong>Payment Status:</strong> <span class="status-badge status-${payment_info.status}">${payment_info.status}</span></p>
-                    ${payment_info.razorpay_payment_id ? `<p><strong>Transaction ID:</strong> ${payment_info.razorpay_payment_id}</p>` : ''}
+                    ${payment_info.cf_payment_id ? `<p><strong>Transaction ID:</strong> ${payment_info.cf_payment_id}</p>` : ''}
                 </div>
                 
                 <div class="info-section">
@@ -565,66 +565,66 @@ export function generateInvoiceHTML(data: InvoiceData): string {
 
 // Generate and download PDF invoice
 export async function downloadInvoice(invoiceData: InvoiceData): Promise<void> {
-  try {
-    // Generate HTML content
-    const htmlContent = generateInvoiceHTML(invoiceData);
-    
-    // Create a new window for printing
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      throw new Error('Unable to open print window. Please allow popups.');
+    try {
+        // Generate HTML content
+        const htmlContent = generateInvoiceHTML(invoiceData);
+
+        // Create a new window for printing
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            throw new Error('Unable to open print window. Please allow popups.');
+        }
+
+        // Write HTML content to the new window
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+
+        // Wait for content to load, then trigger print
+        printWindow.onload = () => {
+            setTimeout(() => {
+                printWindow.print();
+                // Close the window after printing (optional)
+                // printWindow.close();
+            }, 500);
+        };
+
+    } catch (error) {
+        console.error('Error generating invoice:', error);
+        throw new Error('Failed to generate invoice. Please try again.');
     }
-    
-    // Write HTML content to the new window
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
-    
-    // Wait for content to load, then trigger print
-    printWindow.onload = () => {
-      setTimeout(() => {
-        printWindow.print();
-        // Close the window after printing (optional)
-        // printWindow.close();
-      }, 500);
-    };
-    
-  } catch (error) {
-    console.error('Error generating invoice:', error);
-    throw new Error('Failed to generate invoice. Please try again.');
-  }
 }
 
 // Alternative method using HTML5 download
 export function downloadInvoiceHTML(invoiceData: InvoiceData): void {
-  const htmlContent = generateInvoiceHTML(invoiceData);
-  const blob = new Blob([htmlContent], { type: 'text/html' });
-  const url = URL.createObjectURL(blob);
-  
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `invoice-${invoiceData.invoice_number}.html`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  
-  URL.revokeObjectURL(url);
+    const htmlContent = generateInvoiceHTML(invoiceData);
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `invoice-${invoiceData.invoice_number}.html`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
 }
 
 // Format currency for display
 export function formatCurrency(amount: number, symbol: string = '₹'): string {
-  return `${symbol}${amount.toFixed(2)}`;
+    return `${symbol}${amount.toFixed(2)}`;
 }
 
 // Validate invoice data
 export function validateInvoiceData(data: any): data is InvoiceData {
-  return (
-    data &&
-    data.invoice_number &&
-    data.order_number &&
-    data.store_info &&
-    data.customer_info &&
-    data.items &&
-    Array.isArray(data.items) &&
-    data.pricing
-  );
+    return (
+        data &&
+        data.invoice_number &&
+        data.order_number &&
+        data.store_info &&
+        data.customer_info &&
+        data.items &&
+        Array.isArray(data.items) &&
+        data.pricing
+    );
 }

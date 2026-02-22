@@ -52,8 +52,8 @@ interface OrderDetail {
   trackingNumber?: string;
   notes?: string;
   couponCode?: string;
-  razorpayPaymentId?: string;
-  razorpayOrderId?: string;
+  cfPaymentId?: string;
+  cfOrderId?: string;
 }
 
 const UserOrderDetail = () => {
@@ -100,7 +100,7 @@ const UserOrderDetail = () => {
         const addressDetails = data.address_details as any;
         const deliveryLocation = data.delivery_location as any;
         const orderItems = data.items as any;
-        
+
         const orderDetail: OrderDetail = {
           id: data.id,
           orderNumber: data.order_number,
@@ -134,8 +134,8 @@ const UserOrderDetail = () => {
           trackingNumber: data.tracking_url,
           notes: data.special_instructions,
           couponCode: data.coupon_code,
-          razorpayPaymentId: data.razorpay_payment_id,
-          razorpayOrderId: data.razorpay_order_id
+          cfPaymentId: (data as any).cf_payment_id,
+          cfOrderId: (data as any).cf_order_id
         };
         setOrder(orderDetail);
       }
@@ -230,7 +230,7 @@ const UserOrderDetail = () => {
               </p>
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-3">
             <Badge className={getStatusColor(order.status)}>
               {order.status}
@@ -286,7 +286,7 @@ const UserOrderDetail = () => {
                       <span className="text-sm">Item Total ({order.items.length} items)</span>
                       <span className="text-sm">₹{order.subtotal.toLocaleString('en-IN')}</span>
                     </div>
-                    
+
                     <div className="flex justify-between">
                       <span className="text-sm">Delivery Fee</span>
                       <span className="text-sm">
@@ -329,7 +329,7 @@ const UserOrderDetail = () => {
                   </div>
 
                   <Separator />
-                  
+
                   <div className="flex justify-between items-center font-bold text-lg">
                     <span>Total Amount</span>
                     <span className="text-primary">₹{order.total.toLocaleString('en-IN')}</span>
@@ -348,16 +348,16 @@ const UserOrderDetail = () => {
                         {order.paymentStatus}
                       </Badge>
                     </div>
-                    
+
                     {order.paymentMethod === 'cod' && order.paymentStatus === 'pending' && (
                       <p className="text-xs text-gray-600 mt-2">
                         Please keep ₹{order.total.toLocaleString('en-IN')} ready for delivery
                       </p>
                     )}
-                    
-                    {order.razorpayPaymentId && (
+
+                    {order.cfPaymentId && (
                       <p className="text-xs text-gray-600 mt-2">
-                        Payment ID: {order.razorpayPaymentId}
+                        Payment ID: {order.cfPaymentId}
                       </p>
                     )}
                   </div>
@@ -382,7 +382,7 @@ const UserOrderDetail = () => {
                       <p className="text-sm text-muted-foreground">{formatDate(order.orderDate)}</p>
                     </div>
                   </div>
-                  
+
                   {['confirmed', 'processing', 'shipped', 'delivered'].includes(order.status) && (
                     <div className="flex items-center space-x-3">
                       <Package className="w-5 h-5 text-blue-500" />
@@ -452,7 +452,7 @@ const UserOrderDetail = () => {
                     </p>
                   )}
                 </div>
-                
+
                 {/* Map Location */}
                 {order.shippingAddress.mapAddress && (
                   <div className="border-t pt-4">
@@ -491,23 +491,23 @@ const UserOrderDetail = () => {
                     <span className="text-sm">Payment Method</span>
                     <span className="text-sm font-medium uppercase">{order.paymentMethod}</span>
                   </div>
-                  
+
                   <div className="flex justify-between">
                     <span className="text-sm">Payment Status</span>
                     <Badge className={getPaymentStatusColor(order.paymentStatus)}>
                       {order.paymentStatus}
                     </Badge>
                   </div>
-                  
+
                   <div className="flex justify-between">
                     <span className="text-sm">Total Amount</span>
                     <span className="text-sm font-bold">₹{order.total.toLocaleString('en-IN')}</span>
                   </div>
 
-                  {order.razorpayPaymentId && (
+                  {order.cfPaymentId && (
                     <div className="pt-2 border-t">
                       <p className="text-xs text-muted-foreground">
-                        Payment ID: {order.razorpayPaymentId}
+                        Payment ID: {order.cfPaymentId}
                       </p>
                     </div>
                   )}
@@ -528,7 +528,7 @@ const UserOrderDetail = () => {
                   <Mail className="w-4 h-4 text-muted-foreground" />
                   <span className="text-sm">{order.customerEmail}</span>
                 </div>
-                
+
                 <div className="flex items-center space-x-3">
                   <Phone className="w-4 h-4 text-muted-foreground" />
                   <span className="text-sm">{order.customerPhone}</span>

@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useStore } from '@/store/useStore';
 import { formatPrice } from '@/utils/currency';
-import { initiateRazorpayPayment, OrderData } from '@/utils/razorpay';
+import { initiateCashfreePayment, CashfreeOrderData } from '@/utils/cashfree';
 
 import AddressManager from '@/components/AddressManager';
 import Stepper from '@/components/Stepper';
@@ -593,7 +593,7 @@ const Checkout = () => {
 
         clearCart();
       } else {
-        const razorpayOrderData: OrderData = {
+        const cashfreeOrderData: CashfreeOrderData = {
           orderId: orderNumber,
           amount: Math.round(total),
           currency: 'INR',
@@ -601,21 +601,19 @@ const Checkout = () => {
           customerInfo,
           deliveryAddress: {
             address: completeAddress,
-            lat: 0,
-            lng: 0
           }
         };
 
-        await initiateRazorpayPayment(
-          razorpayOrderData,
+        await initiateCashfreePayment(
+          cashfreeOrderData,
           async (response) => {
             try {
               const onlineOrderData = {
                 ...orderData,
                 payment_status: 'paid',
                 order_status: 'confirmed',
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id
+                cf_order_id: response.cf_order_id,
+                cf_payment_id: response.cf_payment_id
               };
 
               const { data: savedOrder, error: dbError } = await supabase
