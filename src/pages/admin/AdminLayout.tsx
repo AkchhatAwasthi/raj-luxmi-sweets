@@ -15,7 +15,8 @@ import {
   Image,
   MessageCircle,
   Candy,
-  Gift
+  Gift,
+  Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -38,6 +39,8 @@ const AdminLayout = () => {
     { name: 'Best Sellers', href: '/admin/bestsellers', icon: Star },
     { name: 'Mithai Specials', href: '/admin/mithai-specials', icon: Candy },
     { name: 'Festive Specials', href: '/admin/festive-specials', icon: Gift },
+    { name: 'Holi – Gujiya', href: '/admin/holi-gujiya', icon: Sparkles },
+    { name: 'Holi – Namkeen', href: '/admin/holi-namkeen', icon: Sparkles },
     { name: 'Instagram Posts', href: '/admin/instagram-posts', icon: Image },
     { name: 'Testimonials', href: '/admin/testimonials', icon: MessageCircle },
     { name: 'Settings', href: '/admin/settings', icon: Settings },

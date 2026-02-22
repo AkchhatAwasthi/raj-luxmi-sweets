@@ -40,6 +40,8 @@ import InstagramPosts from '@/pages/admin/InstagramPosts';
 import Testimonials from '@/pages/admin/Testimonials';
 import MithaiSpecialsAdmin from '@/pages/admin/MithaiSpecials';
 import FestiveSpecialsAdmin from '@/pages/admin/FestiveSpecials';
+import HoliGujiyaAdmin from '@/pages/admin/HoliGujiya';
+import HoliNamkeenAdmin from '@/pages/admin/HoliNamkeen';
 
 // Protected Route Component
 function ProtectedRoute({ children, requireAdmin = false }: { children: React.ReactNode; requireAdmin?: boolean }) {
@@ -137,6 +139,8 @@ const AppContent = () => {
               <Route path="bestsellers" element={<BestSellers />} />
               <Route path="mithai-specials" element={<MithaiSpecialsAdmin />} />
               <Route path="festive-specials" element={<FestiveSpecialsAdmin />} />
+              <Route path="holi-gujiya" element={<HoliGujiyaAdmin />} />
+              <Route path="holi-namkeen" element={<HoliNamkeenAdmin />} />
               <Route path="instagram-posts" element={<InstagramPosts />} />
               <Route path="testimonials" element={<Testimonials />} />
               <Route path="analytics" element={<Analytics />} />

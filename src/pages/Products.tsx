@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Filter, Grid, List, Search, Cookie, X, Candy, ChevronLeft, LayoutGrid } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import ProductCard from '../components/ProductCard';
@@ -9,6 +9,12 @@ import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { scrollToTopInstant } from '@/utils/scrollToTop';
 import { Button } from '@/components/ui/button';
+
+const HOLI_SPECIAL_CATEGORY = 'Holi Special';
+const HOLI_TABS = [
+  { id: 'gujiya', label: 'Gujiya', emoji: '🍮', settingKey: 'holi_gujiya_ids' },
+  { id: 'namkeen', label: 'Namkeen', emoji: '🥨', settingKey: 'holi_namkeen_ids' },
+];
 
 const Products = () => {
   const { selectedCategory, setSelectedCategory } = useStore();
@@ -21,6 +27,13 @@ const Products = () => {
   const [loading, setLoading] = useState(true);
   const [totalProducts, setTotalProducts] = useState(0);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [activeHoliTab, setActiveHoliTab] = useState<string | null>(null);
+
+  // Determine if we're on the Holi Special page
+  const isHoliSpecial = useMemo(() => {
+    const categoryParam = searchParams.get('category');
+    return categoryParam === HOLI_SPECIAL_CATEGORY;
+  }, [searchParams]);
 
   // Calculate initial filters from URL params to prevent flash
   const initialFilters = useMemo(() => {
@@ -114,13 +127,23 @@ const Products = () => {
     // We don't call fetchProducts here because updating filters will trigger the other useEffect
   }, [searchParams]);
 
+  // Auto-select first Holi tab when entering Holi Special page, reset when leaving
+  useEffect(() => {
+    if (isHoliSpecial) {
+      // Default to gujiya tab if no tab is active
+      setActiveHoliTab(prev => prev ?? 'gujiya');
+    } else {
+      setActiveHoliTab(null);
+    }
+  }, [isHoliSpecial]);
+
   // Reset pagination when filters change
   useEffect(() => {
     setPage(1);
     setHasMore(true);
     setProducts([]);
     fetchProducts(1);
-  }, [searchTerm, filters]); // Removed selectedCategory - it's already in filters.categories
+  }, [searchTerm, filters, activeHoliTab]); // Removed selectedCategory - it's already in filters.categories
 
   const fetchProducts = async (pageNum = 1) => {
     if (pageNum === 1) {
@@ -130,19 +153,56 @@ const Products = () => {
     }
 
     try {
+      // ── Holi tab active: fetch by curated product IDs from settings ──────
+      if (isHoliSpecial && activeHoliTab) {
+        const activeTab = HOLI_TABS.find(t => t.id === activeHoliTab);
+        if (activeTab) {
+          const { data: settingsData } = await supabase
+            .from('settings')
+            .select('value')
+            .eq('key', activeTab.settingKey)
+            .maybeSingle();
+
+          const productIds: string[] = (settingsData?.value as any)?.product_ids || [];
+
+          if (productIds.length === 0) {
+            setProducts([]);
+            setTotalProducts(0);
+            setHasMore(false);
+            return;
+          }
+
+          const { data, error } = await supabase
+            .from('products')
+            .select(`*, categories(id, name)`)
+            .in('id', productIds)
+            .eq('is_active', true);
+
+          if (error) throw error;
+
+          // Preserve the admin-defined order
+          const ordered = productIds
+            .map(id => data?.find((p: any) => p.id === id))
+            .filter(Boolean) as any[];
+
+          setProducts(pageNum === 1 ? ordered : prev => [...prev, ...ordered]);
+          setTotalProducts(ordered.length);
+          setHasMore(false); // curated lists show all at once
+          return;
+        }
+      }
+
+      // ── Normal filtering (non-Holi tab) ──────────────────────────────────
       // First, get the total count
       let countQuery = supabase
         .from('products')
         .select('*', { count: 'exact', head: true })
         .eq('is_active', true);
 
-      // Apply search term filter
       if (searchTerm) {
         countQuery = countQuery.ilike('name', `%${searchTerm}%`);
       }
 
-      // Apply category filters (Primary source of truth now)
-      // Check filters.categories first
       if (filters && filters.categories.length > 0) {
         const { data: categoryData } = await supabase
           .from('categories')
@@ -153,64 +213,36 @@ const Products = () => {
           countQuery = countQuery.in('category_id', categoryData.map(c => c.id));
         }
       }
-      // Fallback to selectedCategory if filters are empty but selectedCategory is set (e.g. from Store/Header)
-      // AND we haven't just cleared the filters (which would imply we want 'All')
-      // To keep it simple: We prioritize filters.categories. 
-      // If filters.categories is empty, we show All. 
-      // We essentially ignore standalone 'selectedCategory' for querying to avoid "ghost" filters.
-
-      // Removed legacy single category check
 
       if (filters.priceRange[0] > 0) countQuery = countQuery.gte('price', filters.priceRange[0]);
       if (filters.priceRange[1] < 10000) countQuery = countQuery.lte('price', filters.priceRange[1]);
       if (filters.inStock) countQuery = countQuery.gt('stock_quantity', 0);
       if (filters.isBestseller) countQuery = countQuery.eq('is_bestseller', true);
-
-      // New Arrival Filter (Based on Flag)
-      if (filters.isNewArrival) {
-        countQuery = countQuery.eq('new_arrival', true);
-      }
+      if (filters.isNewArrival) countQuery = countQuery.eq('new_arrival', true);
 
       const { count, error: countError } = await countQuery;
-
-      if (!countError) {
-        setTotalProducts(count || 0);
-      }
+      if (!countError) setTotalProducts(count || 0);
 
       // Now fetch the paginated data
       let query = supabase
         .from('products')
-        .select(`
-          *,
-          categories (
-            id,
-            name
-          )
-        `)
+        .select(`*, categories(id, name)`)
         .eq('is_active', true)
         .range((pageNum - 1) * 10, pageNum * 10 - 1);
 
-
       if (searchTerm) query = query.ilike('name', `%${searchTerm}%`);
 
-      // Apply category filters
       if (filters && filters.categories.length > 0) {
         const { data: categoryData } = await supabase.from('categories').select('id').in('name', filters.categories);
         if (categoryData && categoryData.length > 0) query = query.in('category_id', categoryData.map(c => c.id));
       }
 
-      // Removed legacy single category check
-
       if (filters.priceRange[0] > 0) query = query.gte('price', filters.priceRange[0]);
       if (filters.priceRange[1] < 10000) query = query.lte('price', filters.priceRange[1]);
       if (filters.inStock) query = query.gt('stock_quantity', 0);
       if (filters.isBestseller) query = query.eq('is_bestseller', true);
+      if (filters.isNewArrival) query = query.eq('new_arrival', true);
 
-      if (filters.isNewArrival) {
-        query = query.eq('new_arrival', true);
-      }
-
-      // Apply sorting
       const sortOption = filters.sortBy || sortBy;
       switch (sortOption) {
         case 'name-desc': query = query.order('name', { ascending: false }); break;
@@ -336,6 +368,70 @@ const Products = () => {
 
           {/* Product Grid Area (Right/Center) */}
           <div className="flex-1">
+
+            {/* Holi Special Sub-Category Tabs */}
+            <AnimatePresence>
+              {isHoliSpecial && (
+                <motion.div
+                  initial={{ opacity: 0, y: -12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.35, ease: 'easeOut' }}
+                  className="mb-8"
+                >
+                  {/* Tab bar — royal maroon/gold theme */}
+                  <div
+                    className="flex items-center"
+                    style={{
+                      border: '1px solid #D4C3A3',
+                      background: '#FFFDF7',
+                      boxShadow: '0 2px 12px rgba(139, 33, 49, 0.07)',
+                    }}
+                  >
+                    {HOLI_TABS.map((tab, index) => (
+                      <button
+                        key={tab.id}
+                        id={`holi-tab-${tab.id}`}
+                        onClick={() => setActiveHoliTab(tab.id)}
+                        className="relative flex-1 flex items-center justify-center gap-2.5 py-3.5 px-6 text-xs uppercase tracking-[0.18em] font-medium transition-all duration-300"
+                        style={{
+                          color: activeHoliTab === tab.id ? '#FFFDF7' : '#783838',
+                          background: activeHoliTab === tab.id ? '#8B2131' : 'transparent',
+                          borderRight: index < HOLI_TABS.length - 1 ? '1px solid #D4C3A3' : 'none',
+                          letterSpacing: '0.18em',
+                        }}
+                      >
+                        <span className="text-sm">{tab.emoji}</span>
+                        <span>{tab.label}</span>
+                        {/* Active underline accent */}
+                        {activeHoliTab === tab.id && (
+                          <motion.span
+                            layoutId="holi-tab-underline"
+                            className="absolute bottom-0 left-0 right-0 h-[2px]"
+                            style={{ background: '#D4C3A3' }}
+                            transition={{ type: 'spring', stiffness: 400, damping: 35 }}
+                          />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Subtle label */}
+                  <motion.p
+                    key={activeHoliTab}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.25 }}
+                    className="text-center mt-3 text-[10px] uppercase tracking-[0.22em] font-medium"
+                    style={{ color: '#9B4E4E' }}
+                  >
+                    {activeHoliTab
+                      ? `Showing ${HOLI_TABS.find(t => t.id === activeHoliTab)?.label} collection`
+                      : ''}
+                  </motion.p>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* View Controls - Minimalist & Royal Font */}
             <div className="flex justify-between items-center mb-6 border-b border-[#D4C3A3]/30 pb-4">
