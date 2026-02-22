@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import holiBanner from '@/assets/holi-banner.png';
+import holiBanner from '@/assets/holi (1).png';
 import { FEATURED_CATEGORY } from '@/config/featuredCategory';
 
 const CuratedGiftingHero = () => {
