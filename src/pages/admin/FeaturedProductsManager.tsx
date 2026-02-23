@@ -112,6 +112,7 @@ const FeaturedProductsManager = ({ title, description, settingKey }: FeaturedPro
                     .from('settings')
                     .update({
                         value: { product_ids: selectedProductIds },
+                        is_public: true,     // ← required so non-admin users can read via RLS
                         updated_at: new Date().toISOString()
                     })
                     .eq('key', settingKey);
@@ -122,7 +123,8 @@ const FeaturedProductsManager = ({ title, description, settingKey }: FeaturedPro
                     .insert({
                         key: settingKey,
                         value: { product_ids: selectedProductIds },
-                        description: `Featured products for ${title}`
+                        description: `Featured products for ${title}`,
+                        is_public: true      // ← required so non-admin users can read via RLS
                     });
                 if (error) throw error;
             }

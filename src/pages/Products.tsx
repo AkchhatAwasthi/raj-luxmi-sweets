@@ -27,7 +27,12 @@ const Products = () => {
   const [loading, setLoading] = useState(true);
   const [totalProducts, setTotalProducts] = useState(0);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-  const [activeHoliTab, setActiveHoliTab] = useState<string | null>(null);
+  // Initialize activeHoliTab synchronously from URL so the very first fetchProducts
+  // call already uses the correct tab — prevents the null→'gujiya' race condition
+  const [activeHoliTab, setActiveHoliTab] = useState<string | null>(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('category') === HOLI_SPECIAL_CATEGORY ? 'gujiya' : null;
+  });
 
   // Determine if we're on the Holi Special page
   const isHoliSpecial = useMemo(() => {
@@ -127,10 +132,10 @@ const Products = () => {
     // We don't call fetchProducts here because updating filters will trigger the other useEffect
   }, [searchParams]);
 
-  // Auto-select first Holi tab when entering Holi Special page, reset when leaving
+  // Reset/re-initialize activeHoliTab when navigating in/out of Holi Special page
   useEffect(() => {
     if (isHoliSpecial) {
-      // Default to gujiya tab if no tab is active
+      // Only set to gujiya if currently null (don't override if user already clicked a tab)
       setActiveHoliTab(prev => prev ?? 'gujiya');
     } else {
       setActiveHoliTab(null);
