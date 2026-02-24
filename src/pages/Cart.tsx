@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useStore } from '@/store/useStore';
 import { formatPrice } from '@/utils/currency';
 import { useSettings } from '@/hooks/useSettings';
-import { toNumber, formatCurrency, calculatePercentage, meetsThreshold } from '@/utils/settingsHelpers';
+import { toNumber, formatCurrency } from '@/utils/settingsHelpers';
+import { totalCartWeightKg } from '@/utils/deliveryCalculator';
 
 const Cart = () => {
   const { cartItems, updateQuantity, removeFromCart } = useStore();
@@ -35,17 +36,18 @@ const Cart = () => {
   }
 
   const subtotal = cartItems.reduce((sum, item) => sum + (toNumber(item.price) * toNumber(item.quantity)), 0);
-  // const tax = calculatePercentage(subtotal, settings.tax_rate);
   const tax = 0; // Tax removed as per requirement
 
-  // Delivery fee calculation based on settings
-  const deliveryFee = meetsThreshold(subtotal, settings.free_delivery_threshold) ? 0 : toNumber(settings.delivery_charge);
+  // Delivery fee is dynamic (calculated at checkout based on location/weight)
+  // Cart page shows a preview — actual fee set during checkout address step
+  const deliveryFee = 0; // shown as 'calculated at checkout'
   const total = subtotal + tax + deliveryFee;
 
-  // Check if minimum order amount is met
-  const minOrderAmount = toNumber(settings.min_order_amount);
-  const isMinOrderMet = subtotal >= minOrderAmount;
-  const minOrderShortfall = Math.max(0, minOrderAmount - subtotal);
+  // Weight-based MOQ: minimum 1 kg within Lucknow
+  const totalWeightKg = totalCartWeightKg(cartItems);
+  const MOQ_KG = 1; // minimum 1 kg (Lucknow default; 5 kg for outside shown at checkout)
+  const isMinOrderMet = totalWeightKg >= MOQ_KG;
+  const minOrderShortfallKg = Math.max(0, MOQ_KG - totalWeightKg);
 
   if (cartItems.length === 0) {
     return (
@@ -185,22 +187,14 @@ const Cart = () => {
                     <span className="font-normal text-[#2C1810] font-instrument">{formatPrice(subtotal)}</span>
                   </div>
 
-                  {tax > 0 && (
-                    <div className="flex justify-between text-[#5D4037]">
-                      <span>Tax ({toNumber(settings.tax_rate).toFixed(0)}%)</span>
-                      <span className="font-normal text-[#2C1810] font-instrument">{formatPrice(tax)}</span>
-                    </div>
-                  )}
+                  <div className="flex justify-between text-[#5D4037]">
+                    <span>Total Weight</span>
+                    <span className="font-normal text-[#2C1810] font-instrument">{totalWeightKg.toFixed(2)} kg</span>
+                  </div>
 
                   <div className="flex justify-between text-[#5D4037]">
                     <span>Delivery Fee</span>
-                    <span className="font-normal text-[#2C1810] font-instrument">
-                      {deliveryFee === 0 ? (
-                        <span className="text-[#38A169] font-bold tracking-wide">FREE</span>
-                      ) : (
-                        formatPrice(deliveryFee)
-                      )}
-                    </span>
+                    <span className="font-normal text-[#8B2131] font-instrument text-xs italic">Calculated at checkout</span>
                   </div>
                 </div>
 
@@ -235,14 +229,14 @@ const Cart = () => {
                   </p>
                 </div>
 
-                {/* Minimum Order Validation */}
+                {/* Weight-based Minimum Order Validation */}
                 {!isMinOrderMet && (
                   <div className="bg-[#FFFAF0] border border-[#FEEBC8] rounded-sm p-4 animate-pulse">
                     <p className="text-sm text-[#C05621] font-bold text-center">
-                      Minimum order: {formatCurrency(minOrderAmount, settings.currency_symbol)}
+                      Minimum order: {MOQ_KG} kg
                     </p>
                     <p className="text-xs text-[#C05621] mt-1 text-center">
-                      Please add items worth {formatPrice(minOrderShortfall)} more.
+                      Your cart: {totalWeightKg.toFixed(2)} kg — add {minOrderShortfallKg.toFixed(2)} kg more.
                     </p>
                   </div>
                 )}
@@ -274,7 +268,7 @@ const Cart = () => {
             {!isMinOrderMet && (
               <div className="bg-[#FFFAF0] border border-[#FEEBC8] rounded-sm p-2 mb-3 text-center">
                 <p className="text-xs text-[#C05621] font-medium">
-                  Add {formatPrice(minOrderShortfall)} more to checkout
+                  Add {minOrderShortfallKg.toFixed(2)} kg more to checkout
                 </p>
               </div>
             )}

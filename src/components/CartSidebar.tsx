@@ -65,10 +65,9 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isAdminRoute = false }) => {
 
   const tax = 0; // Tax removed as per requirement
 
-  // For the cart sidebar, we don't have pincode information, so we use standard delivery charge
-  // In a real implementation, you might store the pincode in localStorage or get it from user profile
-  const deliveryFee = meetsThreshold(subtotal, settings.free_delivery_threshold) ? 0 : toNumber(settings.delivery_charge);
-  const total = subtotal + tax + deliveryFee;
+  // Delivery is calculated dynamically at checkout (based on GPS zone + weight)
+  const deliveryFee = 0;
+  const total = subtotal; // delivery added at checkout
 
   const handleCheckout = () => {
     toggleCart();

@@ -19,6 +19,7 @@ import { validateContactInfo, validateAddressDetails, validatePaymentMethod } fr
 import { useSettings } from '@/hooks/useSettings';
 import { toNumber, formatCurrency, calculatePercentage, meetsThreshold } from '@/utils/settingsHelpers';
 import { sendOrderEmailsAsync } from '@/utils/emailService';
+import { calculateDelivery, totalCartWeightKg, type DeliveryResult } from '@/utils/deliveryCalculator';
 
 // Import the new components
 import CheckoutContactInfo from './Checkout/CheckoutContactInfo';
@@ -48,6 +49,10 @@ const Checkout = () => {
 
   // Pincode serviceability is now always true since we removed the API check
   const [isPincodeServiceable, setIsPincodeServiceable] = useState(true);
+
+  // Delivery system state
+  const [customerCoords, setCustomerCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [deliveryResult, setDeliveryResult] = useState<DeliveryResult | null>(null);
 
   // Form validation states
   const [contactErrors, setContactErrors] = useState<string[]>([]);
@@ -228,17 +233,20 @@ const Checkout = () => {
   };
 
   const subtotal = cartItems.reduce((sum, item) => sum + (toNumber(item.price) * toNumber(item.quantity)), 0);
-  // const tax = calculatePercentage(subtotal, settings.tax_rate);
   const tax = 0; // Tax removed as per requirement
 
-  const deliveryFee = meetsThreshold(subtotal, settings.free_delivery_threshold) ? 0 : toNumber(settings.delivery_charge);
+  // Weight-based delivery fee (from deliveryResult calculated in address step)
+  const deliveryFee = deliveryResult ? deliveryResult.deliveryFee : 0;
   const estimatedDeliveryTime = `${settings.delivery_time_estimate || '3-5 business days'}`;
 
   const codFee = paymentMethod === 'cod' ? toNumber(settings.cod_charge) : 0;
   const total = subtotal + tax + deliveryFee + codFee - discount;
 
-  const isMinOrderMet = subtotal >= toNumber(settings.min_order_amount);
-  const minOrderShortfall = Math.max(0, toNumber(settings.min_order_amount) - subtotal);
+  // Weight-based MOQ (replaces amount-based MOQ)
+  const totalWeightKg = totalCartWeightKg(cartItems);
+  const moqKg = deliveryResult ? deliveryResult.moqKg : 1;
+  const isMinOrderMet = deliveryResult ? deliveryResult.isAboveMoq : totalWeightKg >= 1;
+  const minOrderShortfall = Math.max(0, moqKg - totalWeightKg);
 
   const applyCoupon = async () => {
     try {
@@ -848,6 +856,9 @@ const Checkout = () => {
                 cartItems={cartItems}
                 isPincodeServiceable={isPincodeServiceable}
                 setIsPincodeServiceable={setIsPincodeServiceable}
+                onDeliveryResult={(result) => setDeliveryResult(result)}
+                customerCoords={customerCoords}
+                setCustomerCoords={setCustomerCoords}
               />
             )}
 
@@ -952,10 +963,10 @@ const Checkout = () => {
                 <div className="flex justify-between text-[#5D4037] font-inter text-sm">
                   <span className="uppercase tracking-wide">Delivery Fee</span>
                   <span className="font-normal text-[#2C1810]">
-                    {deliveryFee === 0 ? (
-                      <span className="text-[#38A169] font-normal tracking-wide">
-                        FREE
-                      </span>
+                    {!deliveryResult ? (
+                      <span className="text-[#8B2131] italic text-xs">Calculated at checkout</span>
+                    ) : deliveryResult.isFree ? (
+                      <span className="text-[#38A169] font-normal tracking-wide">FREE 🎉</span>
                     ) : (
                       formatPrice(deliveryFee)
                     )}
@@ -1025,17 +1036,17 @@ const Checkout = () => {
                   <span className="text-[#783838]">{formatPrice(total)}</span>
                 </div>
 
-                {/* Minimum Order Warning */}
-                {subtotal < toNumber(settings.min_order_amount) && (
+                {/* Weight-based Minimum Order Warning */}
+                {!isMinOrderMet && (
                   <div className="bg-[#FFFAF0] border border-[#FEEBC8] rounded-sm p-3 mt-3">
                     <div className="flex items-center space-x-2">
                       <span className="text-[#C05621]">⚠️</span>
                       <div>
                         <p className="text-sm text-[#9C4221] font-medium">
-                          Minimum Order: {formatCurrency(settings.min_order_amount, settings.currency_symbol)}
+                          Minimum Order: {moqKg} kg
                         </p>
                         <p className="text-xs text-[#C05621]">
-                          Add {formatCurrency(toNumber(settings.min_order_amount) - subtotal, settings.currency_symbol)} more to proceed
+                          Your cart: {totalWeightKg.toFixed(2)} kg — add {minOrderShortfall.toFixed(2)} kg more to proceed
                         </p>
                       </div>
                     </div>
