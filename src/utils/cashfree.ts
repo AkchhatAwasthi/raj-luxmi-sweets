@@ -109,8 +109,10 @@ export const initiateCashfreePayment = async (
             throw new Error('Cashfree App ID not configured.');
         }
 
-        // 4. Determine environment
-        const environment = import.meta.env.VITE_CASHFREE_ENV === 'production' ? 'production' : 'sandbox';
+        // 4. Auto-detect environment from App ID
+        //    Cashfree TEST keys always start with 'TEST' — live keys never do
+        const environment = appId.startsWith('TEST') ? 'sandbox' : 'production';
+        console.log('Cashfree mode:', environment, '| App ID prefix:', appId.slice(0, 8));
 
         // 5. Initialize Cashfree instance
         const cashfree = await window.Cashfree({ mode: environment });
