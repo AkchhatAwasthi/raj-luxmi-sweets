@@ -63,7 +63,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isAdminRoute = false }) => {
     return total + (price * quantity);
   }, 0);
 
-  const tax = calculatePercentage(subtotal, settings.tax_rate);
+  const tax = 0; // Tax removed as per requirement
 
   // For the cart sidebar, we don't have pincode information, so we use standard delivery charge
   // In a real implementation, you might store the pincode in localStorage or get it from user profile
