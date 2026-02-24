@@ -142,7 +142,7 @@ const CheckoutSummary = ({
                   {paymentMethod === 'cod' ? 'Cash on Delivery' : 'Online Payment'}
                 </p>
                 <p className="text-sm text-[#5D4037]">
-                  {paymentMethod === 'cod' ? 'Pay safely with cash upon delivery' : 'Secure payment via Razorpay'}
+                  {paymentMethod === 'cod' ? 'Pay safely with cash upon delivery' : 'Secure payment via Cashfree'}
                 </p>
               </div>
               <div className="text-[#8B2131]">

@@ -6,7 +6,6 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-    // Handle CORS preflight
     if (req.method === 'OPTIONS') {
         return new Response('ok', { headers: corsHeaders })
     }
@@ -21,7 +20,6 @@ serve(async (req) => {
             customer_phone,
         } = await req.json()
 
-        // Validate required fields
         if (!order_id || !amount || !currency || !customer_name || !customer_email || !customer_phone) {
             return new Response(
                 JSON.stringify({ error: 'Missing required fields' }),
@@ -29,7 +27,6 @@ serve(async (req) => {
             )
         }
 
-        // Get Cashfree credentials from Supabase secrets
         const appId = Deno.env.get('CASHFREE_APP_ID')
         const secretKey = Deno.env.get('CASHFREE_SECRET_KEY')
 
@@ -40,23 +37,43 @@ serve(async (req) => {
             )
         }
 
-        // Cashfree API endpoint — sandbox for test, production for live
-        const cashfreeApiUrl = 'https://sandbox.cashfree.com/pg/orders'
-        // For production use: 'https://api.cashfree.com/pg/orders'
+        // ── Sanitize phone: Cashfree needs exactly 10 digits, no +91, no spaces ──
+        const rawPhone = String(customer_phone).trim()
+        const digitsOnly = rawPhone.replace(/\D/g, '')
+        const cleanPhone = digitsOnly.length === 12 && digitsOnly.startsWith('91')
+            ? digitsOnly.slice(2)
+            : digitsOnly.slice(-10)
+
+        // ── Sanitize order_id: Cashfree only allows letters, numbers, - and _ ──
+        const cleanOrderId = order_id.replace(/[^a-zA-Z0-9_-]/g, '_')
+
+        // ── Sanitize amount: must be a number with max 2 decimal places ──
+        const cleanAmount = Math.round(Number(amount) * 100) / 100
+
+        console.log('Creating Cashfree order:', {
+            order_id: cleanOrderId,
+            amount: cleanAmount,
+            phone: cleanPhone,
+            email: customer_email,
+        })
+
+        // ✅ Production Live API
+        const cashfreeApiUrl = 'https://api.cashfree.com/pg/orders'
+        // For sandbox/test use: 'https://sandbox.cashfree.com/pg/orders'
 
         const orderPayload = {
-            order_id: order_id,
-            order_amount: Number(amount),
-            order_currency: currency,
+            order_id: cleanOrderId,
+            order_amount: cleanAmount,
+            order_currency: currency || 'INR',
             customer_details: {
                 customer_id: `cust_${Date.now()}`,
                 customer_name: customer_name,
                 customer_email: customer_email,
-                customer_phone: customer_phone,
+                customer_phone: cleanPhone,
             },
             order_meta: {
                 return_url: `${Deno.env.get('FRONTEND_URL') || 'https://rajluxmisweets.com'}/order-confirm?order_id={order_id}`,
-                notify_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/cashfree-webhook`,
+                notify_url: `${Deno.env.get('SUPABASE_URL') || ''}/functions/v1/cashfree-webhook`,
             },
         }
 
@@ -72,17 +89,18 @@ serve(async (req) => {
             body: JSON.stringify(orderPayload),
         })
 
+        const responseText = await response.text()
+        console.log('Cashfree API response status:', response.status)
+        console.log('Cashfree API response body:', responseText)
+
         if (!response.ok) {
-            const errorData = await response.text()
-            console.error('Cashfree API Error:', errorData)
             return new Response(
-                JSON.stringify({ error: 'Failed to create Cashfree order', details: errorData }),
+                JSON.stringify({ error: 'Failed to create Cashfree order', details: responseText }),
                 { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             )
         }
 
-        const cashfreeOrder = await response.json()
-        console.log('Cashfree order created:', cashfreeOrder.order_id)
+        const cashfreeOrder = JSON.parse(responseText)
 
         return new Response(
             JSON.stringify({

@@ -20,6 +20,7 @@ export interface AppSettings {
   // Feature Flags
   cod_enabled: boolean;
   razorpay_enabled: boolean;
+  cashfree_enabled: boolean;
   upi_enabled: boolean;
   card_enabled: boolean;
   netbanking_enabled: boolean;
@@ -49,6 +50,7 @@ const defaultSettings: AppSettings = {
   currency_symbol: '₹',
   cod_enabled: false,
   razorpay_enabled: false,
+  cashfree_enabled: false,
   upi_enabled: false,
   card_enabled: false,
   netbanking_enabled: false,
@@ -93,6 +95,7 @@ export const useSettings = () => {
             'currency_symbol',
             'cod_enabled',
             'razorpay_enabled',
+            'cashfree_enabled',
             'store_name',
             'store_phone',
             'store_email',
@@ -147,6 +150,28 @@ export const useSettings = () => {
 
         // Only fill missing keys with defaults, prioritize database values
         const finalSettings = { ...defaultSettings, ...settingsMap } as AppSettings;
+
+        // ── Always fetch cashfree_enabled directly ──────────────────────────
+        // The RPC function was created before Cashfree existed and doesn't
+        // include this key, so we fetch it separately to guarantee correctness.
+        try {
+          const { data: cfRows } = await supabase
+            .from('settings' as any)
+            .select('key, value')
+            .in('key', ['cashfree_enabled', 'razorpay_enabled']);
+
+          if (cfRows && cfRows.length > 0) {
+            cfRows.forEach((row: any) => {
+              const v = row.value;
+              (finalSettings as any)[row.key] =
+                v === true || v === 'true' || v === '"true"';
+            });
+          }
+        } catch (cfErr) {
+          console.warn('Could not fetch cashfree_enabled directly:', cfErr);
+        }
+        // ────────────────────────────────────────────────────────────────────
+
         console.log('Final settings from database:', finalSettings);
         setSettings(finalSettings);
       } else {
