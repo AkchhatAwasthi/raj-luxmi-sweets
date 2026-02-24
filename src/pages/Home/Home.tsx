@@ -40,7 +40,7 @@ const Home = () => {
 
         <MithaiSpecials />
         <FestivalSpecials />
-        <SpecialOffers />
+        {/* <SpecialOffers /> */}
         <Testimonials />
         <DeliverySection />
         <InstagramCarousel />
