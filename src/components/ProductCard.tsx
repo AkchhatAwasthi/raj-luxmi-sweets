@@ -40,6 +40,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
   const addToCart = useStore((state) => state.addToCart);
   const [isHovered, setIsHovered] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
+  const [primaryLoaded, setPrimaryLoaded] = useState(false);
+  const [hoverLoaded, setHoverLoaded] = useState(false);
 
   // Always use the first image as the primary image
   const primaryImage = product.images?.[0] || product.image || '/placeholder.svg';
@@ -100,12 +102,19 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
         onMouseLeave={() => setIsHovered(false)}
       >
         {/* List View Image */}
-        <div className="relative w-full sm:w-52 h-52 sm:h-full bg-[#F9F9F9] overflow-hidden flex-shrink-0">
+        <div className="relative w-full sm:w-52 h-52 sm:h-full bg-[#F0EBE0] overflow-hidden flex-shrink-0">
+          {/* Shimmer skeleton */}
+          {!primaryLoaded && (
+            <div className="absolute inset-0 bg-gradient-to-r from-[#F0EBE0] via-[#FFF8F0] to-[#F0EBE0] animate-pulse" />
+          )}
           <motion.img
             src={displayImage}
             alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-700 ease-out"
+            loading="lazy"
+            decoding="async"
+            className={`w-full h-full object-cover transition-all duration-500 ${primaryLoaded ? 'opacity-100' : 'opacity-0'}`}
             animate={{ scale: isHovered ? 1.05 : 1 }}
+            onLoad={() => setPrimaryLoaded(true)}
           />
           {/* Badges */}
           <div className="absolute top-0 left-0 flex flex-col gap-1 p-2">
@@ -197,13 +206,34 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
       aria-label={`Product card for ${product.name}`}
     >
       {/* Image Container - Square Aspect Ratio for compact look */}
-      <div className="relative aspect-square bg-[#F9F9F9] overflow-hidden">
+      <div className="relative aspect-square bg-[#F0EBE0] overflow-hidden">
+        {/* Shimmer skeleton */}
+        {!primaryLoaded && (
+          <div className="absolute inset-0 bg-gradient-to-r from-[#F0EBE0] via-[#FFF8F0] to-[#F0EBE0] animate-pulse" />
+        )}
         <motion.img
-          src={displayImage}
+          src={primaryImage}
           alt={product.name}
-          className="w-full h-full object-cover transition-transform duration-700 ease-out"
+          loading="lazy"
+          decoding="async"
+          className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ${isHovered && hoverImage !== primaryImage ? 'opacity-0' : primaryLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
           animate={{ scale: isHovered ? 1.05 : 1 }}
+          onLoad={() => setPrimaryLoaded(true)}
         />
+        {/* Hover image (preloaded separately) */}
+        {hoverImage !== primaryImage && (
+          <motion.img
+            src={hoverImage}
+            alt={product.name}
+            loading="lazy"
+            decoding="async"
+            className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ${isHovered && hoverLoaded ? 'opacity-100' : 'opacity-0'
+              }`}
+            animate={{ scale: isHovered ? 1.05 : 1 }}
+            onLoad={() => setHoverLoaded(true)}
+          />
+        )}
 
         {/* Overlay */}
         <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
