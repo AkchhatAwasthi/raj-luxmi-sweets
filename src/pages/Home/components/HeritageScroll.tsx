@@ -41,7 +41,7 @@ const HeritageScroll = () => {
                 <div className="lg:w-1/2 h-screen sticky top-0 overflow-hidden z-0">
                     <div className="absolute inset-0 bg-black/10 z-10" />
                     <img
-                        src={hero5}
+                        src={"https://github.com/AkchhatAwasthi/chetramimages/blob/main/DSC07987.jpg.jpeg?raw=true"}
                         alt="Artisan crafting sweets"
                         className="w-full h-full object-cover"
                     />
