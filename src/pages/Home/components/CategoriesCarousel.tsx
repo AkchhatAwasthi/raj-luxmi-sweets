@@ -1,5 +1,7 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -10,16 +12,18 @@ import {
   CarouselPrevious,
   type CarouselApi,
 } from "@/components/ui/carousel";
+import Image from 'next/image';
+
 
 interface Category {
   id: string;
   name: string;
-  image_url: string;
-  description: string;
+  image_url: string | null;
+  description: string | null;
 }
 
 const CategoriesCarousel = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [api, setApi] = useState<CarouselApi>();
@@ -66,7 +70,7 @@ const CategoriesCarousel = () => {
   };
 
   const handleCategoryClick = (category: Category) => {
-    navigate(`/products?category=${category.name}`);
+    router.push(`/products?category=${category.name}`);
   };
 
   if (loading) {
@@ -121,10 +125,11 @@ const CategoriesCarousel = () => {
                     >
                       {/* Image */}
                       <div className="absolute inset-0 bg-gray-200">
-                        <img
+                        <Image
                           src={category.image_url || fallbacks[index % fallbacks.length]}
                           alt={category.name}
-                          className="w-full h-full object-cover transition-transform duration-[1.5s] ease-in-out group-hover:scale-110"
+                          fill
+                          className="w-full h-full object-cover transition-transform duration-[1500ms] ease-in-out group-hover:scale-110"
                         />
                       </div>
 

@@ -1,10 +1,12 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus, Minus, ShoppingBag } from 'lucide-react';
-import { useStore } from '../store/useStore';
-import { useNavigate } from 'react-router-dom';
-import { useSettings } from '../hooks/useSettings';
-import { toNumber, formatCurrency, calculatePercentage, meetsThreshold } from '../utils/settingsHelpers';
+import { useStore } from '@/store/useStore';
+import { useSettings } from '@/hooks/useSettings';
+import { toNumber, formatCurrency, calculatePercentage, meetsThreshold } from '@/utils/settingsHelpers';
 
 interface CartSidebarProps {
   isAdminRoute?: boolean;
@@ -24,7 +26,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isAdminRoute = false }) => {
     removeFromCart
   } = useStore();
 
-  const navigate = useNavigate();
+  const router = useRouter();
   const { settings, loading: settingsLoading } = useSettings();
 
   // Show loading state while settings are being fetched
@@ -71,7 +73,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isAdminRoute = false }) => {
 
   const handleCheckout = () => {
     toggleCart();
-    navigate('/cart');
+    router.push('/cart');
   };
 
   return (
@@ -118,7 +120,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isAdminRoute = false }) => {
                     Explore our royal collection of sweets.
                   </p>
                   <button
-                    onClick={() => { toggleCart(); navigate('/products'); }}
+                    onClick={() => { toggleCart(); router.push('/products'); }}
                     className="mt-6 px-6 py-2 border border-[#8B2131] text-[#8B2131] hover:bg-[#8B2131] hover:text-[#F9F5EB] transition-colors rounded-none uppercase tracking-widest text-sm"
                   >
                     Start Shopping

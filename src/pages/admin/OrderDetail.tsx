@@ -1,5 +1,7 @@
+'use client';
+
+import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Package, Truck, CheckCircle, Clock, MapPin, User, CreditCard, Phone, Mail, Download, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -55,8 +57,9 @@ interface OrderDetail {
 }
 
 const AdminOrderDetail = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
+  const params = useParams();
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
+  const router = useRouter();
   const { toast } = useToast();
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -69,6 +72,8 @@ const AdminOrderDetail = () => {
   }, [id]);
 
   const fetchOrderDetail = async () => {
+    if (!id) return;
+
     try {
       const { data, error } = await supabase
         .from('orders')
@@ -100,23 +105,23 @@ const AdminOrderDetail = () => {
           status: data.order_status as any,
           paymentStatus: data.payment_status as any,
           paymentMethod: data.payment_method,
-          couponCode: data.coupon_code,
-          razorpayPaymentId: data.razorpay_payment_id,
-          razorpayOrderId: data.razorpay_order_id,
+          couponCode: data.coupon_code ?? undefined,
+          razorpayPaymentId: data.razorpay_payment_id ?? undefined,
+          razorpayOrderId: data.razorpay_order_id ?? undefined,
           shippingAddress: {
             street: addressDetails?.complete_address || addressDetails?.address_line_1 || '',
             city: deliveryLocation?.address || addressDetails?.city || '',
             state: addressDetails?.state || '',
             pincode: addressDetails?.pincode || '',
-            landmark: addressDetails?.landmark || '',
-            mapAddress: addressDetails?.map_address || deliveryLocation?.address || '',
-            latitude: addressDetails?.latitude || deliveryLocation?.lat,
-            longitude: addressDetails?.longitude || deliveryLocation?.lng
+            landmark: addressDetails?.landmark || undefined,
+            mapAddress: addressDetails?.map_address || deliveryLocation?.address || undefined,
+            latitude: addressDetails?.latitude ?? deliveryLocation?.lat ?? undefined,
+            longitude: addressDetails?.longitude ?? deliveryLocation?.lng ?? undefined
           },
           orderDate: data.created_at,
-          deliveryDate: data.actual_delivery,
-          trackingNumber: data.tracking_url,
-          notes: data.special_instructions
+          deliveryDate: data.actual_delivery ?? undefined,
+          trackingNumber: data.tracking_url ?? undefined,
+          notes: data.special_instructions ?? undefined
         };
         setOrder(orderDetail);
         setCurrentStatus(orderDetail.status);
@@ -174,6 +179,8 @@ const AdminOrderDetail = () => {
   };
 
   const updateOrderStatus = async (newStatus: string) => {
+    if (!id) return;
+
     try {
       const { error } = await supabase
         .from('orders')
@@ -289,7 +296,7 @@ const AdminOrderDetail = () => {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
         <h1 className="text-2xl font-bold mb-4">Order not found</h1>
-        <Button onClick={() => navigate('/admin/orders')}>
+        <Button onClick={() => router.push('/admin/orders')}>
           Back to Orders
         </Button>
       </div>
@@ -300,7 +307,7 @@ const AdminOrderDetail = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" onClick={() => navigate('/admin/orders')}>
+          <Button variant="ghost" onClick={() => router.push('/admin/orders')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Orders
           </Button>

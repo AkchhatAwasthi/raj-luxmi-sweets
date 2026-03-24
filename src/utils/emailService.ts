@@ -4,7 +4,7 @@
  */
 
 // The email API URL — update this when you deploy
-const EMAIL_API_URL = import.meta.env.VITE_EMAIL_API_URL || 'http://localhost:3001';
+const EMAIL_API_URL = process.env.NEXT_PUBLIC_EMAIL_API_URL || 'http://localhost:3001';
 
 interface OrderEmailData {
     orderNumber: string;
@@ -105,3 +105,4 @@ export function sendOrderEmailsAsync(orderData: OrderEmailData): void {
             console.warn('⚠️ Email service unreachable:', err.message);
         });
 }
+

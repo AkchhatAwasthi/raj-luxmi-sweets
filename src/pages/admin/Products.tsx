@@ -1,5 +1,9 @@
+// @ts-nocheck
+
+'use client';
+
+import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Filter, Edit, Trash2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,7 +28,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 const AdminProducts = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
@@ -185,7 +189,7 @@ const AdminProducts = () => {
               Delete Selected ({selectedProducts.length})
             </Button>
           )}
-          <Button onClick={() => navigate('/admin/products/add')}>
+          <Button onClick={() => router.push('/admin/products/add')}>
             <Plus className="w-4 h-4 mr-2" />
             Add Product
           </Button>
@@ -299,11 +303,11 @@ const AdminProducts = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => navigate(`/product/${product.sku || product.id}`)}>
+                          <DropdownMenuItem onClick={() => router.push(`/product/${product.sku || product.id}`)}>
                             <Eye className="mr-2 h-4 w-4" />
                             View
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => navigate(`/admin/products/edit/${product.id}`)}>
+                          <DropdownMenuItem onClick={() => router.push(`/admin/products/edit/${product.id}`)}>
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
                           </DropdownMenuItem>

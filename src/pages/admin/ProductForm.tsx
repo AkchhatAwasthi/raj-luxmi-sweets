@@ -1,3 +1,6 @@
+'use client';
+
+import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,7 +11,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Upload, X, ChevronUp, ChevronDown } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -40,9 +42,10 @@ interface ProductFormProps {
 }
 
 const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps) => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { toast } = useToast();
-  const { id } = useParams();
+  const params = useParams();
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
 
   const [formData, setFormData] = useState<Product>({
     name: '',
@@ -154,7 +157,22 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
 
       if (error) throw error;
 
-      setFormData(data);
+      setFormData({
+        ...data,
+        original_price: data.original_price ?? undefined,
+        category_id: data.category_id ?? '',
+        weight: data.weight ?? '',
+        pieces: data.pieces ?? '',
+        serves: data.serves ?? 0,
+        storage_instructions: data.storage_instructions ?? '',
+        description: data.description ?? '',
+        stock_quantity: data.stock_quantity ?? 0,
+        is_active: data.is_active ?? true,
+        is_bestseller: data.is_bestseller ?? false,
+        new_arrival: (data as any).new_arrival ?? false,
+        images: data.images ?? [],
+        sku: data.sku ?? '',
+      });
       setImages(data.images || []);
       if (data.nutritional_info && typeof data.nutritional_info === 'object') {
         setProductSpecs(data.nutritional_info as any);
@@ -421,7 +439,7 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
         description: `${formData.name} has been ${isEdit ? 'updated' : 'added'} successfully.`,
       });
 
-      navigate('/admin/products');
+      router.push('/admin/products');
     } catch (error: any) {
       console.error('Error saving product:', error);
       if (error.code === '23505' || error.message?.includes('products_sku_key')) {
@@ -453,7 +471,7 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
   return (
     <div className="space-y-6">
       <div className="flex items-center space-x-4">
-        <Button variant="ghost" onClick={() => navigate('/admin/products')}>
+        <Button variant="ghost" onClick={() => router.push('/admin/products')}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Products
         </Button>
@@ -1046,7 +1064,7 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
                   type="button"
                   variant="outline"
                   className="w-full"
-                  onClick={() => navigate('/admin/products')}
+                  onClick={() => router.push('/admin/products')}
                   disabled={loading}
                 >
                   Cancel

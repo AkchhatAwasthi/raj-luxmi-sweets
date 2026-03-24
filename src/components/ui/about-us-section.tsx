@@ -1,8 +1,8 @@
-"use client"
+'use client';
 
 import type React from "react"
+import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from "react"
-import { useNavigate } from "react-router-dom"
 import {
   Dumbbell,
   Heart,
@@ -25,7 +25,7 @@ import { motion, useScroll, useTransform, useInView, useSpring } from "framer-mo
 import about from '../../assets/Gifting.webp'
 
 export default function AboutUsSection() {
-  const navigate = useNavigate()
+  const router = useRouter()
   const [isVisible, setIsVisible] = useState(false)
   const sectionRef = useRef<HTMLDivElement>(null)
   const statsRef = useRef<HTMLDivElement>(null)
@@ -126,7 +126,7 @@ export default function AboutUsSection() {
   ]
 
   const handleShopNow = () => {
-    navigate('/products')
+    router.push('/products')
   }
 
   return (
@@ -233,7 +233,7 @@ export default function AboutUsSection() {
                 whileHover={{ scale: 1.03, transition: { duration: 0.3 } }}
               >
                 <img
-                  src={about}
+                  src={about.src}
                   alt="Premium Sweets"
                   className="w-full h-full object-cover"
                 />

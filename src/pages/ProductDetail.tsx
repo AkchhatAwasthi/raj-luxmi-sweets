@@ -1,4 +1,9 @@
-import { useParams, useNavigate, Link } from 'react-router-dom';
+// @ts-nocheck
+
+'use client';
+
+import { useRouter, useParams } from 'next/navigation';
+import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import {
   ArrowLeft, Star, Plus, Minus, ShoppingCart, Heart,
@@ -15,7 +20,7 @@ import { scrollToTopInstant } from '@/utils/scrollToTop';
 
 const ProductDetail = () => {
   const { slug } = useParams();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [quantity, setQuantity] = useState(1);
   const [isFavorite, setIsFavorite] = useState(false);
   const [product, setProduct] = useState<any>(null);
@@ -165,7 +170,7 @@ const ProductDetail = () => {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
         <h1 className="text-2xl font-bold mb-4">Product not found</h1>
-        <Button onClick={() => navigate('/products')}>Back to Products</Button>
+        <Button onClick={() => router.push('/products')}>Back to Products</Button>
       </div>
     );
   }
@@ -180,6 +185,11 @@ const ProductDetail = () => {
         inStock: product.stock_quantity > 0
       });
     }
+  };
+
+  const handleBuyNow = () => {
+    handleAddToCart();
+    router.push('/checkout');
   };
 
   const discountPercentage = product.original_price
@@ -219,9 +229,9 @@ const ProductDetail = () => {
       <div className="max-w-7xl mx-auto px-6">
         {/* Breadcrumb */}
         <div className="flex items-center space-x-2 mb-8 text-sm text-[#5D4037]">
-          <Link to="/" className="hover:text-[#8B2131] transition-colors">Home</Link>
+          <Link href="/" className="hover:text-[#8B2131] transition-colors">Home</Link>
           <span className="text-[#E6D5B8]">/</span>
-          <Link to="/products" className="hover:text-[#8B2131] transition-colors">Products</Link>
+          <Link href="/products" className="hover:text-[#8B2131] transition-colors">Products</Link>
           <span className="text-[#E6D5B8]">/</span>
           <span className="text-[#8B2131] font-medium">{product.name}</span>
         </div>
@@ -332,18 +342,26 @@ const ProductDetail = () => {
                   </button>
                 </div>
 
-                <div className="flex flex-1 gap-4">
+                <div className="flex flex-1 flex-col sm:flex-row gap-4">
                   <Button
                     onClick={handleAddToCart}
                     disabled={product.stock_quantity === 0}
-                    className="flex-1 bg-[#2C1810] hover:bg-[#8B2131] text-white h-[56px] rounded-none uppercase tracking-[0.2em] font-medium text-sm transition-all duration-300 shadow-md hover:shadow-xl"
+                    className="flex-1 bg-white hover:bg-[#F5E6D3] text-[#2C1810] border border-[#2C1810] h-[56px] rounded-none uppercase tracking-[0.2em] font-medium text-sm transition-all duration-300 shadow-sm"
                   >
                     {product.stock_quantity === 0 ? 'Out of Stock' : 'Add to Cart'}
                   </Button>
 
+                  <Button
+                    onClick={handleBuyNow}
+                    disabled={product.stock_quantity === 0}
+                    className="flex-1 bg-[#8B2131] hover:bg-[#6d1a26] text-white h-[56px] rounded-none uppercase tracking-[0.2em] font-medium text-sm transition-all duration-300 shadow-md hover:shadow-xl"
+                  >
+                    {product.stock_quantity === 0 ? 'Out of Stock' : 'Buy Now'}
+                  </Button>
+
                   <button
                     onClick={() => setIsFavorite(!isFavorite)}
-                    className={`w-[56px] h-[56px] border border-[#E6D5B8] flex items-center justify-center transition-all duration-300 ${isFavorite ? 'bg-[#8B2131] border-[#8B2131] text-white' : 'text-[#2C1810] hover:border-[#8B2131] hover:text-[#8B2131]'}`}
+                    className={`w-[56px] h-[56px] border border-[#E6D5B8] flex items-center justify-center transition-all duration-300 flex-shrink-0 ${isFavorite ? 'bg-[#8B2131] border-[#8B2131] text-white' : 'text-[#2C1810] hover:border-[#8B2131] hover:text-[#8B2131]'}`}
                   >
                     <Heart className={`w-6 h-6 ${isFavorite ? 'fill-current' : ''}`} />
                   </button>

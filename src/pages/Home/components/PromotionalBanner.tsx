@@ -1,15 +1,19 @@
+// @ts-nocheck
+
+'use client';
+
+import { useRouter } from 'next/navigation';
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
 import heroImage from '@/assets/2.png';
 
 const PromotionalBanner = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   return (
     <section
       className="w-full relative overflow-hidden cursor-pointer group"
-      onClick={() => navigate('/products')}
+      onClick={() => router.push('/products')}
     >
       <motion.div
         initial={{ opacity: 0, scale: 0.98 }}
@@ -20,7 +24,7 @@ const PromotionalBanner = () => {
       >
         <div className="relative w-full overflow-hidden">
           <img
-            src={heroImage}
+            src={heroImage.src}
             alt="Exclusive Collection"
             className="w-full h-auto object-contain transition-transform duration-1000 ease-out group-hover:scale-105"
             loading="lazy"

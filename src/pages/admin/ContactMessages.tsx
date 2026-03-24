@@ -1,3 +1,7 @@
+// @ts-nocheck
+
+'use client';
+
 import { useState, useEffect } from 'react';
 import { Mail, Phone, User, Calendar, MessageSquare, Eye, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';

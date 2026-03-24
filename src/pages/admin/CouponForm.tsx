@@ -1,3 +1,6 @@
+'use client';
+
+import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,7 +11,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ArrowLeft, CalendarIcon } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -20,9 +22,10 @@ interface CouponFormProps {
 }
 
 const CouponForm = ({ coupon: propCoupon, isEdit = false }: CouponFormProps) => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { toast } = useToast();
-  const { id } = useParams();
+  const params = useParams();
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
   
   const [formData, setFormData] = useState({
     code: '',
@@ -60,9 +63,17 @@ const CouponForm = ({ coupon: propCoupon, isEdit = false }: CouponFormProps) => 
       if (error) throw error;
       
       setFormData({
-        ...data,
-        valid_from: new Date(data.valid_from),
-        valid_until: new Date(data.valid_until)
+        code: data.code,
+        description: data.description ?? '',
+        discount_type: data.discount_type,
+        discount_value: data.discount_value,
+        min_order_amount: data.min_order_amount ?? 0,
+        max_discount_amount: data.max_discount_amount ?? 0,
+        usage_limit: data.usage_limit ?? 0,
+        used_count: data.used_count ?? 0,
+        valid_from: new Date(data.valid_from ?? new Date().toISOString()),
+        valid_until: new Date(data.valid_until ?? new Date().toISOString()),
+        is_active: data.is_active ?? true,
       });
     } catch (error) {
       console.error('Error fetching coupon:', error);
@@ -135,7 +146,7 @@ const CouponForm = ({ coupon: propCoupon, isEdit = false }: CouponFormProps) => 
         description: `Coupon ${formData.code} has been ${isEdit ? 'updated' : 'added'} successfully.`,
       });
       
-      navigate('/admin/coupons');
+      router.push('/admin/coupons');
     } catch (error) {
       console.error('Error saving coupon:', error);
       toast({
@@ -151,7 +162,7 @@ const CouponForm = ({ coupon: propCoupon, isEdit = false }: CouponFormProps) => 
   return (
     <div className="space-y-6">
       <div className="flex items-center space-x-4">
-        <Button variant="ghost" onClick={() => navigate('/admin/coupons')}>
+        <Button variant="ghost" onClick={() => router.push('/admin/coupons')}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Coupons
         </Button>
@@ -326,7 +337,7 @@ const CouponForm = ({ coupon: propCoupon, isEdit = false }: CouponFormProps) => 
                   type="button"
                   variant="outline"
                   className="w-full"
-                  onClick={() => navigate('/admin/coupons')}
+                  onClick={() => router.push('/admin/coupons')}
                   disabled={loading}
                 >
                   Cancel

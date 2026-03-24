@@ -178,7 +178,7 @@ export const initiateRazorpayPayment = async (
     const order = await createRazorpayOrder(orderData);
 
     // Get Razorpay key from environment
-    const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
+    const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
     if (!razorpayKey) {
       throw new Error('Razorpay key not configured');
     }
@@ -188,7 +188,7 @@ export const initiateRazorpayPayment = async (
       key: razorpayKey,
       amount: order.amount,
       currency: order.currency,
-      name: import.meta.env.VITE_APP_NAME || 'Raj Luxmi',
+      name: process.env.NEXT_PUBLIC_APP_NAME || 'Raj Luxmi',
       description: `Royal Order for ${orderData.items.length} items`,
       // Note: No order_id for direct payment integration
       image: '/logo.png', // Uses the logo from public directory
@@ -265,3 +265,4 @@ export const generateOrderReceipt = (orderData: OrderData): string => {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   return `BULKBUYSTORE_${timestamp}_${orderData.orderId.substring(orderData.orderId.length - 6)}`;
 };
+

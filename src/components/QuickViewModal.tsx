@@ -1,8 +1,10 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus, Minus, Star, ShoppingBag, ArrowRight } from 'lucide-react';
-import { useStore } from '../store/useStore';
-import { formatPrice } from '../utils/currency';
+import { useStore } from '@/store/useStore';
+import { formatPrice } from '@/utils/currency';
 import { Button } from '@/components/ui/button';
 
 

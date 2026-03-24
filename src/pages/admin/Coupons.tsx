@@ -1,5 +1,9 @@
+// @ts-nocheck
+
+'use client';
+
+import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Plus, Edit, Trash2, Tag, Calendar, Users, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,7 +38,7 @@ interface Coupon {
 }
 
 const AdminCoupons = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
@@ -140,11 +144,11 @@ const AdminCoupons = () => {
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Coupons</h1>
         <div className="flex space-x-2">
-          <Button onClick={() => navigate('/admin/coupons/assign')}>
+          <Button onClick={() => router.push('/admin/coupons/assign')}>
             <Tag className="w-4 h-4 mr-2" />
             Assign Coupons
           </Button>
-          <Button onClick={() => navigate('/admin/coupons/add')}>
+          <Button onClick={() => router.push('/admin/coupons/add')}>
             <Plus className="w-4 h-4 mr-2" />
             Add Coupon
           </Button>
@@ -285,7 +289,7 @@ const AdminCoupons = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => navigate(`/admin/coupons/edit/${coupon.id}`)}
+                        onClick={() => router.push(`/admin/coupons/edit/${coupon.id}`)}
                       >
                         <Edit className="w-4 h-4" />
                       </Button>

@@ -1,36 +1,19 @@
-// Raj Luxmi Supabase Client Configuration
-// Uses environment variables for secure configuration
-import { createClient } from '@supabase/supabase-js';
+// Raj Luxmi — Supabase Client (Next.js compatible)
+// Re-exports the browser client for backward compatibility across the codebase
+export { createClient } from '@/lib/supabase/client';
+
+import { createClient } from '@/lib/supabase/client';
 import type { Database } from './types';
+import { SupabaseClient } from '@supabase/supabase-js';
 
-// Get Supabase configuration from environment variables
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Lazy singleton — created once on first use (browser only)
+let _supabase: SupabaseClient<Database> | null = null;
 
-// Validate environment variables
-if (!SUPABASE_URL) {
-  throw new Error('Missing VITE_SUPABASE_URL environment variable');
-}
-
-if (!SUPABASE_ANON_KEY) {
-  throw new Error('Missing VITE_SUPABASE_ANON_KEY environment variable');
-}
-
-// Create and export the Supabase client
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: {
-    storage: localStorage,
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-    flowType: 'pkce'
-  },
-  db: {
-    schema: 'public'
-  },
-  global: {
-    headers: {
-      'X-Client-Info': 'rajluxmi-web-app'
+export const supabase: SupabaseClient<Database> = new Proxy({} as SupabaseClient<Database>, {
+  get(_target, prop) {
+    if (!_supabase) {
+      _supabase = createClient();
     }
-  }
+    return (_supabase as any)[prop];
+  },
 });

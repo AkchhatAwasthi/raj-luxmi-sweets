@@ -1,8 +1,10 @@
+'use client';
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Star, Eye, Heart, ShoppingBag } from 'lucide-react';
-import { useStore, Product as StoreProduct } from '../store/useStore';
-import { formatPrice } from '../utils/currency';
+import { useStore, Product as StoreProduct } from '@/store/useStore';
+import { formatPrice } from '@/utils/currency';
 import { FEATURED_CATEGORY } from '@/config/featuredCategory';
 
 interface Product {

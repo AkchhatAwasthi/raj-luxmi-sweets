@@ -1,5 +1,8 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -19,7 +22,7 @@ export default function Auth() {
   });
   const { signUp, signIn, signInWithGoogle } = useAuth();
   const { toast } = useToast();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({
@@ -54,7 +57,7 @@ export default function Auth() {
           title: "Welcome back!",
           description: "You have been signed in successfully.",
         });
-        navigate('/');
+        router.push('/');
       }
     } catch (error) {
       toast({
@@ -160,7 +163,7 @@ export default function Auth() {
       <div className="w-full max-w-md">
         <div className="mb-8">
           <Link
-            to="/"
+            href="/"
             className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />

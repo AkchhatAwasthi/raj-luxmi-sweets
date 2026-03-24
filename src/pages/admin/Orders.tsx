@@ -1,5 +1,7 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Search, Filter, Eye, Edit, Package, MapPin, Calendar, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,7 +52,7 @@ interface Order {
 }
 
 const AdminOrders = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [orders, setOrders] = useState<Order[]>([]);
@@ -374,7 +376,7 @@ const AdminOrders = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => navigate(`/admin/orders/${order.id}`)}>
+                        <DropdownMenuItem onClick={() => router.push(`/admin/orders/${order.id}`)}>
                           <Eye className="mr-2 h-4 w-4" />
                           View Details
                         </DropdownMenuItem>

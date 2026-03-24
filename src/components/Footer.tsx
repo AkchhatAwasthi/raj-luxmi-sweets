@@ -1,5 +1,7 @@
+'use client';
+
+import Link from 'next/link';
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin } from 'lucide-react';
 import logoImage from '../assets/logo.png';
 import { useSettings } from '@/hooks/useSettings';
@@ -57,7 +59,7 @@ const Footer: React.FC<FooterProps> = ({ isAdminRoute = false }) => {
           <div className="space-y-6">
             <div className="flex items-center space-x-3">
               <img
-                src={logoImage}
+                src={logoImage.src}
                 alt="Raj Luxmi Logo"
                 className="w-12 h-12 object-contain"
               />
@@ -76,10 +78,10 @@ const Footer: React.FC<FooterProps> = ({ isAdminRoute = false }) => {
           <div className="space-y-6">
             <h4 className="text-base font-orange-avenue font-normal text-[#4A1C1F]">Explore</h4>
             <div className="space-y-3">
-              <Link to="/" className="block text-[#5C4638] hover:text-[#B38B46] transition-colors text-xs font-orange-avenue font-normal tracking-wide">Home</Link>
-              <Link to="/products" className="block text-[#5C4638] hover:text-[#B38B46] transition-colors text-xs font-orange-avenue font-normal tracking-wide">Our Collection</Link>
-              <Link to="/about" className="block text-[#5C4638] hover:text-[#B38B46] transition-colors text-xs font-orange-avenue font-normal tracking-wide">Heritage</Link>
-              <Link to="/contact" className="block text-[#5C4638] hover:text-[#B38B46] transition-colors text-xs font-orange-avenue font-normal tracking-wide">Contact Us</Link>
+              <Link href="/" className="block text-[#5C4638] hover:text-[#B38B46] transition-colors text-xs font-orange-avenue font-normal tracking-wide">Home</Link>
+              <Link href="/products" className="block text-[#5C4638] hover:text-[#B38B46] transition-colors text-xs font-orange-avenue font-normal tracking-wide">Our Collection</Link>
+              <Link href="/about" className="block text-[#5C4638] hover:text-[#B38B46] transition-colors text-xs font-orange-avenue font-normal tracking-wide">Heritage</Link>
+              <Link href="/contact" className="block text-[#5C4638] hover:text-[#B38B46] transition-colors text-xs font-orange-avenue font-normal tracking-wide">Contact Us</Link>
             </div>
           </div>
 
@@ -87,10 +89,10 @@ const Footer: React.FC<FooterProps> = ({ isAdminRoute = false }) => {
           <div className="space-y-6">
             <h4 className="text-base font-orange-avenue font-normal text-[#4A1C1F]">Collections</h4>
             <div className="space-y-3">
-              <Link to="/products?category=traditional" className="block text-[#5C4638] hover:text-[#B38B46] transition-colors text-xs font-orange-avenue font-normal tracking-wide">Traditional Sweets</Link>
-              <Link to="/products?category=gift-boxes" className="block text-[#5C4638] hover:text-[#B38B46] transition-colors text-xs font-orange-avenue font-normal tracking-wide">Royal Gift Boxes</Link>
-              <Link to="/products?category=festive" className="block text-[#5C4638] hover:text-[#B38B46] transition-colors text-xs font-orange-avenue font-normal tracking-wide">Festive Specials</Link>
-              <Link to="/products?category=sugar-free" className="block text-[#5C4638] hover:text-[#B38B46] transition-colors text-xs font-orange-avenue font-normal tracking-wide">Sugar Free Delights</Link>
+              <Link href="/products?category=traditional" className="block text-[#5C4638] hover:text-[#B38B46] transition-colors text-xs font-orange-avenue font-normal tracking-wide">Traditional Sweets</Link>
+              <Link href="/products?category=gift-boxes" className="block text-[#5C4638] hover:text-[#B38B46] transition-colors text-xs font-orange-avenue font-normal tracking-wide">Royal Gift Boxes</Link>
+              <Link href="/products?category=festive" className="block text-[#5C4638] hover:text-[#B38B46] transition-colors text-xs font-orange-avenue font-normal tracking-wide">Festive Specials</Link>
+              <Link href="/products?category=sugar-free" className="block text-[#5C4638] hover:text-[#B38B46] transition-colors text-xs font-orange-avenue font-normal tracking-wide">Sugar Free Delights</Link>
             </div>
           </div>
 
@@ -140,8 +142,8 @@ const Footer: React.FC<FooterProps> = ({ isAdminRoute = false }) => {
               © 2025 Raj Luxmi. All rights reserved.
             </p>
             <div className="flex items-center gap-6 mt-4 md:mt-0">
-              <Link to="/privacy" className="text-[#5C4638]/70 hover:text-[#B38B46] text-xs transition-colors font-orange-avenue font-normal">Privacy Policy</Link>
-              <Link to="/terms" className="text-[#5C4638]/70 hover:text-[#B38B46] text-xs transition-colors font-orange-avenue font-normal">Terms of Service</Link>
+              <Link href="/privacy" className="text-[#5C4638]/70 hover:text-[#B38B46] text-xs transition-colors font-orange-avenue font-normal">Privacy Policy</Link>
+              <Link href="/terms" className="text-[#5C4638]/70 hover:text-[#B38B46] text-xs transition-colors font-orange-avenue font-normal">Terms of Service</Link>
               <QRCodeComponent />
             </div>
           </div>

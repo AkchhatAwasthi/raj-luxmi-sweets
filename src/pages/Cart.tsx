@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom';
+'use client';
+
+import Link from 'next/link';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -62,10 +64,10 @@ const Cart = () => {
           </p>
           <div className="space-y-4">
             <Button asChild size="lg" className="w-full sm:w-auto bg-[#8B2131] hover:bg-[#701a26] text-white uppercase tracking-widest px-8 font-instrument font-normal">
-              <Link to="/products">Start Shopping</Link>
+              <Link href="/products">Start Shopping</Link>
             </Button>
             <Button asChild variant="ghost" size="lg" className="w-full sm:w-auto text-[#8B2131] hover:bg-[#FFF0DE] hover:text-[#701a26]">
-              <Link to="/">
+              <Link href="/">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Home
               </Link>
@@ -83,7 +85,7 @@ const Cart = () => {
         <div className="flex items-center justify-between mb-8 pb-4 border-b border-[#E6D5B8]">
           <div className="flex items-center space-x-4">
             <Button variant="ghost" size="sm" asChild className="sm:hidden text-[#8B2131]">
-              <Link to="/products">
+              <Link href="/products">
                 <ArrowLeft className="h-4 w-4" />
               </Link>
             </Button>
@@ -95,7 +97,7 @@ const Cart = () => {
             </div>
           </div>
           <Button variant="outline" size="sm" asChild className="hidden sm:flex border-[#8B2131] text-[#8B2131] hover:bg-[#8B2131] hover:text-white uppercase tracking-wider text-xs font-instrument font-normal">
-            <Link to="/products">Continue Shopping</Link>
+            <Link href="/products">Continue Shopping</Link>
           </Button>
         </div>
 
@@ -247,13 +249,13 @@ const Cart = () => {
                   size="lg"
                   disabled={!isMinOrderMet}
                 >
-                  <Link to="/checkout">
+                  <Link href="/checkout">
                     {isMinOrderMet ? 'Proceed to Checkout' : 'Add More Items'}
                   </Link>
                 </Button>
 
                 <Button asChild variant="outline" className="w-full border-[#E6D5B8] text-[#5D4037] hover:bg-[#FFF0DE] hover:text-[#2C1810]">
-                  <Link to="/products">
+                  <Link href="/products">
                     Continue Shopping
                   </Link>
                 </Button>
@@ -283,7 +285,7 @@ const Cart = () => {
                 className="bg-[#8B2131] hover:bg-[#701a26] text-white px-8 uppercase tracking-widest text-sm font-normal font-instrument"
                 disabled={!isMinOrderMet}
               >
-                <Link to="/checkout">
+                <Link href="/checkout">
                   {isMinOrderMet ? 'Checkout' : 'Add Items'}
                 </Link>
               </Button>

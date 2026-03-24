@@ -1,6 +1,9 @@
+'use client';
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import Image from 'next/image';
 
 // Hero slideshow images
 import hero1 from '@/assets/1.png';
@@ -46,6 +49,9 @@ const CuratedGiftingHero = () => {
       style={{ marginLeft: 'calc(-50vw + 50%)' }}
       aria-label="Hero Slideshow"
     >
+      {/* Visually hidden H1 for SEO optimization */}
+      <h1 className="sr-only">Raj Luxmi Sweets - Premium Indian Mithai & Namkeens</h1>
+
       {/*
         The outer div is the "slide track" — it takes the natural height of the image.
         We use a stack with relative + the hidden img to reserve space,
@@ -53,12 +59,15 @@ const CuratedGiftingHero = () => {
       */}
 
       {/* Space-holder: invisible image that reserves the correct height */}
-      <img
-        src={slides[current].image}
-        alt=""
-        aria-hidden="true"
-        className="w-full h-auto block opacity-0 pointer-events-none"
-      />
+      <div className="w-full relative invisible pointer-events-none">
+        <Image
+          src={slides[0].image}
+          alt=""
+          aria-hidden="true"
+          className="w-full h-auto block"
+          priority
+        />
+      </div>
 
       {/* Animated slides — absolutely stacked over the space-holder */}
       <AnimatePresence custom={direction} initial={false}>
@@ -72,11 +81,12 @@ const CuratedGiftingHero = () => {
           transition={{ duration: 0.7, ease: [0.77, 0, 0.175, 1] }}
           className="absolute inset-0"
         >
-          <img
+          <Image
             src={slides[current].image}
             alt={`Slide ${current + 1}`}
+            fill
             className="w-full h-full object-contain block"
-            loading="eager"
+            priority={current === 0}
             draggable={false}
           />
         </motion.div>

@@ -1,3 +1,5 @@
+'use client';
+
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -14,6 +16,9 @@ interface State {
   errorInfo?: ErrorInfo;
 }
 
+const isDevelopment = process.env.NODE_ENV !== 'production';
+const isProduction = process.env.NODE_ENV === 'production';
+
 export class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
@@ -28,7 +33,7 @@ export class ErrorBoundary extends Component<Props, State> {
     this.setState({ error, errorInfo });
     
     // Log error to console in development
-    if (import.meta.env.DEV) {
+    if (isDevelopment) {
       console.error('ErrorBoundary caught an error:', error, errorInfo);
     }
 
@@ -36,7 +41,7 @@ export class ErrorBoundary extends Component<Props, State> {
     this.props.onError?.(error, errorInfo);
 
     // In production, you might want to send this to an error reporting service
-    if (import.meta.env.PROD) {
+    if (isProduction) {
       // Example: Send to error reporting service
       // errorReportingService.captureException(error, { extra: errorInfo });
     }
@@ -73,7 +78,7 @@ export class ErrorBoundary extends Component<Props, State> {
               We're sorry, but something unexpected happened. Please try refreshing the page or go back to the homepage.
             </p>
 
-            {import.meta.env.DEV && this.state.error && (
+            {isDevelopment && this.state.error && (
               <details className="mb-6 text-left">
                 <summary className="cursor-pointer text-sm text-gray-500 mb-2">
                   Error Details (Development Only)

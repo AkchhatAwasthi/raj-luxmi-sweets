@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,16 +16,16 @@ interface Address {
   id: string;
   name: string;
   address_line_1: string;
-  address_line_2?: string;
+  address_line_2?: string | null;
   city: string;
   state: string;
   pincode: string;
-  landmark?: string;
-  phone?: string;
+  landmark?: string | null;
+  phone?: string | null;
   type: 'home' | 'work' | 'other';
   is_default: boolean;
-  latitude?: number;
-  longitude?: number;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 interface AddressManagerProps {
@@ -75,7 +77,18 @@ const AddressManager = ({ onAddressSelect, selectedAddressId, showSelector = fal
         .order('is_default', { ascending: false });
 
       if (error) throw error;
-      setAddresses((data || []).map(addr => ({ ...addr, type: addr.type as 'home' | 'work' | 'other' })));
+      setAddresses(
+        (data || []).map((addr) => ({
+          ...addr,
+          type: addr.type as 'home' | 'work' | 'other',
+          address_line_2: addr.address_line_2 ?? undefined,
+          landmark: addr.landmark ?? undefined,
+          phone: addr.phone ?? undefined,
+          latitude: addr.latitude ?? undefined,
+          longitude: addr.longitude ?? undefined,
+          is_default: Boolean(addr.is_default),
+        }))
+      );
     } catch (error) {
       console.error('Error fetching addresses:', error);
       toast({

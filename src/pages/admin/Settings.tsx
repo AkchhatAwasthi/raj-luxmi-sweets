@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { Save, Bell, Shield, Palette, Globe, CreditCard, Package, Truck, Clock, DollarSign, Settings as SettingsIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';

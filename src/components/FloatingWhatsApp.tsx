@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { MessageCircle } from 'lucide-react';
 import { useSettings } from '@/hooks/useSettings';

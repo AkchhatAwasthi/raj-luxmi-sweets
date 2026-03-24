@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import CuratedGiftingHero from './components/CuratedGiftingHero';
 import CategoriesCarousel from './components/CategoriesCarousel';

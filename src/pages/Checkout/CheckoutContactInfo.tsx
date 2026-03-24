@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import { User, Phone, Mail, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';

@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 
 interface MarqueeSectionProps {
@@ -87,3 +89,4 @@ const MarqueeSection: React.FC<MarqueeSectionProps> = ({
 
 
 export default MarqueeSection;
+

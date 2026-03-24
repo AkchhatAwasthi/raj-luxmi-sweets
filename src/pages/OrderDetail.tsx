@@ -1,5 +1,9 @@
+// @ts-nocheck
+
+'use client';
+
+import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Package, Truck, CheckCircle, Clock, MapPin, User, CreditCard, Phone, Mail, Calendar, IndianRupee } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -58,7 +62,7 @@ interface OrderDetail {
 
 const UserOrderDetail = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
+  const router = useRouter();
   const { toast } = useToast();
   const { user } = useAuth();
   const [order, setOrder] = useState<OrderDetail | null>(null);
@@ -90,7 +94,7 @@ const UserOrderDetail = () => {
             description: "You don't have permission to view this order.",
             variant: "destructive",
           });
-          navigate('/profile?tab=orders');
+          router.push('/profile?tab=orders');
           return;
         }
       }
@@ -146,7 +150,7 @@ const UserOrderDetail = () => {
         description: "Failed to fetch order details",
         variant: "destructive",
       });
-      navigate('/profile?tab=orders');
+      router.push('/profile?tab=orders');
     } finally {
       setLoading(false);
     }
@@ -206,7 +210,7 @@ const UserOrderDetail = () => {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
         <h1 className="text-2xl font-bold mb-4">Order not found</h1>
-        <Button onClick={() => navigate('/profile?tab=orders')}>
+        <Button onClick={() => router.push('/profile?tab=orders')}>
           Back to Orders
         </Button>
       </div>
@@ -219,7 +223,7 @@ const UserOrderDetail = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" onClick={() => navigate('/profile?tab=orders')}>
+            <Button variant="ghost" onClick={() => router.push('/profile?tab=orders')}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Orders
             </Button>

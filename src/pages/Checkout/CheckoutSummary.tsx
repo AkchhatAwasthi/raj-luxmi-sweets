@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import { User, MapPin, ShoppingBag, CreditCard, Shield, Tag, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';

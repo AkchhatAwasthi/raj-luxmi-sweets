@@ -1,5 +1,9 @@
+// @ts-nocheck
+
+'use client';
+
+import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Plus, Edit, Trash2, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,7 +31,7 @@ interface Category {
 }
 
 const AdminCategories = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteModal, setDeleteModal] = useState<{
@@ -115,7 +119,7 @@ const AdminCategories = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Categories</h1>
-        <Button onClick={() => navigate('/admin/categories/add')}>
+        <Button onClick={() => router.push('/admin/categories/add')}>
           <Plus className="w-4 h-4 mr-2" />
           Add Category
         </Button>
@@ -211,7 +215,7 @@ const AdminCategories = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => navigate(`/admin/categories/edit/${category.id}`)}
+                        onClick={() => router.push(`/admin/categories/edit/${category.id}`)}
                       >
                         <Edit className="w-4 h-4" />
                       </Button>

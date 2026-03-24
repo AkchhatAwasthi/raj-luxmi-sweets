@@ -1,12 +1,14 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Sparkles, ArrowRight } from 'lucide-react';
-import ProductCard from '../../../components/ProductCard';
-import QuickViewModal from '../../../components/QuickViewModal';
+import ProductCard from '@/components/ProductCard';
+import QuickViewModal from '@/components/QuickViewModal';
 import { supabase } from '@/integrations/supabase/client';
 
 const NewArrivals = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [newArrivals, setNewArrivals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -115,7 +117,7 @@ const NewArrivals = () => {
 
   const handleViewDetail = (product: any) => {
     const slug = product.sku || product.id;
-    navigate(`/product/${slug}`);
+    router.push(`/product/${slug}`);
   };
 
   return (
@@ -215,7 +217,7 @@ const NewArrivals = () => {
 
         <div className="text-center mt-12">
           <button
-            onClick={() => navigate('/products?sort=newest')}
+            onClick={() => router.push('/products?sort=newest')}
             className="group inline-flex items-center gap-3 bg-[#8B2131] text-white px-10 py-4 text-xs font-orange-avenue font-normal uppercase tracking-[0.2em] hover:bg-[#2C1810] transition-all duration-300"
           >
             View All Arrivals <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

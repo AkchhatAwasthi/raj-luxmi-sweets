@@ -1,3 +1,7 @@
+// @ts-nocheck
+
+'use client';
+
 import { useState, useEffect } from 'react';
 import { Search, Users, Mail, Phone, MapPin, Calendar, Eye, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';

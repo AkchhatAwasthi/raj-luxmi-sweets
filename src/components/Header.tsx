@@ -1,7 +1,10 @@
+'use client';
+
+import { useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ShoppingCart, User, Menu, Search, Heart, X, ChevronDown, ChevronRight, LogOut } from 'lucide-react';
-import { useStore } from '../store/useStore';
+import { useStore } from '@/store/useStore';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 
@@ -13,6 +16,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import SearchSidebar from './SearchSidebar';
 import { supabase } from '@/integrations/supabase/client';
+import Image from 'next/image';
 import logo from '@/assets/logo.png';
 
 
@@ -23,11 +27,16 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
   if (isAdminRoute) return null;
 
-  const navigate = useNavigate();
+  const router = useRouter();
   const { cartItems, toggleCart } = useStore();
   const { user, signOut, isAdmin } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Dynamic Data States
   const [categories, setCategories] = useState<any[]>([]);
@@ -65,17 +74,17 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
       const mockCollections = [
         { id: 'c1', name: "New Arrivals", slug: 'new-arrivals' },
         { id: 'c2', name: "Bestsellers", slug: 'bestsellers' },
-        {
-          id: 'c4',
-          name: "Gifting",
-          slug: 'gifting',
-          subcategories: [
-            { name: "Wedding Boxes", slug: "wedding-boxes" },
-            { name: "Corporate", slug: "corporate" },
-            { name: "Festival Packs", slug: "festival-packs" },
-            { name: "Custom Hampers", slug: "custom-hampers" }
-          ]
-        }
+        // {
+        //   id: 'c4',
+        //   name: "Gifting",
+        //   slug: 'gifting',
+        //   subcategories: [
+        //     { name: "Wedding Boxes", slug: "wedding-boxes" },
+        //     { name: "Corporate", slug: "corporate" },
+        //     { name: "Festival Packs", slug: "festival-packs" },
+        //     { name: "Custom Hampers", slug: "custom-hampers" }
+        //   ]
+        // }
       ];
       setCollections(mockCollections);
     } catch (error) {
@@ -122,7 +131,7 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
           onClick={() => {
             if (subItems && subItems.length > 0) setIsExpanded(!isExpanded);
             else {
-              if (path) navigate(path);
+              if (path) router.push(path);
               if (onClick) onClick();
               setIsMobileMenuOpen(false);
             }
@@ -150,7 +159,7 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                 <button
                   key={idx}
                   onClick={() => {
-                    navigate(`/products?category=${sub.slug || sub.name}`);
+                    router.push(`/products?category=${sub.slug || sub.name}`);
                     setIsMobileMenuOpen(false);
                   }}
                   className="block w-full text-left py-4 px-10 text-xs font-kugile font-normal tracking-widest uppercase text-[#5C4638] hover:text-[#B38B46] border-b border-[#D4B6A2]/10 last:border-0"
@@ -165,8 +174,8 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
     );
   };
 
-  const location = useLocation();
-  const isHome = location.pathname === '/';
+  const pathname = usePathname();
+  const isHome = pathname === '/';
 
   return (
     <>
@@ -187,13 +196,19 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
 
             {/* LEFT: Logo */}
             <div className="flex-shrink-0 relative z-10 group mr-8">
-              <Link to="/">
-                <motion.img
-                  src={logo}
-                  alt="Raj Luxmi"
-                  className="h-16 md:h-20 lg:h-24 w-auto object-contain transition-transform duration-500 group-hover:scale-105 drop-shadow-sm"
+              <Link href="/">
+                <motion.div
+                  className="relative h-16 md:h-20 lg:h-24 w-40 md:w-48 lg:w-56 transition-transform duration-500 group-hover:scale-105"
                   style={{ scale: logoScale }}
-                />
+                >
+                  <Image
+                    src={logo}
+                    alt="Raj Luxmi"
+                    fill
+                    priority
+                    className="object-contain drop-shadow-sm"
+                  />
+                </motion.div>
               </Link>
             </div>
 
@@ -202,7 +217,7 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
 
               {/* New Arrivals - Mapped to Sort */}
               <Link
-                to="/products?sort=newest"
+                href="/products?sort=newest"
                 className="relative group px-0.5 lg:px-1 py-1"
               >
                 <span className="text-[10px] lg:text-xs font-kugile font-normal tracking-[0.15em] uppercase text-[#4A1C1F] group-hover:text-[#B38B46] transition-colors">
@@ -213,7 +228,7 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
 
               {/* Bestsellers - Mapped to Sort */}
               <Link
-                to="/products?sort=bestseller"
+                href="/products?sort=bestseller"
                 className="relative group px-0.5 lg:px-1 py-1"
               >
                 <span className="text-[10px] lg:text-xs font-kugile font-normal tracking-[0.15em] uppercase text-[#4A1C1F] group-hover:text-[#B38B46] transition-colors">
@@ -222,20 +237,20 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                 <span className="absolute bottom-0 left-1/2 w-0 h-[1px] bg-[#B38B46] transition-all duration-500 ease-out -translate-x-1/2 group-hover:w-full" />
               </Link>
 
-              {/* Gifting Dropdown */}
-              {collections[2] && (
+              {/* Gifting Dropdown - Hidden as per request */}
+              {/* {collections[2] && (
                 <DesktopNavDropdown
                   title={collections[2].name}
                   items={collections[2].subcategories || []}
-                  onSelect={(slug) => navigate(`/products?tag=${slug}`)}
+                  onSelect={(slug) => router.push(`/products?tag=${slug}`)}
                 />
-              )}
+              )} */}
 
               {/* Categories Dropdown */}
               <DesktopNavDropdown
                 title="Category"
                 items={categories}
-                onSelect={(slug) => navigate(`/products?category=${slug}`)}
+                onSelect={(slug) => router.push(`/products?category=${slug}`)}
               />
             </nav>
 
@@ -265,16 +280,16 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                       <User className="w-5 h-5 lg:w-6 lg:h-6 stroke-[1.5px]" />
                     </motion.div>
                     <div className="md:hidden text-[#4A1C1F]">
-                      <User className="w-6 h-6 stroke-[1.5px]" onClick={() => navigate('/profile')} />
+                      <User className="w-6 h-6 stroke-[1.5px]" onClick={() => router.push('/profile')} />
                     </div>
                   </MobileDropdownTrigger>
                   <MobileDropdownContent align="end" className="hidden md:block w-64 bg-[#FFFDF7] border border-[#D4B6A2]/20 shadow-xl rounded-sm p-2 z-[60]">
                     {isAdmin && (
-                      <MobileDropdownItem className="focus:bg-[#E5D8C6]/20 text-[#4A1C1F] cursor-pointer font-kugile font-normal tracking-wide text-xs uppercase py-3" onClick={() => navigate('/admin')}>
+                      <MobileDropdownItem className="focus:bg-[#E5D8C6]/20 text-[#4A1C1F] cursor-pointer font-kugile font-normal tracking-wide text-xs uppercase py-3" onClick={() => router.push('/admin')}>
                         Admin Dashboard
                       </MobileDropdownItem>
                     )}
-                    <MobileDropdownItem className="focus:bg-[#E5D8C6]/20 text-[#4A1C1F] cursor-pointer font-kugile font-normal tracking-wide text-xs uppercase py-3" onClick={() => navigate('/profile')}>
+                    <MobileDropdownItem className="focus:bg-[#E5D8C6]/20 text-[#4A1C1F] cursor-pointer font-kugile font-normal tracking-wide text-xs uppercase py-3" onClick={() => router.push('/profile')}>
                       Profile
                     </MobileDropdownItem>
                     <MobileDropdownItem className="focus:bg-[#E5D8C6]/20 text-[#4A1C1F] cursor-pointer font-kugile font-normal tracking-wide text-xs uppercase py-3" onClick={signOut}>
@@ -285,7 +300,7 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
               ) : (
                 <motion.button
                   whileHover={{ scale: 1.05 }}
-                  onClick={() => navigate('/auth')}
+                  onClick={() => router.push('/auth')}
                   className="text-[#4A1C1F] hover:text-[#B38B46] transition-colors hidden md:block"
                 >
                   <User className="w-5 h-5 lg:w-6 lg:h-6 stroke-[1.5px]" />
@@ -299,7 +314,7 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                 className="relative text-[#4A1C1F] hover:text-[#B38B46] transition-colors p-1"
               >
                 <ShoppingCart className="w-5 h-5 lg:w-6 lg:h-6 stroke-[1.5px]" />
-                {cartItemsCount > 0 && (
+                {mounted && cartItemsCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-[#783838] text-[#FFFDF7] text-xs w-4 h-4 rounded-full flex items-center justify-center shadow-sm font-kugile font-normal">
                     {cartItemsCount}
                   </span>
@@ -336,7 +351,9 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
               className="fixed top-0 left-0 bottom-0 w-[85%] max-w-[320px] bg-[#FFFDF7] z-50 shadow-2xl overflow-y-auto border-r border-[#D4B6A2]/20"
             >
               <div className="p-6 flex items-center justify-between border-b border-[#D4B6A2]/20 bg-[#FFFDF7]">
-                <img src={logo} alt="Raj Luxmi" className="h-20 w-auto object-contain" />
+                <div className="relative h-20 w-32">
+                  <Image src={logo} alt="Raj Luxmi" fill className="object-contain" />
+                </div>
                 <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-[#5C4638] hover:bg-[#E5D8C6]/20 rounded-full">
                   <X className="w-7 h-7" />
                 </button>
@@ -352,13 +369,13 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                   label="Bestsellers"
                   path="/products?sort=bestseller"
                 />
-                {/* Gifting */}
-                {collections[2] && (
+                {/* Gifting - Hidden as per request */}
+                {/* {collections[2] && (
                   <MobileMenuItem
                     label={collections[2].name}
                     subItems={collections[2].subcategories}
                   />
-                )}
+                )} */}
 
                 <MobileMenuItem
                   label="All Categories"
@@ -367,11 +384,11 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
 
                 {user ? (
                   <div className="mt-8 px-6 pt-6 border-t border-[#D4B6A2]/20">
-                    <button onClick={() => { navigate('/profile'); setIsMobileMenuOpen(false); }} className="flex items-center space-x-3 w-full py-3 text-[#4A1C1F] font-kugile font-normal tracking-widest text-xs uppercase">
+                    <button onClick={() => { router.push('/profile'); setIsMobileMenuOpen(false); }} className="flex items-center space-x-3 w-full py-3 text-[#4A1C1F] font-kugile font-normal tracking-widest text-xs uppercase">
                       <User className="w-4 h-4" /> <span>Profile</span>
                     </button>
                     {isAdmin && (
-                      <button onClick={() => { navigate('/admin'); setIsMobileMenuOpen(false); }} className="flex items-center space-x-3 w-full py-3 text-[#B38B46] font-kugile font-normal tracking-widest text-xs uppercase">
+                      <button onClick={() => { router.push('/admin'); setIsMobileMenuOpen(false); }} className="flex items-center space-x-3 w-full py-3 text-[#B38B46] font-kugile font-normal tracking-widest text-xs uppercase">
                         <User className="w-4 h-4" /> <span>Admin</span>
                       </button>
                     )}
@@ -382,7 +399,7 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                 ) : (
                   <div className="p-6 mt-4">
                     <button
-                      onClick={() => { navigate('/auth'); setIsMobileMenuOpen(false); }}
+                      onClick={() => { router.push('/auth'); setIsMobileMenuOpen(false); }}
                       className="w-full bg-[#4A1C1F] text-[#FAF9F6] py-4 rounded-sm uppercase tracking-[0.2em] font-kugile font-normal text-xs hover:bg-[#5C4638] transition-colors shadow-lg"
                     >
                       Login / Sign Up

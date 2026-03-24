@@ -1,7 +1,9 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Search, Plus, Sparkles, TrendingUp, Grid3X3 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/utils/currency';
 import { useStore } from '@/store/useStore';
@@ -11,16 +13,33 @@ interface SearchSidebarProps {
   onClose: () => void;
 }
 
+type SearchCategory = {
+  id: string;
+  name: string;
+};
+
+type SearchProduct = {
+  id: string;
+  name: string;
+  price: number;
+  sku?: string | null;
+  weight?: string | null;
+  pieces?: string | null;
+  images?: string[] | null;
+  categories?: { name?: string | null } | null;
+  [key: string]: unknown;
+};
+
 const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose }) => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const addToCart = useStore((state) => state.addToCart);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const [searchResults, setSearchResults] = useState<SearchProduct[]>([]);
+  const [categories, setCategories] = useState<SearchCategory[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('');
   const [loading, setLoading] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
-  const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [featuredProducts, setFeaturedProducts] = useState<SearchProduct[]>([]);
 
   useEffect(() => {
     if (isOpen) {
@@ -126,7 +145,7 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose }) => {
   };
 
   const handleProductClick = (product: any) => {
-    navigate(`/product/${product.sku || product.id}`);
+    router.push(`/product/${product.sku || product.id}`);
     onClose();
   };
 
@@ -332,7 +351,7 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose }) => {
             <div className="p-4 border-t bg-gray-50">
               <button
                 onClick={() => {
-                  navigate('/products');
+                  router.push('/products');
                   onClose();
                 }}
                 className="w-full py-2 text-center text-primary hover:text-primary/80 font-medium transition-colors"

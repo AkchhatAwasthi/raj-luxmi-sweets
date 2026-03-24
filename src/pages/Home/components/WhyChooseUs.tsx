@@ -1,7 +1,9 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Shield, Truck, Clock, Award, ArrowRight, CheckCircle, Users, Zap, Candy, Heart } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
 const features = [
   {
@@ -39,7 +41,7 @@ const features = [
 ];
 
 const WhyChooseUs = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -186,7 +188,7 @@ const WhyChooseUs = () => {
 
               <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
                 <motion.button
-                  onClick={() => navigate('/products')}
+                  onClick={() => router.push('/products')}
                   className="group bg-gradient-to-r from-primary to-[hsl(0_84%_60%)] hover:from-[hsl(25_95%_48%)] hover:to-[hsl(0_80%_55%)] text-white px-10 py-5 rounded-2xl font-normal text-lg shadow-xl font-instrument"
                   whileHover={{ scale: 1.02, y: -2 }}
                   whileTap={{ scale: 0.98 }}
@@ -199,7 +201,7 @@ const WhyChooseUs = () => {
                 </motion.button>
 
                 <motion.button
-                  onClick={() => navigate('/about')}
+                  onClick={() => router.push('/about')}
                   className="bg-white text-gray-700 px-10 py-5 rounded-2xl font-normal text-lg border-2 border-gray-200 hover:border-gray-300 shadow-lg transition-all duration-300 font-instrument"
                   whileHover={{ scale: 1.02, y: -2 }}
                   whileTap={{ scale: 0.98 }}

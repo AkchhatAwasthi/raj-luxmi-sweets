@@ -48,8 +48,8 @@ export const loadCashfreeScript = (): Promise<boolean> => {
 export const createCashfreeOrder = async (
     orderData: CashfreeOrderData
 ): Promise<{ order_id: string; payment_session_id: string }> => {
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     if (!supabaseUrl || !supabaseAnonKey) {
         throw new Error('Supabase configuration missing');
@@ -104,7 +104,7 @@ export const initiateCashfreePayment = async (
         const { order_id, payment_session_id } = await createCashfreeOrder(orderData);
 
         // 3. Get App ID from env
-        const appId = import.meta.env.VITE_CASHFREE_APP_ID;
+        const appId = process.env.NEXT_PUBLIC_CASHFREE_APP_ID;
         if (!appId) {
             throw new Error('Cashfree App ID not configured.');
         }
@@ -149,3 +149,4 @@ export const initiateCashfreePayment = async (
         onError(error);
     }
 };
+

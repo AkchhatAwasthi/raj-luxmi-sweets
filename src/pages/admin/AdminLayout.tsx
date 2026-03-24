@@ -1,5 +1,8 @@
+'use client';
+
 import { useState } from 'react';
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   Package,
@@ -22,10 +25,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 
-const AdminLayout = () => {
+const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const location = useLocation();
-  const navigate = useNavigate();
+  const pathname = usePathname();
+  const router = useRouter();
   const { user, profile, signOut } = useAuth();
 
   const navigation = [
@@ -46,16 +49,16 @@ const AdminLayout = () => {
     { name: 'Settings', href: '/admin/settings', icon: Settings },
   ];
 
-  const handleLogout = () => {
-    signOut();
-    navigate('/auth');
+  const handleLogout = async () => {
+    await signOut();
+    router.push('/auth');
   };
 
   const isActive = (path: string) => {
     if (path === '/admin') {
-      return location.pathname === '/admin';
+      return pathname === '/admin';
     }
-    return location.pathname.startsWith(path);
+    return pathname?.startsWith(path);
   };
 
   return (
@@ -91,7 +94,7 @@ const AdminLayout = () => {
             return (
               <Link
                 key={item.name}
-                to={item.href}
+                href={item.href}
                 className={`
                   flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors
                   ${isActive(item.href)
@@ -155,7 +158,7 @@ const AdminLayout = () => {
 
           <div className="ml-auto flex items-center space-x-4">
             <Link
-              to="/"
+              href="/"
               className="text-sm text-gray-600 hover:text-gray-900"
             >
               ← Back to Store
@@ -165,7 +168,7 @@ const AdminLayout = () => {
 
         {/* Page content */}
         <main className="p-6">
-          <Outlet />
+          {children}
         </main>
       </div>
     </div>

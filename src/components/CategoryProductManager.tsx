@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { Package, X, Search, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,9 +14,9 @@ interface Product {
   id: string;
   name: string;
   price: number;
-  stock_quantity: number;
-  images: string[];
-  is_active: boolean;
+  stock_quantity: number | null;
+  images: string[] | null;
+  is_active: boolean | null;
 }
 
 interface CategoryProductManagerProps {
@@ -98,7 +100,7 @@ const CategoryProductManager: React.FC<CategoryProductManagerProps> = ({
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || 
-      (statusFilter === 'active' && product.is_active) ||
+      (statusFilter === 'active' && Boolean(product.is_active)) ||
       (statusFilter === 'inactive' && !product.is_active);
     
     return matchesSearch && matchesStatus;

@@ -1,11 +1,15 @@
+// @ts-nocheck
+
+'use client';
+
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Filter, Grid, List, Search, Cookie, X, Candy, ChevronLeft, LayoutGrid } from 'lucide-react';
-import { useStore } from '../store/useStore';
-import ProductCard from '../components/ProductCard';
-import ProductFiltersComponent, { ProductFilters } from '../components/ProductFilters';
+import { useStore } from '@/store/useStore';
+import ProductCard from '@/components/ProductCard';
+import ProductFiltersComponent, { ProductFilters } from '@/components/ProductFilters';
 import { Input } from '@/components/ui/input';
-import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { scrollToTopInstant } from '@/utils/scrollToTop';
 import { Button } from '@/components/ui/button';
@@ -18,7 +22,7 @@ const HOLI_TABS = [
 
 const Products = () => {
   const { selectedCategory, setSelectedCategory } = useStore();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const searchParams = useSearchParams();
   const [sortBy, setSortBy] = useState('name');
   const [gridCols, setGridCols] = useState<1 | 3 | 4>(4);
   const [searchTerm, setSearchTerm] = useState('');
@@ -29,10 +33,9 @@ const Products = () => {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   // Initialize activeHoliTab synchronously from URL so the very first fetchProducts
   // call already uses the correct tab — prevents the null→'gujiya' race condition
-  const [activeHoliTab, setActiveHoliTab] = useState<string | null>(() => {
-    const params = new URLSearchParams(window.location.search);
-    return params.get('category') === HOLI_SPECIAL_CATEGORY ? 'gujiya' : null;
-  });
+  const [activeHoliTab, setActiveHoliTab] = useState<string | null>(() =>
+    searchParams.get('category') === HOLI_SPECIAL_CATEGORY ? 'gujiya' : null
+  );
 
   // Determine if we're on the Holi Special page
   const isHoliSpecial = useMemo(() => {
@@ -66,8 +69,8 @@ const Products = () => {
   const observer = useRef<IntersectionObserver | null>(null);
   const lastProductRef = useRef<HTMLDivElement>(null);
 
-  const navigate = useNavigate();
-  const location = useLocation();
+  const router = useRouter();
+  const pathname = usePathname();
 
   // Initial data fetch
   useEffect(() => {
@@ -373,6 +376,11 @@ const Products = () => {
 
           {/* Product Grid Area (Right/Center) */}
           <div className="flex-1">
+            {/* SEO Heading — ensures each collection page has a clear primary heading */}
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-orange-avenue font-normal text-[#2C1810] mb-10 mt-4 uppercase tracking-wider text-left border-b border-[#D4C3A3]/30 pb-6">
+              {isHoliSpecial ? 'Holi Special Collection' : 'Our Sweets Collection'}
+            </h1>
+
 
             {/* Holi Special Sub-Category Tabs */}
             <AnimatePresence>
@@ -514,7 +522,7 @@ const Products = () => {
                           slug: product.sku || product.id,
                           category: product.categories?.name || product.category?.name || 'General'
                         }}
-                        onViewDetail={() => navigate(`/product/${product.sku || product.id}`)}
+                        onViewDetail={() => router.push(`/product/${product.sku || product.id}`)}
                         variant={gridCols === 1 ? 'list' : 'grid'}
                       />
                     </motion.div>

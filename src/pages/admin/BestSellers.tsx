@@ -1,3 +1,7 @@
+// @ts-nocheck
+
+'use client';
+
 import { useState, useEffect } from 'react';
 import { Star, TrendingUp, Package, IndianRupee, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';

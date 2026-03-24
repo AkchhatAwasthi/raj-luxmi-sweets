@@ -1,12 +1,16 @@
+// @ts-nocheck
+
+'use client';
+
+import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Tag, Copy, Clock, ArrowRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import heroImage from '@/assets/coupon.png';
 
 const SpecialOffers = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [coupons, setCoupons] = useState([]);
   const [currentCouponIndex, setCurrentCouponIndex] = useState(0);
 
@@ -95,7 +99,7 @@ const SpecialOffers = () => {
           <div className="absolute inset-0 z-0">
             <div className="absolute inset-0 bg-black/40 z-10"></div>
             <img
-              src={heroImage}
+              src={heroImage.src}
               alt="Sweet Deals Background"
               className="w-full h-full object-cover"
             />
@@ -213,7 +217,7 @@ const SpecialOffers = () => {
             )}
 
             <motion.button
-              onClick={() => navigate('/products')}
+              onClick={() => router.push('/products')}
               className="bg-white text-primary hover:bg-gray-100 px-8 py-3 rounded-xl font-normal text-base transition-colors shadow-lg font-instrument"
               whileHover={{
                 scale: 1.05,

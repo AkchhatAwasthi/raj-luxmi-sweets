@@ -1,3 +1,6 @@
+'use client';
+
+import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,7 +9,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Upload, X } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import CategoryProductManager from '@/components/CategoryProductManager';
@@ -27,9 +29,10 @@ interface CategoryFormProps {
 }
 
 const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormProps) => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { toast } = useToast();
-  const { id } = useParams();
+  const params = useParams();
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
   
   const [formData, setFormData] = useState<Partial<Category>>({
     name: '',
@@ -62,23 +65,27 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
     try {
       const { data, error } = await supabase
         .from('categories')
-        .select(`
-          *,
-          products(count)
-        `)
+        .select('*')
         .eq('id', id)
         .single();
 
       if (error) throw error;
+
+      const { count, error: countError } = await supabase
+        .from('products')
+        .select('*', { count: 'exact', head: true })
+        .eq('category_id', id);
+
+      if (countError) throw countError;
       
       setFormData({
         name: data.name,
-        description: data.description,
-        is_active: data.is_active,
-        image_url: data.image_url
+        description: data.description ?? '',
+        is_active: data.is_active ?? true,
+        image_url: data.image_url ?? ''
       });
 
-      setProductCount(data.products?.length || 0);
+      setProductCount(count || 0);
     } catch (error) {
       console.error('Error fetching category:', error);
       toast({
@@ -203,7 +210,7 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
         description: `${formData.name} has been ${isEdit ? 'updated' : 'added'} successfully.`,
       });
       
-      navigate('/admin/categories');
+      router.push('/admin/categories');
     } catch (error) {
       console.error('Error saving category:', error);
       toast({
@@ -219,7 +226,7 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
   return (
     <div className="space-y-6">
       <div className="flex items-center space-x-4">
-        <Button variant="ghost" onClick={() => navigate('/admin/categories')}>
+        <Button variant="ghost" onClick={() => router.push('/admin/categories')}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Categories
         </Button>
@@ -383,7 +390,7 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
                   type="button"
                   variant="outline"
                   className="w-full"
-                  onClick={() => navigate('/admin/categories')}
+                  onClick={() => router.push('/admin/categories')}
                   disabled={loading}
                 >
                   Cancel

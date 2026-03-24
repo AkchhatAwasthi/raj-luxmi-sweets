@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { AlertTriangle, Package, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,8 +12,8 @@ interface Product {
   id: string;
   name: string;
   price: number;
-  stock_quantity: number;
-  images: string[];
+  stock_quantity: number | null;
+  images: string[] | null;
 }
 
 interface CategoryDeleteModalProps {

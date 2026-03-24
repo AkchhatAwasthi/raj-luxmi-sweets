@@ -1,3 +1,7 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -5,13 +9,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Link, Unlink, Search, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Link2, Unlink, Search, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 const CouponAssignment = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { toast } = useToast();
   
   const [coupons, setCoupons] = useState<any[]>([]);
@@ -161,7 +164,7 @@ const CouponAssignment = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center space-x-4">
-        <Button variant="ghost" onClick={() => navigate('/admin/coupons')}>
+        <Button variant="ghost" onClick={() => router.push('/admin/coupons')}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Coupons
         </Button>
@@ -305,7 +308,7 @@ const CouponAssignment = () => {
                             </>
                           ) : (
                             <>
-                              <Link className="h-4 w-4 mr-2" />
+                              <Link2 className="h-4 w-4 mr-2" />
                               Assign
                             </>
                           )}

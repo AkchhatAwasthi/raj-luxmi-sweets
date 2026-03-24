@@ -1,8 +1,10 @@
+'use client';
+
+import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
 
 const ScrollToTop = () => {
-  const { pathname } = useLocation();
+  const pathname = usePathname();
 
   useEffect(() => {
     // Disable browser's default scroll restoration to ensure page loads from top

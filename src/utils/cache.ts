@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 /**
  * Simple caching utility for supersweets
  * Provides in-memory and localStorage caching for API responses

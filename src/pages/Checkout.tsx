@@ -1,3 +1,6 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,7 +16,6 @@ import AddressManager from '@/components/AddressManager';
 import Stepper from '@/components/Stepper';
 import GuestOrderPopup from '@/components/GuestOrderPopup';
 import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { validateContactInfo, validateAddressDetails, validatePaymentMethod } from '@/utils/validation';
 import { useSettings } from '@/hooks/useSettings';
@@ -28,7 +30,7 @@ import CheckoutPayment from './Checkout/CheckoutPayment';
 import CheckoutSummary from './Checkout/CheckoutSummary';
 
 const Checkout = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { toast } = useToast();
   const { cartItems, clearCart } = useStore();
   const { settings, loading: settingsLoading, error: settingsError } = useSettings();
@@ -221,7 +223,7 @@ const Checkout = () => {
 
       const productSpecificCoupons = productCoupons
         ?.map(pc => pc.coupons)
-        .filter(c => c !== null && c.is_active && new Date(c.valid_until) > new Date())
+        .filter(c => c !== null && c.is_active && c.valid_until && new Date(c.valid_until) > new Date())
         .filter((coupon, index, self) =>
           index === self.findIndex(c => c.id === coupon.id)
         ) || [];
@@ -275,7 +277,7 @@ const Checkout = () => {
         return;
       }
 
-      if (data.usage_limit && data.used_count >= data.usage_limit) {
+      if (data.usage_limit && (data.used_count ?? 0) >= data.usage_limit) {
         toast({
           title: "Coupon expired",
           description: "This coupon has reached its usage limit.",
@@ -596,7 +598,7 @@ const Checkout = () => {
             description: `Your COD order #${orderNumber} has been placed. You'll pay ${settings.currency_symbol}${total.toFixed(2)} on delivery.`,
           });
 
-          navigate('/profile?tab=orders');
+          router.push('/profile?tab=orders');
         }
 
         clearCart();
@@ -726,7 +728,7 @@ const Checkout = () => {
                   description: `Order #${orderNumber} confirmed and paid. Your order is being processed.`,
                 });
 
-                navigate('/profile?tab=orders');
+                router.push('/profile?tab=orders');
               }
 
               clearCart();
@@ -765,7 +767,7 @@ const Checkout = () => {
     return (
       <div className="container mx-auto px-4 py-16 text-center min-h-[60vh] flex flex-col items-center justify-center bg-[#FFFDF7]">
         <h1 className="text-3xl text-[#783838] uppercase font-inter font-normal tracking-wide mb-4">Your cart is empty</h1>
-        <Button onClick={() => navigate('/products')} className="bg-[#8B2131] hover:bg-[#701a26] text-white">
+        <Button onClick={() => router.push('/products')} className="bg-[#8B2131] hover:bg-[#701a26] text-white">
           Continue Shopping
         </Button>
       </div>
@@ -799,7 +801,7 @@ const Checkout = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" onClick={() => navigate(-1)} size="sm" className="text-[#5D4037] hover:text-[#8B2131] hover:bg-[#FFF8F0]">
+            <Button variant="ghost" onClick={() => router.back()} size="sm" className="text-[#5D4037] hover:text-[#8B2131] hover:bg-[#FFF8F0]">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
             </Button>
