@@ -3,8 +3,8 @@
  * Sends order data to the SMTP email API for customer & admin notifications.
  */
 
-// The email API URL — update this when you deploy
-const EMAIL_API_URL = process.env.NEXT_PUBLIC_EMAIL_API_URL || 'http://localhost:3001';
+// The email API URL — uses relative path for unified Next.js deployment
+const EMAIL_API_URL = '';
 
 interface OrderEmailData {
     orderNumber: string;
