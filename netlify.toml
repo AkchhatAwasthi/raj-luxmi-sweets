@@ -7,3 +7,5 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+  [plugins.inputs]
+    disable_image_optimization = true

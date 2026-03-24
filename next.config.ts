@@ -1,8 +1,9 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  // Allow images from Supabase storage
+  // Disable image optimization to avoid 502/400 errors on Netlify
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
