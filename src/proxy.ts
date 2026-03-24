@@ -5,7 +5,7 @@ const PROTECTED_ROUTES = ['/checkout', '/profile', '/order-detail'];
 const ADMIN_ROUTES = ['/admin'];
 const AUTH_ROUTE = '/auth';
 
-export async function proxy(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   let response = NextResponse.next({ request });
 
