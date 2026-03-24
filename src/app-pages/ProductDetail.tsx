@@ -19,7 +19,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { scrollToTopInstant } from '@/utils/scrollToTop';
 
 const ProductDetail = () => {
-  const { slug } = useParams();
+  const params = useParams();
+  const slug = params?.slug;
   const router = useRouter();
   const [quantity, setQuantity] = useState(1);
   const [isFavorite, setIsFavorite] = useState(false);

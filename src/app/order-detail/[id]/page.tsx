@@ -1,10 +1,8 @@
-import type { Metadata } from 'next';
-import UserOrderDetail from '@/pages/OrderDetail';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'Order Details | Raj Luxmi Sweets',
-  description: 'View details and status of your order.',
-};
+import dynamic from 'next/dynamic';
+
+const UserOrderDetail = dynamic(() => import('@/app-pages/OrderDetail'), { ssr: false });
 
 export default function OrderDetailPage() {
   return <UserOrderDetail />;

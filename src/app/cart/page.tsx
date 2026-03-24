@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import Cart from '@/pages/Cart';
+import Cart from '@/app-pages/Cart';
 
 export const metadata: Metadata = {
   title: 'Your Cart | Raj Luxmi Sweets',

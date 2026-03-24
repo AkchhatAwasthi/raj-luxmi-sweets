@@ -1,2 +1,2 @@
-import Categories from '@/pages/admin/Categories';
+import Categories from '@/app-pages/admin/Categories';
 export default function AdminCategoriesPage() { return <Categories />; }

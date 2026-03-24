@@ -38,6 +38,7 @@
   ],
   "exclude": [
     "node_modules",
+    "supabase",
     "src/pages/Checkout/index.ts",
     "src/pages/ProductDetail_fixed.tsx",
     "**/*.test.ts",

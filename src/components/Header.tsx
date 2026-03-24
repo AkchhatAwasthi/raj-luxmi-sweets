@@ -207,6 +207,7 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                     fill
                     priority
                     className="object-contain drop-shadow-sm"
+                    sizes="(max-width: 768px) 160px, (max-width: 1024px) 192px, 224px"
                   />
                 </motion.div>
               </Link>
@@ -352,7 +353,7 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
             >
               <div className="p-6 flex items-center justify-between border-b border-[#D4B6A2]/20 bg-[#FFFDF7]">
                 <div className="relative h-20 w-32">
-                  <Image src={logo} alt="Raj Luxmi" fill className="object-contain" />
+                  <Image src={logo} alt="Raj Luxmi" fill className="object-contain" sizes="128px" />
                 </div>
                 <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-[#5C4638] hover:bg-[#E5D8C6]/20 rounded-full">
                   <X className="w-7 h-7" />

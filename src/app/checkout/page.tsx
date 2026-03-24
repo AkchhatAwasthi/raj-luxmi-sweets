@@ -1,10 +1,8 @@
-import type { Metadata } from 'next';
-import Checkout from '@/pages/Checkout';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'Checkout | Raj Luxmi Sweets',
-  description: 'Complete your order securely.',
-};
+import dynamic from 'next/dynamic';
+
+const Checkout = dynamic(() => import('@/app-pages/Checkout'), { ssr: false });
 
 export default function CheckoutPage() {
   return <Checkout />;

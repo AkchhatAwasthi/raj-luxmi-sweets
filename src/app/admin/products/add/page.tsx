@@ -1,2 +1,2 @@
-import ProductForm from '@/pages/admin/ProductForm';
+import ProductForm from '@/app-pages/admin/ProductForm';
 export default function AddProductPage() { return <ProductForm />; }

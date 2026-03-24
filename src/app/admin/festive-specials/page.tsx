@@ -1,2 +1,2 @@
-import FestiveSpecialsAdmin from '@/pages/admin/FestiveSpecials';
+import FestiveSpecialsAdmin from '@/app-pages/admin/FestiveSpecials';
 export default function FestiveSpecialsPage() { return <FestiveSpecialsAdmin />; }

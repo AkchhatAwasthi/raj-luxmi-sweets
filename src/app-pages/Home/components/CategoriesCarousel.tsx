@@ -130,6 +130,7 @@ const CategoriesCarousel = () => {
                           alt={category.name}
                           fill
                           className="w-full h-full object-cover transition-transform duration-[1500ms] ease-in-out group-hover:scale-110"
+                          sizes="(max-width: 640px) 70vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                         />
                       </div>
 

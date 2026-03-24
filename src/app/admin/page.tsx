@@ -1,2 +1,2 @@
-import Dashboard from '@/pages/admin/Dashboard';
+import Dashboard from '@/app-pages/admin/Dashboard';
 export default function AdminDashboardPage() { return <Dashboard />; }

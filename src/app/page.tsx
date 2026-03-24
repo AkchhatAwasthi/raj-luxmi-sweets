@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import Home from '@/pages/Index';
+import Home from '@/app-pages/Index';
 
 export const metadata: Metadata = {
   title: 'Raj Luxmi Sweets | Premium Indian Sweets & Namkeens',

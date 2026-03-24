@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import AdminLayout from '@/pages/admin/AdminLayout';
+import AdminLayout from '@/app-pages/admin/AdminLayout';
 import { PageLoader } from '@/components/LoadingSpinner';
 
 export default function AdminRootLayout({ children }: { children: React.ReactNode }) {

@@ -1,11 +1,8 @@
-import type { Metadata } from 'next';
-import Products from '@/pages/Products';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'Our Products | Raj Luxmi Sweets',
-  description:
-    'Browse our full collection of premium Indian sweets, namkeens, mithai and festive specials.',
-};
+import dynamic from 'next/dynamic';
+
+const Products = dynamic(() => import('@/app-pages/Products'), { ssr: false });
 
 export default function ProductsPage() {
   return <Products />;

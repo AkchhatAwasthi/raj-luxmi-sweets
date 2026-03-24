@@ -61,7 +61,8 @@ interface OrderDetail {
 }
 
 const UserOrderDetail = () => {
-  const { id } = useParams();
+  const params = useParams();
+  const id = params?.id;
   const router = useRouter();
   const { toast } = useToast();
   const { user } = useAuth();

@@ -65,6 +65,7 @@ const CuratedGiftingHero = () => {
           alt=""
           aria-hidden="true"
           className="w-full h-auto block"
+          sizes="100vw"
           priority
         />
       </div>
@@ -86,6 +87,7 @@ const CuratedGiftingHero = () => {
             alt={`Slide ${current + 1}`}
             fill
             className="w-full h-full object-contain block"
+            sizes="100vw"
             priority={current === 0}
             draggable={false}
           />

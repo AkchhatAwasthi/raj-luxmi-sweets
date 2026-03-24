@@ -33,18 +33,30 @@ const Products = () => {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   // Initialize activeHoliTab synchronously from URL so the very first fetchProducts
   // call already uses the correct tab — prevents the null→'gujiya' race condition
-  const [activeHoliTab, setActiveHoliTab] = useState<string | null>(() =>
-    searchParams.get('category') === HOLI_SPECIAL_CATEGORY ? 'gujiya' : null
-  );
+  const [activeHoliTab, setActiveHoliTab] = useState<string | null>(() => {
+    if (!searchParams) return null;
+    return searchParams.get('category') === HOLI_SPECIAL_CATEGORY ? 'gujiya' : null;
+  });
 
   // Determine if we're on the Holi Special page
   const isHoliSpecial = useMemo(() => {
+    if (!searchParams) return false;
     const categoryParam = searchParams.get('category');
     return categoryParam === HOLI_SPECIAL_CATEGORY;
   }, [searchParams]);
 
   // Calculate initial filters from URL params to prevent flash
   const initialFilters = useMemo(() => {
+    if (!searchParams) return {
+      categories: [],
+      priceRange: [0, 10000] as [number, number],
+      features: [],
+      rating: 0,
+      inStock: false,
+      isBestseller: false,
+      isNewArrival: false,
+      sortBy: 'name',
+    };
     const categoryParam = searchParams.get('category');
     const sortParam = searchParams.get('sort');
 
@@ -58,7 +70,7 @@ const Products = () => {
       isNewArrival: sortParam === 'newest',
       sortBy: sortParam || 'name',
     };
-  }, []); // Empty deps - only run on mount
+  }, [searchParams]); // Added searchParams to deps for safety
 
   const [filters, setFilters] = useState<ProductFilters>(initialFilters);
 
@@ -77,9 +89,13 @@ const Products = () => {
     fetchCategories();
 
     // Set initial category from URL on mount
-    const categoryParam = searchParams.get('category');
-    if (categoryParam && categoryParam !== 'All') {
-      setSelectedCategory(categoryParam);
+    if (searchParams) {
+      const categoryParam = searchParams.get('category');
+      if (categoryParam && categoryParam !== 'All') {
+        setSelectedCategory(categoryParam);
+      } else {
+        setSelectedCategory('All');
+      }
     } else {
       setSelectedCategory('All');
     }
@@ -89,6 +105,7 @@ const Products = () => {
   // Sync state with URL params
   useEffect(() => {
     scrollToTopInstant();
+    if (!searchParams) return;
     const categoryParam = searchParams.get('category');
     const sortParam = searchParams.get('sort');
 

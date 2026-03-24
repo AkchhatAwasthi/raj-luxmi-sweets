@@ -1,2 +1,2 @@
-import CategoryForm from '@/pages/admin/CategoryForm';
+import CategoryForm from '@/app-pages/admin/CategoryForm';
 export default function AddCategoryPage() { return <CategoryForm />; }

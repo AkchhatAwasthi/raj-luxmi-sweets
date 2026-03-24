@@ -36,8 +36,15 @@ export default function Profile() {
   }, [profile]);
 
   // Get tab from URL parameters
-  const urlParams = new URLSearchParams(window.location.search);
-  const defaultTab = urlParams.get('tab') || 'profile';
+  const [activeTab, setActiveTab] = useState('profile');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tab = urlParams.get('tab');
+      if (tab) setActiveTab(tab);
+    }
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -182,7 +189,7 @@ export default function Profile() {
           <p className="text-muted-foreground">Manage your account and view your orders</p>
         </div>
 
-        <Tabs defaultValue={defaultTab} className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="w-4 h-4" />

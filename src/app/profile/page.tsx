@@ -1,10 +1,8 @@
-import type { Metadata } from 'next';
-import Profile from '@/pages/Profile';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'My Profile | Raj Luxmi Sweets',
-  description: 'View and manage your account details and past orders.',
-};
+import dynamic from 'next/dynamic';
+
+const Profile = dynamic(() => import('@/app-pages/Profile'), { ssr: false });
 
 export default function ProfilePage() {
   return <Profile />;

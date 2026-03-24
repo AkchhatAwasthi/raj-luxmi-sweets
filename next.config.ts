@@ -18,6 +18,8 @@ const nextConfig: NextConfig = {
   },
   // Required for nodemailer in API routes
   serverExternalPackages: ['nodemailer'],
+  // Transpile packages that might have issues with Turbopack/Next.js SSR
+  transpilePackages: ['framer-motion', 'lucide-react', 'recharts'],
 };
 
 export default nextConfig;

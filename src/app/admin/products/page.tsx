@@ -1,2 +1,2 @@
-import AdminProducts from '@/pages/admin/Products';
+import AdminProducts from '@/app-pages/admin/Products';
 export default function AdminProductsPage() { return <AdminProducts />; }
