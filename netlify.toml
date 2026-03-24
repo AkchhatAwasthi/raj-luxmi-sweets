@@ -2,10 +2,5 @@
   command = "npm run build"
   publish = ".next"
 
-[build.processing.images]
-  compress = true
-
 [[plugins]]
   package = "@netlify/plugin-nextjs"
-  [plugins.inputs]
-    disable_image_optimization = true
