@@ -13,6 +13,10 @@ export const metadata: Metadata = {
   description:
     'Order premium quality Indian sweets, namkeens, mithai and festive specials from Raj Luxmi. Fresh, handcrafted, delivered to your door.',
   keywords: 'Indian sweets, mithai, namkeen, Raj Luxmi, festive sweets, online sweet shop',
+  icons: {
+    icon: '/logo.png',
+    apple: '/logo.png',
+  },
   openGraph: {
     title: 'Raj Luxmi Sweets | Premium Indian Sweets & Namkeens',
     description: 'Order premium quality Indian sweets, namkeens and festive specials.',
