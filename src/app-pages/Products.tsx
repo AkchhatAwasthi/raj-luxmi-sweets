@@ -143,10 +143,10 @@ const Products = () => {
     }
 
     if (shouldUpdateFilters) {
-      setFilters(prev => ({
-        ...prev,
+      setFilters({
+        ...initialFilters,
         ...newFilters
-      }));
+      });
     }
 
     // We don't call fetchProducts here because updating filters will trigger the other useEffect
@@ -342,54 +342,13 @@ const Products = () => {
   return (
     <div className="min-h-screen bg-muted/30 relative">
 
-      {/* Mobile Filters Drawer */}
-      {showMobileFilters && (
-        <>
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-            onClick={() => setShowMobileFilters(false)}
-          />
-          <div
-            className={`fixed top-0 left-0 h-full w-80 bg-white shadow-xl z-50 transform transition-transform duration-300 ease-in-out lg:hidden ${showMobileFilters ? 'translate-x-0' : '-translate-x-full'
-              }`}
-          >
-            <div className="p-6 h-full overflow-y-auto">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-bold text-gray-900 flex items-center">
-                  <Filter className="w-5 h-5 mr-2 text-primary" />
-                  Filters
-                </h3>
-                <button
-                  onClick={() => setShowMobileFilters(false)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-              <ProductFiltersComponent
-                onFiltersChange={setFilters}
-                categories={categories}
-                selectedFilters={filters}
-              />
-            </div>
-          </div>
-        </>
-      )}
+      {/* Mobile Filters Drawer Removed as per request */}
 
       {/* Main Content Layout */}
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
 
-          {/* Desktop Sidebar (Left) */}
-          <aside className="hidden lg:block w-72 flex-shrink-0">
-            <div className="sticky top-24">
-              <ProductFiltersComponent
-                onFiltersChange={setFilters}
-                categories={categories}
-                selectedFilters={filters}
-              />
-            </div>
-          </aside>
+          {/* Desktop Sidebar Removed as per request */}
 
           {/* Product Grid Area (Right/Center) */}
           <div className="flex-1">
@@ -465,14 +424,7 @@ const Products = () => {
 
             {/* View Controls - Minimalist & Royal Font */}
             <div className="flex justify-between items-center mb-6 border-b border-[#D4C3A3]/30 pb-4">
-              {/* Mobile Filter Toggle */}
-              <Button
-                variant="outline"
-                onClick={() => setShowMobileFilters(true)}
-                className="lg:hidden flex items-center justify-center gap-2"
-              >
-                <Filter className="w-4 h-4" /> Filters
-              </Button>
+              {/* Mobile Filter Toggle Removed */}
 
               <div className="flex justify-end w-full lg:w-auto items-center gap-4">
                 <span className="text-[10px] uppercase tracking-[0.2em] text-[#9B4E4E] font-medium hidden sm:block font-inter">View Options</span>

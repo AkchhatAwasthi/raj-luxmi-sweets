@@ -24,8 +24,6 @@ const Home = () => {
         <BestSellers />
         <CategoriesCarousel />
         <NewArrivals />
-        <HeritageScroll />
-
         <PromotionalBanner />
 
         <MarqueeSection
@@ -43,6 +41,7 @@ const Home = () => {
         <MithaiSpecials />
         <FestivalSpecials />
         {/* <SpecialOffers /> */}
+        <HeritageScroll />
         <Testimonials />
         <DeliverySection />
         <InstagramCarousel />

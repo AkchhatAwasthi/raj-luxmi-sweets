@@ -43,23 +43,7 @@ const DeliverySection = () => {
                         alt="Swiggy"
                         className="h-8 md:h-10 w-auto object-contain transition-all duration-300 hover:scale-110"
                     />
-                    <img
-                        src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Blinkit-yellow-rounded.svg/330px-Blinkit-yellow-rounded.svg.png"
-                        alt="Blinkit"
-                        className="h-8 md:h-10 w-auto object-contain transition-all duration-300 hover:scale-110"
-                        onError={(e) => {
-                            e.currentTarget.src = "https://upload.wikimedia.org/wikipedia/commons/2/23/Blinkit-yellow-app-icon.svg";
-                        }}
-                    />
-                    <img
-                        src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/Zepto_Logo.svg/500px-Zepto_Logo.svg.png"
-                        alt="Zepto"
-                        className="h-8 md:h-10 w-auto object-contain transition-all duration-300 hover:scale-110"
-                        onError={(e) => {
-                            // Fallback to text if image fails
-                            e.currentTarget.style.display = '';
-                        }}
-                    />
+
                 </motion.div>
 
                 {/* Divider - Matches image line separation */}

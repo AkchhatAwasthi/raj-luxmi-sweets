@@ -41,6 +41,7 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
   // Dynamic Data States
   const [categories, setCategories] = useState<any[]>([]);
   const [collections, setCollections] = useState<any[]>([]);
+  const [celebrateCategories, setCelebrateCategories] = useState<any[]>([]);
 
   // Scroll handling
   const { scrollY } = useScroll();
@@ -69,6 +70,10 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
         .eq('is_active', true)
         .order('name');
       if (catData) setCategories(catData);
+
+      // Define celebrate categories to be excluded from main sections
+      const celebrateCatNames = ["Wedding Special", "Corporate Gifting", "Festive Hampers"];
+      setCelebrateCategories(celebrateCatNames.map(name => ({ name, slug: name })));
 
       // 2. Mock Collections (Adapted for Rajluxmi Sweets)
       const mockCollections = [
@@ -247,10 +252,28 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                 />
               )} */}
 
-              {/* Categories Dropdown */}
+              {/* Shop In Lucknow Dropdown */}
               <DesktopNavDropdown
-                title="Category"
-                items={categories}
+                title="Shop In Lucknow"
+                items={categories.filter(c => !celebrateCategories.some(cc => cc.name === c.name))}
+                onSelect={(slug) => router.push(`/products?category=${slug}`)}
+              />
+
+              {/* Shop Pan India Dropdown */}
+              <DesktopNavDropdown
+                title="Shop Pan India"
+                items={categories.filter(c => {
+                  const name = c.name.toLowerCase();
+                  const isCelebrate = celebrateCategories.some(cc => cc.name === c.name);
+                  return !isCelebrate && name !== "bengali sweets" && name !== "khoya sweets";
+                })}
+                onSelect={(slug) => router.push(`/products?category=${slug}`)}
+              />
+
+              {/* Celebrate with Rajluxmi Dropdown */}
+              <DesktopNavDropdown
+                title="Celebrate with Rajluxmi"
+                items={celebrateCategories}
                 onSelect={(slug) => router.push(`/products?category=${slug}`)}
               />
             </nav>
@@ -379,8 +402,28 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                 )} */}
 
                 <MobileMenuItem
-                  label="All Categories"
-                  subItems={categories.map(c => ({ name: c.name, slug: c.name }))}
+                  label="Shop in Lucknow"
+                  subItems={categories
+                    .filter(c => !celebrateCategories.some(cc => cc.name === c.name))
+                    .map(c => ({ name: c.name, slug: c.name }))
+                  }
+                />
+
+                <MobileMenuItem
+                  label="Shop all over India"
+                  subItems={categories
+                    .filter(c => {
+                      const name = c.name.toLowerCase();
+                      const isCelebrate = celebrateCategories.some(cc => cc.name === c.name);
+                      return !isCelebrate && name !== "bengali sweets" && name !== "khoya mithai";
+                    })
+                    .map(c => ({ name: c.name, slug: c.name }))
+                  }
+                />
+
+                <MobileMenuItem
+                  label="Celebrate with Rajluxmi"
+                  subItems={celebrateCategories}
                 />
 
                 {user ? (
