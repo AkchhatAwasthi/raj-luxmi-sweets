@@ -5,17 +5,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 
-// Hero slideshow images
-import hero1 from '@/assets/1.png';
-import hero2 from '@/assets/10 (3).png';
-import hero3 from '@/assets/3.png';
-import hero4 from '@/assets/9 (3).png';
-
 const slides = [
-  { image: hero1 },
-  { image: hero2 },
-  { image: hero3 },
-  { image: hero4 },
+  { image: "https://res.cloudinary.com/dmj0smemf/image/upload/f_auto,q_auto/v1775500759/9_3_1_skdh3p.png" },
+  { image: "https://res.cloudinary.com/dmj0smemf/image/upload/f_auto,q_auto/v1775500628/10_3_fqowfk.png" },
+  { image: "https://res.cloudinary.com/dmj0smemf/image/upload/f_auto,q_auto/v1775500627/1_igkhhk.png" },
 ];
 
 const AUTOPLAY_INTERVAL = 4500;
@@ -66,6 +59,8 @@ const CuratedGiftingHero = () => {
           aria-hidden="true"
           className="w-full h-auto block"
           sizes="100vw"
+          width={1920}
+          height={800}
           priority
         />
       </div>
