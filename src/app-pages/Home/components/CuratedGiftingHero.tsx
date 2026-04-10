@@ -51,7 +51,10 @@ const CuratedGiftingHero = () => {
         while the animated slides are positioned absolute on top.
       */}
 
-      {/* Space-holder: invisible image that reserves the correct height */}
+      {/* Space-holder: reserves height from the actual image's natural dimensions.
+          No `priority` here — the invisible image lazy-loads (and will hit the
+          browser cache once the active slide has already fetched the same URL).
+          This eliminates the double high-priority fetch while keeping correct sizing. */}
       <div className="w-full relative invisible pointer-events-none">
         <Image
           src={slides[0].image}
@@ -61,7 +64,6 @@ const CuratedGiftingHero = () => {
           sizes="100vw"
           width={1920}
           height={800}
-          priority
         />
       </div>
 

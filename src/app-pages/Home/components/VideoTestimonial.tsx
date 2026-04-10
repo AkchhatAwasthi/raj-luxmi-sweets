@@ -1,9 +1,14 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { Play } from 'lucide-react';
+
+const VIDEO_ID = 'xEzV5uiF4WY';
 
 const VideoTestimonial = () => {
+  const [activated, setActivated] = useState(false);
+
   return (
     <section className="my-20 relative bg-gradient-to-br from-white to-gray-50 py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -34,14 +39,45 @@ const VideoTestimonial = () => {
           className="mt-16 max-w-4xl mx-auto"
         >
           <div className="relative pt-[56.25%] rounded-3xl overflow-hidden shadow-xl border-8 border-white shadow-primary/10">
-            <iframe
-              className="absolute top-0 left-0 w-full h-full"
-              src="https://www.youtube.com/embed/xEzV5uiF4WY?rel=0&modestbranding=1"
-              title="Customer Testimonial"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            ></iframe>
+            {activated ? (
+              /* Iframe only injected after user clicks — avoids ~500 KB of YouTube JS on load */
+              <iframe
+                className="absolute top-0 left-0 w-full h-full"
+                src={`https://www.youtube.com/embed/${VIDEO_ID}?rel=0&modestbranding=1&autoplay=1`}
+                title="Customer Testimonial"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            ) : (
+              /* Thumbnail with play button — no YouTube JS loaded until clicked */
+              <button
+                onClick={() => setActivated(true)}
+                className="absolute inset-0 w-full h-full group focus:outline-none"
+                aria-label="Play customer testimonial video"
+              >
+                {/* YouTube's public thumbnail CDN — just a static image, no scripts */}
+                <img
+                  src={`https://img.youtube.com/vi/${VIDEO_ID}/maxresdefault.jpg`}
+                  alt="Customer Testimonial thumbnail — click to play"
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  onError={(e) => {
+                    // Fallback to hqdefault if maxresdefault is unavailable
+                    (e.currentTarget as HTMLImageElement).src =
+                      `https://img.youtube.com/vi/${VIDEO_ID}/hqdefault.jpg`;
+                  }}
+                />
+                {/* Overlay */}
+                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-300" />
+                {/* Play button */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/95 group-hover:bg-white group-hover:scale-110 transition-all duration-300 flex items-center justify-center shadow-2xl">
+                    <Play className="w-7 h-7 sm:w-9 sm:h-9 text-[#8B2131] fill-[#8B2131] ml-1" />
+                  </div>
+                </div>
+              </button>
+            )}
           </div>
         </motion.div>
       </div>
@@ -50,3 +86,4 @@ const VideoTestimonial = () => {
 };
 
 export default VideoTestimonial;
+

@@ -77,8 +77,18 @@ const InstagramCarousel = () => {
     };
   }, [api]);
 
-  // Load Instagram embed script
+  // Load Instagram embed script only once on initial component mount.
+  // Previously this ran on every instagramPosts state change, causing
+  // the script to be removed and re-injected repeatedly.
   useEffect(() => {
+    // Guard: don't inject if already present in the document
+    if (document.querySelector('script[src="//www.instagram.com/embed.js"]')) {
+      // Script already exists — just trigger processing if available
+      // @ts-ignore
+      if (window.instgrm) window.instgrm.Embeds.process();
+      return;
+    }
+
     const script = document.createElement('script');
     script.src = '//www.instagram.com/embed.js';
     script.async = true;
@@ -91,10 +101,9 @@ const InstagramCarousel = () => {
     };
     document.body.appendChild(script);
 
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, [instagramPosts]);
+    // Note: we intentionally do NOT remove the script on unmount.
+    // Removing and re-adding it on re-renders was the original bug.
+  }, []); // Empty deps: run once on mount only
 
   if (loading) {
     return (

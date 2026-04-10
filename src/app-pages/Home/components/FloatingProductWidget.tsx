@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Volume2, VolumeX, ExternalLink } from 'lucide-react';
 
@@ -11,12 +11,23 @@ const VIDEO_SRC = '/reel.mp4';
 // Optional: link to your Instagram profile / reel page
 const INSTAGRAM_LINK = 'https://www.instagram.com/rajluxmisweets/';
 
+// Delay in ms before the widget appears — prevents reel.mp4 from downloading
+// during the critical page-load window alongside LCP images and JS bundles.
+const MOUNT_DELAY_MS = 3000;
+
 const FloatingProductWidget = () => {
+    const [isMounted, setIsMounted] = useState(false);
     const [isVisible, setIsVisible] = useState(true);
     const [muted, setMuted] = useState(true);
     const videoRef = useRef<HTMLVideoElement>(null);
 
-    if (!isVisible) return null;
+    // Delay widget mount so it doesn't compete with critical page-load assets
+    useEffect(() => {
+        const timer = setTimeout(() => setIsMounted(true), MOUNT_DELAY_MS);
+        return () => clearTimeout(timer);
+    }, []);
+
+    if (!isMounted || !isVisible) return null;
 
     const toggleMute = (e: React.MouseEvent) => {
         e.stopPropagation();

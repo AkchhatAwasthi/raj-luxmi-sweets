@@ -1,9 +1,9 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  // Disable image optimization to avoid 502/400 errors on Netlify
   images: {
-    unoptimized: true,
+    // Image optimization re-enabled (was previously disabled with unoptimized: true).
+    // @netlify/plugin-nextjs v5 (already installed) handles image optimization on Netlify.
     remotePatterns: [
       {
         protocol: 'https',
@@ -14,6 +14,14 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'res.cloudinary.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'github.com',
       },
     ],
   },

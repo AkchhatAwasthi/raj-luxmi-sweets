@@ -5,6 +5,7 @@
   src: url('../assets/Fonts/OrangeAvenueDEMO-Regular.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
+  font-display: swap; /* Prevents FOIT — text renders immediately in fallback font */
 }
 
 .line-clamp-2 {
