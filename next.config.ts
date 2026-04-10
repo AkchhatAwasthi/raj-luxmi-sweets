@@ -2,8 +2,13 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   images: {
-    // Image optimization re-enabled (was previously disabled with unoptimized: true).
-    // @netlify/plugin-nextjs v5 (already installed) handles image optimization on Netlify.
+    // unoptimized: true is required on this Netlify deployment.
+    // Without it, Next.js routes all <Image> srcs through /_next/image proxy
+    // which returns 502/400 errors on Netlify's standard tier.
+    // NOTE: Cloudinary images already self-optimize via f_auto,q_auto in their URLs.
+    // To enable proper Next.js image optimization on Netlify, you would need to
+    // configure Netlify Large Media or use a paid image CDN add-on.
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
@@ -22,6 +27,10 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'github.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'img.youtube.com',
       },
     ],
   },
