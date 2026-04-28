@@ -112,36 +112,22 @@ const ProductDetail = () => {
     }
   };
 
-  useEffect(() => {
-    if (relatedProducts.length > itemsPerView) {
-      const interval = setInterval(() => {
-        setRelatedCurrentIndex(prev => {
-          const maxIndex = Math.max(0, relatedProducts.length - itemsPerView);
-          return prev >= maxIndex ? 0 : prev + 1;
-        });
-      }, 3000);
-
-      return () => clearInterval(interval);
-    }
-  }, [relatedProducts, itemsPerView]);
-
   const nextRelatedSlide = () => {
     setRelatedCurrentIndex(prev => {
       const maxIndex = Math.max(0, relatedProducts.length - itemsPerView);
-      return prev >= maxIndex ? 0 : prev + 1;
+      return prev >= maxIndex ? maxIndex : prev + 1;
     });
   };
 
   const prevRelatedSlide = () => {
     setRelatedCurrentIndex(prev => {
-      const maxIndex = Math.max(0, relatedProducts.length - itemsPerView);
-      return prev <= 0 ? maxIndex : prev - 1;
+      return prev <= 0 ? 0 : prev - 1;
     });
   };
 
-  // Buttons are always active in loop mode if there are enough items
-  const canGoNextRelated = relatedProducts.length > itemsPerView;
-  const canGoPrevRelated = relatedProducts.length > itemsPerView;
+  const maxRelatedIndex = Math.max(0, relatedProducts.length - itemsPerView);
+  const canGoNextRelated = relatedCurrentIndex < maxRelatedIndex;
+  const canGoPrevRelated = relatedCurrentIndex > 0;
 
   const toggleSection = (section: 'features' | 'specifications' | 'details') => {
     setExpandedSections(prev => ({
@@ -462,7 +448,7 @@ const ProductDetail = () => {
               <div
                 className="flex transition-transform duration-700 ease-out"
                 style={{
-                  transform: `translateX(-${relatedCurrentIndex * (100 / itemsPerView)}%)`,
+                  transform: `translateX(-${relatedCurrentIndex * (100 / relatedProducts.length)}%)`,
                   width: `${(relatedProducts.length / itemsPerView) * 100}%`
                 }}
               >
