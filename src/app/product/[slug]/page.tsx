@@ -1,8 +1,6 @@
 import { Metadata } from 'next';
-import dynamic from 'next/dynamic';
 import { createClient } from '@/lib/supabase/server';
-
-const ProductDetail = dynamic(() => import('@/app-pages/ProductDetail'), { ssr: false });
+import ProductDetailClient from '@/components/ProductDetailClient';
 
 type Props = {
   params: Promise<{ slug: string }>
@@ -50,5 +48,5 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 }
 
 export default function ProductDetailPage() {
-  return <ProductDetail />;
+  return <ProductDetailClient />;
 }
