@@ -18,14 +18,14 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     .from('products')
     .select('name, description, images, meta_title, meta_description, meta_keywords')
     .eq('sku', slug)
-    .single();
+    .single() as any;
 
   if (!product) {
     const { data: byId } = await supabase
       .from('products')
       .select('name, description, images, meta_title, meta_description, meta_keywords')
       .eq('id', slug)
-      .single();
+      .single() as any;
     product = byId;
   }
 
@@ -109,7 +109,7 @@ export default async function ProductDetailPage(props: Props) {
         ? { priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] }
         : {}),
       availability:
-        product.stock_quantity > 0
+        (product.stock_quantity ?? 0) > 0
           ? 'https://schema.org/InStock'
           : 'https://schema.org/OutOfStock',
       seller: {
