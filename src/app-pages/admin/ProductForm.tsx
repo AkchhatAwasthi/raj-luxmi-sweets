@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Upload, X, ChevronUp, ChevronDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { slugify } from '@/utils/slugify';
 
 interface Product {
   id?: string;
@@ -34,6 +35,9 @@ interface Product {
   nutritional_info?: any;
   marketing_info?: any;
   sku?: string;
+  meta_title?: string;
+  meta_description?: string;
+  meta_keywords?: string;
 }
 
 interface ProductFormProps {
@@ -91,6 +95,12 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
     city: '',
     state: '',
     fssaiLicense: ''
+  });
+
+  const [seoData, setSeoData] = useState({
+    meta_title: '',
+    meta_description: '',
+    meta_keywords: ''
   });
 
   useEffect(() => {
@@ -191,6 +201,11 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
       if (data.marketing_info && typeof data.marketing_info === 'object') {
         setMarketingInfo({ ...marketingInfo, ...(data.marketing_info as any) });
       }
+      setSeoData({
+        meta_title: (data as any).meta_title || '',
+        meta_description: (data as any).meta_description || '',
+        meta_keywords: (data as any).meta_keywords || '',
+      });
     } catch (error) {
       console.error('Error fetching product:', error);
       toast({
@@ -376,10 +391,8 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
   };
 
   const generateSKU = () => {
-    const random = Math.random().toString(36).substring(2, 8).toUpperCase();
-    const prefix = formData.name ? formData.name.substring(0, 3).toUpperCase().replace(/[^A-Z]/g, 'PRD') : 'PRD';
-    const sku = `${prefix}-${random}`;
-    handleInputChange('sku', sku);
+    const slug = slugify(formData.name || 'product');
+    handleInputChange('sku', slug);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -414,7 +427,10 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
         pieces: formData.pieces,
         serves: Number(formData.serves) || 0,
         storage_instructions: formData.storage_instructions,
-        marketing_info: marketingInfo
+        marketing_info: marketingInfo,
+        meta_title: seoData.meta_title || null,
+        meta_description: seoData.meta_description || null,
+        meta_keywords: seoData.meta_keywords || null,
       };
 
       if (isEdit && id) {
@@ -522,18 +538,23 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="sku">SKU</Label>
+                <Label htmlFor="sku">URL Slug (used in product URL)</Label>
                 <div className="flex gap-2">
                   <Input
                     id="sku"
                     value={formData.sku}
-                    onChange={(e) => handleInputChange('sku', e.target.value)}
-                    placeholder="Product SKU"
+                    onChange={(e) => handleInputChange('sku', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-'))}
+                    placeholder="e.g. kaju-katli-500g"
                   />
-                  <Button type="button" variant="outline" onClick={generateSKU}>
+                  <Button type="button" variant="outline" onClick={generateSKU} title="Auto-generate from product name">
                     Generate
                   </Button>
                 </div>
+                {formData.sku && (
+                  <p className="text-xs text-muted-foreground">
+                    URL: <span className="font-mono text-blue-600">rajluxmi.com/product/<strong>{formData.sku}</strong></span>
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -1051,6 +1072,97 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
                   />
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* SEO & Google Settings */}
+          <Card className="border-green-200 bg-green-50/30">
+            <CardHeader>
+              <CardTitle className="text-green-800 flex items-center gap-2">
+                <span>🔍</span> SEO & Google Settings
+              </CardTitle>
+              <p className="text-xs text-green-700 mt-1">
+                Leave blank to auto-generate from product name & description.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Meta Title */}
+              <div className="space-y-1">
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="meta_title">Google Title</Label>
+                  <span className={`text-xs font-mono ${
+                    seoData.meta_title.length > 60
+                      ? 'text-red-500 font-bold'
+                      : seoData.meta_title.length > 50
+                      ? 'text-yellow-600'
+                      : 'text-muted-foreground'
+                  }`}>
+                    {seoData.meta_title.length}/60
+                  </span>
+                </div>
+                <Input
+                  id="meta_title"
+                  value={seoData.meta_title}
+                  onChange={(e) => setSeoData({ ...seoData, meta_title: e.target.value })}
+                  placeholder={formData.name ? `${formData.name} | Raj Luxmi Sweets` : 'e.g. Kaju Katli | Raj Luxmi Sweets'}
+                  maxLength={70}
+                />
+                <p className="text-xs text-muted-foreground">Appears as the blue headline in Google results. Max 60 chars.</p>
+              </div>
+
+              {/* Meta Description */}
+              <div className="space-y-1">
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="meta_description">Google Description</Label>
+                  <span className={`text-xs font-mono ${
+                    seoData.meta_description.length > 160
+                      ? 'text-red-500 font-bold'
+                      : seoData.meta_description.length > 140
+                      ? 'text-yellow-600'
+                      : 'text-muted-foreground'
+                  }`}>
+                    {seoData.meta_description.length}/160
+                  </span>
+                </div>
+                <Textarea
+                  id="meta_description"
+                  value={seoData.meta_description}
+                  onChange={(e) => setSeoData({ ...seoData, meta_description: e.target.value })}
+                  placeholder="e.g. Buy fresh Kaju Katli online from Raj Luxmi Sweets — handcrafted, delivered to your door."
+                  rows={3}
+                  maxLength={180}
+                />
+                <p className="text-xs text-muted-foreground">The snippet shown under the title in Google. Max 160 chars.</p>
+              </div>
+
+              {/* Meta Keywords */}
+              <div className="space-y-1">
+                <Label htmlFor="meta_keywords">Keywords</Label>
+                <Input
+                  id="meta_keywords"
+                  value={seoData.meta_keywords}
+                  onChange={(e) => setSeoData({ ...seoData, meta_keywords: e.target.value })}
+                  placeholder="e.g. kaju katli, buy sweets online, mithai delivery"
+                />
+                <p className="text-xs text-muted-foreground">Comma-separated. Not shown publicly but used by some search engines.</p>
+              </div>
+
+              {/* Live Preview */}
+              {(seoData.meta_title || formData.name) && (
+                <div className="mt-4 p-3 border rounded-lg bg-white space-y-0.5">
+                  <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-medium mb-2">Google Preview</p>
+                  <p className="text-[15px] text-blue-700 font-medium leading-tight truncate">
+                    {seoData.meta_title || `${formData.name} | Raj Luxmi Sweets`}
+                  </p>
+                  <p className="text-[13px] text-green-700">rajluxmi.com/product/{formData.sku || 'product-slug'}</p>
+                  <p className="text-[13px] text-gray-600 line-clamp-2 leading-snug">
+                    {seoData.meta_description ||
+                      (formData.description
+                        ? formData.description.substring(0, 160)
+                        : `Buy ${formData.name} at Raj Luxmi Sweets.`)}
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 

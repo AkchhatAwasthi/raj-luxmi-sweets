@@ -1,6 +1,14 @@
 User-agent: *
 Allow: /
+
+# Private pages — never index these
 Disallow: /admin
-Disallow: /api
+Disallow: /admin/
+Disallow: /api/
+Disallow: /cart
+Disallow: /checkout
+Disallow: /profile
+Disallow: /order-detail/
+Disallow: /auth
 
 Sitemap: https://rajluxmi.com/sitemap.xml

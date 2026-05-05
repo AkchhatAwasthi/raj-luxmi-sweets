@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import {
@@ -18,15 +18,11 @@ import ProductCard from '@/components/ProductCard';
 import { supabase } from '@/integrations/supabase/client';
 import { scrollToTopInstant } from '@/utils/scrollToTop';
 
-const ProductDetail = () => {
-  const params = useParams();
-  const slug = params?.slug;
+const ProductDetail = ({ product }: { product: any }) => {
   const router = useRouter();
   const [quantity, setQuantity] = useState(1);
   const [isFavorite, setIsFavorite] = useState(false);
-  const [product, setProduct] = useState<any>(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [relatedCurrentIndex, setRelatedCurrentIndex] = useState(0);
   const [itemsPerView, setItemsPerView] = useState(4);
@@ -41,10 +37,10 @@ const ProductDetail = () => {
 
   useEffect(() => {
     scrollToTopInstant();
-    if (slug) {
-      fetchProduct();
+    if (product?.category_id) {
+      fetchRelatedProducts(product.category_id, product.id);
     }
-  }, [slug]);
+  }, [product?.id]);
 
   useEffect(() => {
     handleResize();
@@ -61,37 +57,6 @@ const ProductDetail = () => {
       setItemsPerView(3);
     } else {
       setItemsPerView(4);
-    }
-  };
-
-  const fetchProduct = async () => {
-    try {
-      let { data, error } = await supabase
-        .from('products')
-        .select(`*, categories(name)`)
-        .eq('sku', slug)
-        .eq('is_active', true)
-        .single();
-
-      if (error && error.code === 'PGRST116') {
-        ({ data, error } = await supabase
-          .from('products')
-          .select(`*, categories(name)`)
-          .eq('id', slug)
-          .eq('is_active', true)
-          .single());
-      }
-
-      if (error) throw error;
-      setProduct(data);
-
-      if (data?.category_id) {
-        fetchRelatedProducts(data.category_id, data.id);
-      }
-    } catch (error) {
-      console.error('Error fetching product:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -136,31 +101,6 @@ const ProductDetail = () => {
     }));
   };
 
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="animate-pulse">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            <div className="aspect-square bg-muted rounded-lg"></div>
-            <div className="space-y-4">
-              <div className="h-8 bg-muted rounded w-3/4"></div>
-              <div className="h-4 bg-muted rounded w-1/4"></div>
-              <div className="h-4 bg-muted rounded w-full"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!product) {
-    return (
-      <div className="container mx-auto px-4 py-8 text-center">
-        <h1 className="text-2xl font-bold mb-4">Product not found</h1>
-        <Button onClick={() => router.push('/products')}>Back to Products</Button>
-      </div>
-    );
-  }
 
   const handleAddToCart = () => {
     for (let i = 0; i < quantity; i++) {

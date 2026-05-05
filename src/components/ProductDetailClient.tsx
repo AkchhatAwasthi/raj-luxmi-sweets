@@ -1,10 +1,11 @@
 'use client';
 
-import dynamic from 'next/dynamic';
-import React from 'react';
+import ProductDetail from '@/app-pages/ProductDetail';
 
-const ProductDetail = dynamic(() => import('@/app-pages/ProductDetail'), { ssr: false });
+interface Props {
+  product: any;
+}
 
-export default function ProductDetailClient() {
-  return <ProductDetail />;
+export default function ProductDetailClient({ product }: Props) {
+  return <ProductDetail product={product} />;
 }
