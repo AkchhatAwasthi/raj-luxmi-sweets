@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import ProductDetailClient from '@/components/ProductDetailClient';
 import { notFound } from 'next/navigation';
 
-const BASE_URL = 'https://rajluxmi.com';
+const BASE_URL = 'https://rajluxmisweets.com';
 
 type Props = {
   params: Promise<{ slug: string }>

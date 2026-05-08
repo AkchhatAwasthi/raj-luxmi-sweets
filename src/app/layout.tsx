@@ -10,6 +10,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { Toaster as Sonner } from '@/components/ui/sonner';
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://rajluxmisweets.com'),
   title: 'Raj Luxmi Sweets | Premium Indian Sweets & Namkeens',
   description:
     'Order premium quality Indian sweets, namkeens, mithai and festive specials from Raj Luxmi. Fresh, handcrafted, delivered to your door.',
