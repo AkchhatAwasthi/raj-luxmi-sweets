@@ -19,6 +19,10 @@ interface Category {
   description: string;
   is_active: boolean;
   image_url: string;
+  slug: string;
+  meta_title: string;
+  meta_description: string;
+  meta_keywords: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -39,7 +43,11 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
     name: '',
     description: '',
     is_active: true,
-    image_url: ''
+    image_url: '',
+    slug: '',
+    meta_title: '',
+    meta_description: '',
+    meta_keywords: '',
   });
 
   const [loading, setLoading] = useState(false);
@@ -83,7 +91,11 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
         name: data.name,
         description: data.description ?? '',
         is_active: data.is_active ?? true,
-        image_url: data.image_url ?? ''
+        image_url: data.image_url ?? '',
+        slug: (data as any).slug ?? '',
+        meta_title: (data as any).meta_title ?? '',
+        meta_description: (data as any).meta_description ?? '',
+        meta_keywords: (data as any).meta_keywords ?? '',
       });
 
       setProductCount(count || 0);
@@ -106,6 +118,21 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
   const handleInputChange = (field: keyof Category, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
+
+  // Auto-generate slug from category name
+  const handleNameChange = (value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      name: value,
+      // Only auto-fill slug if not manually edited (i.e., still matches auto pattern)
+      slug: prev.slug === '' || prev.slug === autoSlug(prev.name ?? '')
+        ? autoSlug(value)
+        : prev.slug,
+    }));
+  };
+
+  const autoSlug = (name: string) =>
+    name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
   const uploadImage = async (file: File): Promise<string | null> => {
     setUploadingImage(true);
@@ -188,8 +215,12 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
             description: formData.description,
             is_active: formData.is_active,
             image_url: formData.image_url,
+            slug: formData.slug || autoSlug(formData.name ?? ''),
+            meta_title: formData.meta_title || null,
+            meta_description: formData.meta_description || null,
+            meta_keywords: formData.meta_keywords || null,
             updated_at: new Date().toISOString()
-          })
+          } as any)
           .eq('id', id);
 
         if (error) throw error;
@@ -200,8 +231,12 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
             name: formData.name,
             description: formData.description,
             is_active: formData.is_active,
-            image_url: formData.image_url
-          });
+            image_url: formData.image_url,
+            slug: formData.slug || autoSlug(formData.name ?? ''),
+            meta_title: formData.meta_title || null,
+            meta_description: formData.meta_description || null,
+            meta_keywords: formData.meta_keywords || null,
+          } as any);
 
         if (error) throw error;
       }
@@ -248,7 +283,7 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
                 <Input
                   id="name"
                   value={formData.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  onChange={(e) => handleNameChange(e.target.value)}
                   placeholder="Enter category name"
                   required
                 />
@@ -282,6 +317,63 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* SEO Fields */}
+          <Card>
+            <CardHeader>
+              <CardTitle>SEO Settings</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="slug">URL Slug</Label>
+                <Input
+                  id="slug"
+                  value={formData.slug}
+                  onChange={(e) => handleInputChange('slug', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-'))}
+                  placeholder="auto-generated-from-name"
+                />
+                <p className="text-xs text-gray-500">
+                  Public URL: /category/<strong>{formData.slug || 'slug'}</strong>
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="meta_title">Meta Title</Label>
+                <Input
+                  id="meta_title"
+                  value={formData.meta_title}
+                  onChange={(e) => handleInputChange('meta_title', e.target.value)}
+                  placeholder={`${formData.name || 'Category'} | Raj Luxmi Sweets`}
+                  maxLength={70}
+                />
+                <p className="text-xs text-gray-400">{(formData.meta_title?.length || 0)}/70 chars</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="meta_description">Meta Description</Label>
+                <Textarea
+                  id="meta_description"
+                  value={formData.meta_description}
+                  onChange={(e) => handleInputChange('meta_description', e.target.value)}
+                  placeholder="Compelling description for Google search results (up to 160 chars)"
+                  rows={3}
+                  maxLength={160}
+                />
+                <p className="text-xs text-gray-400">{(formData.meta_description?.length || 0)}/160 chars</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="meta_keywords">Meta Keywords</Label>
+                <Input
+                  id="meta_keywords"
+                  value={formData.meta_keywords}
+                  onChange={(e) => handleInputChange('meta_keywords', e.target.value)}
+                  placeholder="mithai lucknow, indian sweets, kaju katli"
+                />
+                <p className="text-xs text-gray-500">Comma-separated keywords to target</p>
               </div>
             </CardContent>
           </Card>

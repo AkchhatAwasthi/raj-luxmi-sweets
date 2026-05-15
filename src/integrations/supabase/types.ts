@@ -83,7 +83,11 @@ export type Database = {
           id: string
           image_url: string | null
           is_active: boolean | null
+          meta_description: string | null
+          meta_keywords: string | null
+          meta_title: string | null
           name: string
+          slug: string | null
           updated_at: string | null
         }
         Insert: {
@@ -92,7 +96,11 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean | null
+          meta_description?: string | null
+          meta_keywords?: string | null
+          meta_title?: string | null
           name: string
+          slug?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -101,7 +109,11 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean | null
+          meta_description?: string | null
+          meta_keywords?: string | null
+          meta_title?: string | null
           name?: string
+          slug?: string | null
           updated_at?: string | null
         }
         Relationships: []
