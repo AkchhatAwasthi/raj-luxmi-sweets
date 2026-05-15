@@ -1,12 +1,9 @@
 import { Metadata } from 'next';
 import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
-import dynamic from 'next/dynamic';
+import ProductsClient from './ProductsClient';
 
 const BASE_URL = 'https://rajluxmisweets.com';
-
-// Client component that renders the products grid with the category pre-selected
-const Products = dynamic(() => import('@/app-pages/Products'), { ssr: false });
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -178,7 +175,7 @@ export default async function CategoryPage(props: Props) {
       )}
 
       {/* Render the same Products component with the category pre-filtered */}
-      <Products />
+      <ProductsClient />
     </>
   );
 }
