@@ -11,4 +11,4 @@ Disallow: /profile
 Disallow: /order-detail/
 Disallow: /auth
 
-Sitemap: https://rajluxmi.com/sitemap.xml
+Sitemap: https://rajluxmisweets.com/sitemap.xml
