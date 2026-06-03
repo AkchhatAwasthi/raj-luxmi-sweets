@@ -71,7 +71,7 @@ const FloatingProductWidget = () => {
                 <button
                     onClick={() => setIsVisible(false)}
                     aria-label="Close"
-                    className="absolute top-2 right-2 z-30 flex items-center justify-center w-6 h-6 rounded-full bg-black/40 hover:bg-black/70 text-white backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100"
+                    className="absolute top-2 right-2 z-30 flex items-center justify-center w-6 h-6 rounded-full bg-black/40 hover:bg-black/70 text-white backdrop-blur-sm transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                 >
                     <X className="w-3 h-3" />
                 </button>
