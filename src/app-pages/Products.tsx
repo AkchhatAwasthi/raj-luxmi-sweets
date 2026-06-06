@@ -2,14 +2,13 @@
 
 'use client';
 
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Filter, Grid, List, Search, Cookie, X, Candy, ChevronLeft, LayoutGrid } from 'lucide-react';
+import { Filter, Grid, List, Cookie, Candy, LayoutGrid } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import ProductCard from '@/components/ProductCard';
-import ProductFiltersComponent, { ProductFilters } from '@/components/ProductFilters';
-import { Input } from '@/components/ui/input';
+import { ProductFilters } from '@/components/ProductFilters';
 import { supabase } from '@/integrations/supabase/client';
 import { scrollToTopInstant } from '@/utils/scrollToTop';
 import { Button } from '@/components/ui/button';
@@ -20,165 +19,71 @@ const HOLI_TABS = [
   { id: 'namkeen', label: 'Namkeen', emoji: '🥨', settingKey: 'holi_namkeen_ids' },
 ];
 
-const Products = () => {
-  const { selectedCategory, setSelectedCategory } = useStore();
+interface ProductsProps {
+  /** When set, products are filtered by this exact DB category_id.
+   *  Passed from the server-rendered /category/[slug] page.
+   *  When absent (e.g. /products page), URL query-param logic is used. */
+  forcedCategoryId?: string;
+  forcedCategoryName?: string;
+}
+
+const Products = ({ forcedCategoryId, forcedCategoryName }: ProductsProps = {}) => {
+  const { setSelectedCategory } = useStore();
   const searchParams = useSearchParams();
+  const router = useRouter();
+
+  // ── Sort / view state ──────────────────────────────────────────────────────
   const [sortBy, setSortBy] = useState('name');
   const [gridCols, setGridCols] = useState<1 | 3 | 4>(4);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // ── Product / category data ────────────────────────────────────────────────
   const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState(['All']);
   const [loading, setLoading] = useState(true);
   const [totalProducts, setTotalProducts] = useState(0);
-  const [showMobileFilters, setShowMobileFilters] = useState(false);
-  // Initialize activeHoliTab synchronously from URL so the very first fetchProducts
-  // call already uses the correct tab — prevents the null→'gujiya' race condition
-  const [activeHoliTab, setActiveHoliTab] = useState<string | null>(() => {
-    if (!searchParams) return null;
-    return searchParams.get('category') === HOLI_SPECIAL_CATEGORY ? 'gujiya' : null;
-  });
 
-  // Determine if we're on the Holi Special page
-  const isHoliSpecial = useMemo(() => {
-    if (!searchParams) return false;
-    const categoryParam = searchParams.get('category');
-    return categoryParam === HOLI_SPECIAL_CATEGORY;
-  }, [searchParams]);
-
-  // Calculate initial filters from URL params to prevent flash
-  const initialFilters = useMemo(() => {
-    if (!searchParams) return {
-      categories: [],
-      priceRange: [0, 10000] as [number, number],
-      features: [],
-      rating: 0,
-      inStock: false,
-      isBestseller: false,
-      isNewArrival: false,
-      sortBy: 'name',
-    };
-    const categoryParam = searchParams.get('category');
-    const sortParam = searchParams.get('sort');
-
-    return {
-      categories: categoryParam && categoryParam !== 'All' ? [categoryParam] : [],
-      priceRange: [0, 10000] as [number, number],
-      features: [],
-      rating: 0,
-      inStock: false,
-      isBestseller: sortParam === 'bestseller',
-      isNewArrival: sortParam === 'newest',
-      sortBy: sortParam || 'name',
-    };
-  }, [searchParams]); // Added searchParams to deps for safety
-
-  const [filters, setFilters] = useState<ProductFilters>(initialFilters);
-
-  // Pagination states
+  // ── Pagination ─────────────────────────────────────────────────────────────
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const observer = useRef<IntersectionObserver | null>(null);
-  const lastProductRef = useRef<HTMLDivElement>(null);
 
-  const router = useRouter();
-  const pathname = usePathname();
+  // Version counter: prevents stale in-flight responses from overwriting correct data
+  const fetchVersionRef = useRef(0);
 
-  // Initial data fetch
-  useEffect(() => {
-    fetchCategories();
+  // ── Holi Special ───────────────────────────────────────────────────────────
+  const isHoliSpecial =
+    forcedCategoryName === HOLI_SPECIAL_CATEGORY ||
+    searchParams?.get('category') === HOLI_SPECIAL_CATEGORY;
 
-    // Set initial category from URL on mount
-    if (searchParams) {
-      const categoryParam = searchParams.get('category');
-      if (categoryParam && categoryParam !== 'All') {
-        setSelectedCategory(categoryParam);
-      } else {
-        setSelectedCategory('All');
-      }
-    } else {
-      setSelectedCategory('All');
-    }
-  }, []);
+  const [activeHoliTab, setActiveHoliTab] = useState<string | null>(
+    isHoliSpecial ? 'gujiya' : null
+  );
 
-  // Sync state with URL params
-  // Sync state with URL params
-  useEffect(() => {
-    scrollToTopInstant();
-    if (!searchParams) return;
-    const categoryParam = searchParams.get('category');
-    const sortParam = searchParams.get('sort');
-
-    const newFilters: Partial<ProductFilters> = {};
-    let shouldUpdateFilters = false;
-
-    if (categoryParam && categoryParam !== 'All') {
-      // If URL has a specific category, enforce it
-      setSelectedCategory(categoryParam);
-      newFilters.categories = [categoryParam];
-      shouldUpdateFilters = true;
-    } else if (!categoryParam || categoryParam === 'All') {
-      // Only clear if we really want to reset (e.g. Nav "All Products")
-      // But we need to be careful not to overwrite if we are just changing sort
-      // Actually, if category is missing, we usually default to All.
-      // But if we are deep linking to ?sort=newest without category, we imply All.
-      if (selectedCategory !== 'All') {
-        setSelectedCategory('All');
-        newFilters.categories = [];
-        shouldUpdateFilters = true;
-      }
-    }
-
-    if (sortParam) {
-      newFilters.sortBy = sortParam;
-      shouldUpdateFilters = true;
-
-      // Automatically check checkboxes based on sort/nav
-      if (sortParam === 'bestseller') {
-        newFilters.isBestseller = true;
-      }
-      if (sortParam === 'newest') {
-        newFilters.isNewArrival = true;
-      }
-    }
-
-    if (shouldUpdateFilters) {
-      setFilters({
-        ...initialFilters,
-        ...newFilters
-      });
-    }
-
-    // We don't call fetchProducts here because updating filters will trigger the other useEffect
-  }, [searchParams]);
-
-  // Reset/re-initialize activeHoliTab when navigating in/out of Holi Special page
   useEffect(() => {
     if (isHoliSpecial) {
-      // Only set to gujiya if currently null (don't override if user already clicked a tab)
       setActiveHoliTab(prev => prev ?? 'gujiya');
     } else {
       setActiveHoliTab(null);
     }
   }, [isHoliSpecial]);
 
-  // Reset pagination when filters change
+  // ── Sync store selected category ───────────────────────────────────────────
   useEffect(() => {
-    setPage(1);
-    setHasMore(true);
-    setProducts([]);
-    fetchProducts(1);
-  }, [searchTerm, filters, activeHoliTab]); // Removed selectedCategory - it's already in filters.categories
+    setSelectedCategory(forcedCategoryName || searchParams?.get('category') || 'All');
+  }, [forcedCategoryId, forcedCategoryName, searchParams]);
 
-  const fetchProducts = async (pageNum = 1) => {
-    if (pageNum === 1) {
-      setLoading(true);
-    } else {
-      setIsLoadingMore(true);
-    }
+  // ── Core fetch ─────────────────────────────────────────────────────────────
+  const fetchProducts = useCallback(async (pageNum: number) => {
+    console.log('fetchProducts called', { forcedCategoryId, forcedCategoryName, searchParams: searchParams?.toString() });
+    fetchVersionRef.current += 1;
+    const myVersion = fetchVersionRef.current;
+
+    if (pageNum === 1) setLoading(true);
+    else setIsLoadingMore(true);
 
     try {
-      // ── Holi tab active: fetch by curated product IDs from settings ──────
+      // ── Holi Special: fetch by curated IDs ──────────────────────────────
       if (isHoliSpecial && activeHoliTab) {
         const activeTab = HOLI_TABS.find(t => t.id === activeHoliTab);
         if (activeTab) {
@@ -187,6 +92,8 @@ const Products = () => {
             .select('value')
             .eq('key', activeTab.settingKey)
             .maybeSingle();
+
+          if (myVersion !== fetchVersionRef.current) return;
 
           const productIds: string[] = (settingsData?.value as any)?.product_ids || [];
 
@@ -199,164 +106,155 @@ const Products = () => {
 
           const { data, error } = await supabase
             .from('products')
-            .select(`*, categories(id, name)`)
+            .select('*, categories(id, name)')
             .in('id', productIds)
             .eq('is_active', true);
 
           if (error) throw error;
+          if (myVersion !== fetchVersionRef.current) return;
 
-          // Preserve the admin-defined order
           const ordered = productIds
             .map(id => data?.find((p: any) => p.id === id))
             .filter(Boolean) as any[];
 
-          setProducts(pageNum === 1 ? ordered : prev => [...prev, ...ordered]);
+          setProducts(ordered);
           setTotalProducts(ordered.length);
-          setHasMore(false); // curated lists show all at once
+          setHasMore(false);
           return;
         }
       }
 
-      // ── Normal filtering (non-Holi tab) ──────────────────────────────────
-      // First, get the total count
-      let countQuery = supabase
+      // ── Normal: build query ───────────────────────────────────────────────
+      const sortParam = searchParams?.get('sort') || sortBy;
+      const catQP = searchParams?.get('category'); // e.g. from /products?category=Mithai
+
+      // Resolve the category_id to filter by:
+      // 1. forcedCategoryId (from server page) — highest priority
+      // 2. ?category= query param — look it up by name
+      let filterCategoryId: string | null = forcedCategoryId || null;
+
+      if (!filterCategoryId && catQP && catQP !== 'All') {
+        // 1️⃣ Try human‑readable name (e.g. "dry fruits")
+        const decodedName = decodeURIComponent(catQP)
+          .replace(/\+/g, ' ')   // plus signs → space
+          .replace(/-/g, ' ')    // hyphens → space
+          .replace(/_/g, ' ')    // underscores → space
+          .replace(/\s+/g, ' ') // collapse multiple spaces
+          .trim();
+        const { data: catRowByName } = await supabase
+          .from('categories')
+          .select('id')
+          .ilike('name', decodedName)
+          .eq('is_active', true)
+          .maybeSingle();
+        if (myVersion !== fetchVersionRef.current) return;
+        if (catRowByName?.id) {
+          filterCategoryId = catRowByName.id;
+        } else {
+          // 2️⃣ Fallback: treat the original param as a slug (replace spaces with hyphens)
+          const slugCandidate = decodedName.replace(/\s+/g, '-').toLowerCase();
+          const { data: catRowBySlug } = await supabase
+            .from('categories')
+            .select('id')
+            .eq('slug', slugCandidate)
+            .eq('is_active', true)
+            .maybeSingle();
+          if (myVersion !== fetchVersionRef.current) return;
+          filterCategoryId = catRowBySlug?.id || null;
+        }
+      }
+
+      // Count query
+      let countQ = supabase
         .from('products')
         .select('*', { count: 'exact', head: true })
         .eq('is_active', true);
 
-      if (searchTerm) {
-        countQuery = countQuery.ilike('name', `%${searchTerm}%`);
-      }
+      if (searchTerm) countQ = countQ.ilike('name', `%${searchTerm}%`);
+      if (filterCategoryId) countQ = countQ.eq('category_id', filterCategoryId);
 
-      if (filters && filters.categories.length > 0) {
-        const { data: categoryData } = await supabase
-          .from('categories')
-          .select('id')
-          .in('name', filters.categories);
+      const { count } = await countQ;
+      if (myVersion !== fetchVersionRef.current) return;
+      setTotalProducts(count || 0);
 
-        if (categoryData && categoryData.length > 0) {
-          countQuery = countQuery.in('category_id', categoryData.map(c => c.id));
-        }
-      }
-
-      if (filters.priceRange[0] > 0) countQuery = countQuery.gte('price', filters.priceRange[0]);
-      if (filters.priceRange[1] < 10000) countQuery = countQuery.lte('price', filters.priceRange[1]);
-      if (filters.inStock) countQuery = countQuery.gt('stock_quantity', 0);
-      if (filters.isBestseller) countQuery = countQuery.eq('is_bestseller', true);
-      if (filters.isNewArrival) countQuery = countQuery.eq('new_arrival', true);
-
-      const { count, error: countError } = await countQuery;
-      if (!countError) setTotalProducts(count || 0);
-
-      // Now fetch the paginated data
-      let query = supabase
+      // Data query
+      let q = supabase
         .from('products')
-        .select(`*, categories(id, name)`)
+        .select('*, categories(id, name)')
         .eq('is_active', true)
         .range((pageNum - 1) * 10, pageNum * 10 - 1);
 
-      if (searchTerm) query = query.ilike('name', `%${searchTerm}%`);
+      if (searchTerm) q = q.ilike('name', `%${searchTerm}%`);
+      if (filterCategoryId) q = q.eq('category_id', filterCategoryId);
 
-      if (filters && filters.categories.length > 0) {
-        const { data: categoryData } = await supabase.from('categories').select('id').in('name', filters.categories);
-        if (categoryData && categoryData.length > 0) query = query.in('category_id', categoryData.map(c => c.id));
+      switch (sortParam) {
+        case 'name-desc': q = q.order('name', { ascending: false }); break;
+        case 'price-low': q = q.order('price', { ascending: true }); break;
+        case 'price-high': q = q.order('price', { ascending: false }); break;
+        case 'rating': q = q.order('rating', { ascending: false }); break;
+        case 'newest': q = q.order('created_at', { ascending: false }); break;
+        case 'bestseller': q = q.order('is_bestseller', { ascending: false }); break;
+        default: q = q.order('name', { ascending: true });
       }
 
-      if (filters.priceRange[0] > 0) query = query.gte('price', filters.priceRange[0]);
-      if (filters.priceRange[1] < 10000) query = query.lte('price', filters.priceRange[1]);
-      if (filters.inStock) query = query.gt('stock_quantity', 0);
-      if (filters.isBestseller) query = query.eq('is_bestseller', true);
-      if (filters.isNewArrival) query = query.eq('new_arrival', true);
-
-      const sortOption = filters.sortBy || sortBy;
-      switch (sortOption) {
-        case 'name-desc': query = query.order('name', { ascending: false }); break;
-        case 'price-low': query = query.order('price', { ascending: true }); break;
-        case 'price-high': query = query.order('price', { ascending: false }); break;
-        case 'rating': query = query.order('rating', { ascending: false }); break;
-        case 'newest': query = query.order('created_at', { ascending: false }); break;
-        case 'bestseller': query = query.order('is_bestseller', { ascending: false }); break;
-        default: query = query.order('name', { ascending: true });
-      }
-
-      const { data, error } = await query;
-
+      const { data, error } = await q;
       if (error) throw error;
+      if (myVersion !== fetchVersionRef.current) return;
 
-      if (pageNum === 1) {
-        setProducts(data || []);
-      } else {
-        setProducts(prev => [...prev, ...(data || [])]);
-      }
+      if (pageNum === 1) setProducts(data || []);
+      else setProducts(prev => [...prev, ...(data || [])]);
 
-      setHasMore(data?.length === 10);
-    } catch (error) {
-      console.error('Error fetching products:', error);
+      setHasMore((data?.length ?? 0) === 10);
+    } catch (err) {
+      console.error('Error fetching products:', err);
     } finally {
-      setLoading(false);
-      setIsLoadingMore(false);
+      if (myVersion === fetchVersionRef.current) {
+        setLoading(false);
+        setIsLoadingMore(false);
+      }
     }
-  };
+  }, [forcedCategoryId, searchParams, searchTerm, sortBy, isHoliSpecial, activeHoliTab]);
 
-  const fetchCategories = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('name')
-        .eq('is_active', true);
+  // ── Trigger fetch whenever key deps change ─────────────────────────────────
+  useEffect(() => {
+    scrollToTopInstant();
+    setPage(1);
+    setHasMore(true);
+    setProducts([]);
+    fetchProducts(1);
+  }, [fetchProducts]);
 
-      if (error) throw error;
-      const categoryNames = data?.map(cat => cat.name) || [];
-      setCategories(['All', ...categoryNames]);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-    }
-  };
-
-  const sortedProducts = products;
-
+  // ── Infinite scroll ────────────────────────────────────────────────────────
   const loadMore = useCallback(() => {
     if (hasMore && !isLoadingMore) {
       const nextPage = page + 1;
       setPage(nextPage);
       fetchProducts(nextPage);
     }
-  }, [page, hasMore, isLoadingMore]);
+  }, [page, hasMore, isLoadingMore, fetchProducts]);
 
   const lastProductElementRef = useCallback((node: HTMLDivElement) => {
     if (loading || isLoadingMore) return;
     if (observer.current) observer.current.disconnect();
     observer.current = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && hasMore) {
-        loadMore();
-      }
+      if (entries[0].isIntersecting && hasMore) loadMore();
     });
     if (node) observer.current.observe(node);
   }, [loading, isLoadingMore, hasMore, loadMore]);
 
-  const getCategoryIcon = (category: string) => {
-    if (category === 'Mithai') return <Candy className="w-4 h-4" />;
-    return <Cookie className="w-4 h-4" />;
-  };
-
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-muted/30 relative">
-
-      {/* Mobile Filters Drawer Removed as per request */}
-
-      {/* Main Content Layout */}
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
-
-          {/* Desktop Sidebar Removed as per request */}
-
-          {/* Product Grid Area (Right/Center) */}
           <div className="flex-1">
-            {/* SEO Heading — ensures each collection page has a clear primary heading */}
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-orange-avenue font-normal text-[#2C1810] mb-10 mt-4 uppercase tracking-wider text-left border-b border-[#D4C3A3]/30 pb-6">
-              {isHoliSpecial ? 'Holi Special Collection' : 'Our Sweets Collection'}
+              {forcedCategoryName
+                ? forcedCategoryName
+                : isHoliSpecial
+                  ? 'Holi Special Collection'
+                  : 'Our Sweets Collection'}
             </h1>
-
 
             {/* Holi Special Sub-Category Tabs */}
             <AnimatePresence>
@@ -368,7 +266,6 @@ const Products = () => {
                   transition={{ duration: 0.35, ease: 'easeOut' }}
                   className="mb-8"
                 >
-                  {/* Tab bar — royal maroon/gold theme */}
                   <div
                     className="flex items-center"
                     style={{
@@ -392,7 +289,6 @@ const Products = () => {
                       >
                         <span className="text-sm">{tab.emoji}</span>
                         <span>{tab.label}</span>
-                        {/* Active underline accent */}
                         {activeHoliTab === tab.id && (
                           <motion.span
                             layoutId="holi-tab-underline"
@@ -404,8 +300,6 @@ const Products = () => {
                       </button>
                     ))}
                   </div>
-
-                  {/* Subtle label */}
                   <motion.p
                     key={activeHoliTab}
                     initial={{ opacity: 0 }}
@@ -422,10 +316,8 @@ const Products = () => {
               )}
             </AnimatePresence>
 
-            {/* View Controls - Minimalist & Royal Font */}
+            {/* View Controls */}
             <div className="flex justify-between items-center mb-6 border-b border-[#D4C3A3]/30 pb-4">
-              {/* Mobile Filter Toggle Removed */}
-
               <div className="flex justify-end w-full lg:w-auto items-center gap-4">
                 <span className="text-[10px] uppercase tracking-[0.2em] text-[#9B4E4E] font-medium hidden sm:block font-inter">View Options</span>
                 <div className="flex items-center gap-2">
@@ -454,7 +346,7 @@ const Products = () => {
               </div>
             </div>
 
-            {/* Grid */}
+            {/* Product Grid */}
             <motion.div
               className={`grid gap-6 ${gridCols === 4 ? 'grid-cols-2 lg:grid-cols-4' :
                 gridCols === 3 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' :
@@ -476,10 +368,10 @@ const Products = () => {
                 ))
               ) : (
                 <>
-                  {sortedProducts.map((product: any, index) => (
+                  {products.map((product: any, index) => (
                     <motion.div
                       key={product.id}
-                      ref={index === sortedProducts.length - 1 ? lastProductElementRef : null}
+                      ref={index === products.length - 1 ? lastProductElementRef : null}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.5, delay: index * 0.05 }}

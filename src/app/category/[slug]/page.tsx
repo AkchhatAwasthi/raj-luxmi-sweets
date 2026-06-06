@@ -91,7 +91,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 export default async function CategoryPage(props: Props) {
   const params = await props.params;
   const category = await fetchCategory(params.slug);
-
+  console.log('CategoryPage loaded', { categoryId: category?.id, slug: params.slug });
   if (!category) {
     notFound();
   }
@@ -174,8 +174,8 @@ export default async function CategoryPage(props: Props) {
         />
       )}
 
-      {/* Render the same Products component with the category pre-filtered */}
-      <ProductsClient />
+      {/* Render the Products component with the category id passed directly — no client-side guessing */}
+      <ProductsClient forcedCategoryId={category.id} forcedCategoryName={category.name} />
     </>
   );
 }
