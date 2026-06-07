@@ -270,12 +270,18 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                 onSelect={(slug) => router.push(`/products?category=${slug}`)}
               />
 
-              {/* Celebrate with Rajluxmi Dropdown */}
-              <DesktopNavDropdown
-                title="Celebrate with Rajluxmi"
-                items={celebrateCategories}
-                onSelect={(slug) => router.push(`/products?category=${slug}`)}
-              />
+              {/* Our Gift Hampers - External Link */}
+              <a
+                href="https://drive.google.com/file/d/1Lpjx1tBV4L0OVhfo7p50kOnNZ-t823GQ/view?usp=sharing"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="relative group px-0.5 lg:px-1 py-1"
+              >
+                <span className="text-[10px] lg:text-xs font-kugile font-normal tracking-[0.15em] uppercase text-[#4A1C1F] group-hover:text-[#B38B46] transition-colors">
+                  Our Gift Hampers
+                </span>
+                <span className="absolute bottom-0 left-1/2 w-0 h-[1px] bg-[#B38B46] transition-all duration-500 ease-out -translate-x-1/2 group-hover:w-full" />
+              </a>
             </nav>
 
             {/* ... Right Actions ... */}
@@ -422,8 +428,8 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                 />
 
                 <MobileMenuItem
-                  label="Celebrate with Rajluxmi"
-                  subItems={celebrateCategories}
+                  label="Our Gift Hampers"
+                  onClick={() => window.open('https://drive.google.com/file/d/1Lpjx1tBV4L0OVhfo7p50kOnNZ-t823GQ/view?usp=sharing', '_blank')}
                 />
 
                 {user ? (
