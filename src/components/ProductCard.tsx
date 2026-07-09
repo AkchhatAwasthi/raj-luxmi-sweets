@@ -301,7 +301,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
 
       {/* Product Details */}
       <div className="p-5 text-center flex flex-col items-center gap-2">
-        <h3 className="font-orange-avenue font-normal text-sm text-[#2C1810] line-clamp-1 group-hover:text-[#8B2131] transition-colors duration-300">
+        <h3 className="font-orange-avenue font-normal text-sm text-[#2C1810] line-clamp-none group-hover:text-[#8B2131] transition-colors duration-300 min-h-[2.5rem] flex items-center justify-center">
           {product.name}
         </h3>
 

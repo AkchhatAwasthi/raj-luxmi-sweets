@@ -42,7 +42,7 @@ const MithaiSpecials = () => {
   }, [mithaiProducts, itemsPerView, autoScroll, lastManualAction]);
 
   const handleResize = () => {
-    if (window.innerWidth < 640) setItemsPerView(1.2);
+    if (window.innerWidth < 640) setItemsPerView(2);
     else if (window.innerWidth < 1024) setItemsPerView(2.5);
     else setItemsPerView(4);
   };

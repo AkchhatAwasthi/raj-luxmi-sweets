@@ -2,77 +2,138 @@
 
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Sparkles, ArrowRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Crown, ArrowRight } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import QuickViewModal from '@/components/QuickViewModal';
 import { supabase } from '@/integrations/supabase/client';
 
-const NewArrivals = () => {
+const GhewarSpecials = () => {
   const router = useRouter();
-  const [newArrivals, setNewArrivals] = useState<any[]>([]);
+  const [ghewarProducts, setGhewarProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [itemsPerView, setItemsPerView] = useState(4);
   const [quickViewProduct, setQuickViewProduct] = useState<any | null>(null);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
+  const [autoScroll, setAutoScroll] = useState(true);
+  const [lastManualAction, setLastManualAction] = useState(0);
 
   useEffect(() => {
-    fetchNewArrivals();
+    fetchGhewarProducts();
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const [autoScroll, setAutoScroll] = useState(true);
-  const [lastManualAction, setLastManualAction] = useState(0);
-
   useEffect(() => {
-    if (newArrivals.length > itemsPerView && autoScroll) {
+    if (ghewarProducts.length > itemsPerView && autoScroll) {
       const interval = setInterval(() => {
         if (Date.now() - lastManualAction < 10000) return;
 
         setCurrentIndex(prev => {
-          const maxIndex = newArrivals.length - itemsPerView;
+          const maxIndex = ghewarProducts.length - itemsPerView;
           return prev >= maxIndex ? 0 : prev + 1;
         });
       }, 5000);
 
       return () => clearInterval(interval);
     }
-  }, [newArrivals, itemsPerView, autoScroll, lastManualAction]);
+  }, [ghewarProducts, itemsPerView, autoScroll, lastManualAction]);
 
   const handleResize = () => {
-    if (window.innerWidth < 640) {
-      setItemsPerView(2);
-    } else if (window.innerWidth < 1024) {
-      setItemsPerView(2.5);
-    } else {
-      setItemsPerView(4);
-    }
+    if (window.innerWidth < 640) setItemsPerView(2);
+    else if (window.innerWidth < 1024) setItemsPerView(2.5);
+    else setItemsPerView(4);
   };
 
-  const fetchNewArrivals = async () => {
+  const fetchGhewarProducts = async () => {
     try {
-      const result = await supabase
-        .from('products')
-        .select('*')
-        .eq('is_active', true)
-        .eq('new_arrival', true)
-        .order('created_at', { ascending: false })
-        .limit(12);
+      // 1. Try to fetch from settings first
+      const { data: settingsData } = await supabase
+        .from('settings')
+        .select('value')
+        .eq('key', 'ghewar_special_ids')
+        .maybeSingle();
 
-      if (result.error) throw result.error;
+      let productIds: string[] = [];
+      if (settingsData?.value) {
+        productIds = (settingsData.value as any).product_ids || [];
+      }
 
-      setNewArrivals(result.data || []);
+      if (productIds.length > 0) {
+        const { data: products, error } = await supabase
+          .from('products')
+          .select('*')
+          .in('id', productIds)
+          .eq('is_active', true);
+
+        if (error) throw error;
+
+        const sortedProducts = productIds
+          .map(id => products?.find(p => p.id === id))
+          .filter(Boolean);
+
+        setGhewarProducts(sortedProducts);
+        setLoading(false);
+        return;
+      }
+
+      // 2. Fetch by category name 'Ghewar Sweets'
+      const { data: categoryData } = await supabase
+        .from('categories')
+        .select('id')
+        .ilike('name', 'Ghewar Sweets')
+        .maybeSingle();
+
+      let productsResult: any[] = [];
+
+      if (categoryData?.id) {
+        const { data: products, error } = await supabase
+          .from('products')
+          .select('*')
+          .eq('category_id', categoryData.id)
+          .eq('is_active', true)
+          .order('created_at', { ascending: false })
+          .limit(12);
+
+        if (!error && products && products.length > 0) {
+          productsResult = products;
+        }
+      }
+
+      // 3. Fallback: Fetch by category name 'Ghee Sweets' if no products found in Ghewar Sweets
+      if (productsResult.length === 0) {
+        const { data: fallbackCategoryData } = await supabase
+          .from('categories')
+          .select('id')
+          .ilike('name', 'Ghee Sweets')
+          .maybeSingle();
+
+        if (fallbackCategoryData?.id) {
+          const { data: products, error } = await supabase
+            .from('products')
+            .select('*')
+            .eq('category_id', fallbackCategoryData.id)
+            .eq('is_active', true)
+            .order('created_at', { ascending: false })
+            .limit(12);
+
+          if (!error && products) {
+            productsResult = products;
+          }
+        }
+      }
+
+      setGhewarProducts(productsResult);
     } catch (error) {
-      console.error('Error fetching new arrivals:', error);
+      console.error('Error fetching Ghewar products:', error);
     } finally {
       setLoading(false);
     }
   };
 
   const nextSlide = () => {
-    if (currentIndex < newArrivals.length - itemsPerView) {
+    if (currentIndex < ghewarProducts.length - itemsPerView) {
       setCurrentIndex(currentIndex + 1);
       setLastManualAction(Date.now());
     }
@@ -85,7 +146,6 @@ const NewArrivals = () => {
     }
   };
 
-  // Touch/swipe support
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
 
@@ -98,7 +158,7 @@ const NewArrivals = () => {
     if (distance < -50 && canGoPrev) prevSlide();
   };
 
-  const canGoNext = currentIndex < newArrivals.length - Math.floor(itemsPerView);
+  const canGoNext = currentIndex < ghewarProducts.length - Math.floor(itemsPerView);
   const canGoPrev = currentIndex > 0;
 
   const handleQuickView = (product: any) => {
@@ -121,22 +181,20 @@ const NewArrivals = () => {
   };
 
   return (
-    <section className="py-12 md:py-16 bg-[#F9F3EA] relative overflow-hidden">
-      {/* Background accent - Rajluxmi Theme */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-[#FFF8F0] rounded-full filter blur-[100px] opacity-60 pointer-events-none"></div>
+    <section className="py-12 md:py-16 bg-[#FAF4E8] relative overflow-hidden">
+      {/* Background accent */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#FFFDF7] to-[#FFF9F0] opacity-60 -z-10"></div>
 
       <div className="max-w-[1600px] mx-auto px-6 relative z-10">
-        {/* Header Area */}
         <div className="flex flex-col items-center justify-center text-center mb-8 gap-4 border-b border-[#E6D5B8] pb-4 relative">
           <div>
-            <span className="text-[10px] uppercase tracking-[0.25em] text-[#9B4E4E] mb-2 block font-medium">FRESH FROM KITCHEN</span>
-            <h2 className="text-xl md:text-2xl lg:text-3xl text-[#783838] uppercase font-orange-avenue font-normal tracking-wide">
-              New Arrivals
+            <span className="text-[10px] uppercase tracking-[0.25em] text-[#9B4E4E] mb-2 block font-medium">ROYAL RAJASTHANI DELICACY</span>
+            <h2 className="text-xl md:text-2xl lg:text-3xl text-[#783838] uppercase font-instrument font-normal tracking-wide">
+              GHEWAR SPECIALS
             </h2>
           </div>
 
-          {/* Carousel Controls */}
-          {!loading && newArrivals.length > itemsPerView && (
+          {!loading && ghewarProducts.length > itemsPerView && (
             <div className="flex items-center space-x-4 mt-4 md:absolute md:right-0 md:bottom-6 md:mt-0">
               <button
                 onClick={prevSlide}
@@ -162,13 +220,7 @@ const NewArrivals = () => {
           )}
         </div>
 
-        {/* Product Carousel */}
-        <div
-          className="relative"
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-        >
+        <div className="relative" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {Array.from({ length: 4 }).map((_, index) => (
@@ -179,7 +231,7 @@ const NewArrivals = () => {
                 </div>
               ))}
             </div>
-          ) : newArrivals.length > 0 ? (
+          ) : ghewarProducts.length > 0 ? (
             <div className="overflow-hidden">
               <div
                 className="flex transition-transform duration-700 ease-out"
@@ -187,7 +239,7 @@ const NewArrivals = () => {
                   transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)`,
                 }}
               >
-                {newArrivals.map((product) => (
+                {ghewarProducts.map((product) => (
                   <div
                     key={product.id}
                     className="flex-shrink-0 px-2 md:px-4"
@@ -208,24 +260,23 @@ const NewArrivals = () => {
             </div>
           ) : (
             <div className="text-center py-20 border border-[#E6D5B8]/20 p-8">
-              <Sparkles className="w-12 h-12 text-[#E6D5B8] mx-auto mb-4" />
-              <h3 className="text-xl font-orange-avenue font-normal text-[#2C1810] mb-2">No new arrivals yet</h3>
-              <p className="text-[#5D4037] font-light">Check back soon for latest additions.</p>
+              <Crown className="w-12 h-12 text-[#E6D5B8] mx-auto mb-4" />
+              <h3 className="text-xl font-instrument font-normal text-[#2C1810] mb-2">No Ghewar available</h3>
+              <p className="text-[#5D4037] font-light">Royal Rajasthani Ghewar coming soon.</p>
             </div>
           )}
         </div>
 
         <div className="text-center mt-12">
           <button
-            onClick={() => router.push('/products?sort=newest')}
-            className="group inline-flex items-center gap-3 bg-[#8B2131] text-white px-10 py-4 text-xs font-orange-avenue font-normal uppercase tracking-[0.2em] hover:bg-[#2C1810] transition-all duration-300"
+            onClick={() => router.push('/products?category=Ghewar%20Sweets')}
+            className="group inline-flex items-center gap-3 bg-[#8B2131] text-white px-10 py-4 text-xs font-instrument font-normal uppercase tracking-[0.2em] hover:bg-[#2C1810] transition-all duration-300"
           >
-            View All Arrivals <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            View All Ghewar <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
       </div>
 
-      {/* Quick View Modal */}
       {isQuickViewOpen && quickViewProduct && (
         <QuickViewModal
           product={quickViewProduct}
@@ -237,4 +288,4 @@ const NewArrivals = () => {
   );
 };
 
-export default NewArrivals;
+export default GhewarSpecials;

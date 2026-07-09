@@ -45,7 +45,7 @@ const BestSellers = () => {
 
   const handleResize = () => {
     if (window.innerWidth < 640) {
-      setItemsPerView(1.2); // Mobile: 1.2 cards to show "one card and half" equivalent hint
+      setItemsPerView(2); // Mobile: 2 cards at a time
     } else if (window.innerWidth < 1024) {
       setItemsPerView(2.5);
     } else {

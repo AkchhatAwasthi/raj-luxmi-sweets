@@ -15,12 +15,14 @@ import FestivalSpecials from './components/FestivalSpecials';
 import DeliverySection from './components/DeliverySection';
 import HeritageScroll from './components/HeritageScroll';
 import FloatingProductWidget from './components/FloatingProductWidget';
+import GhewarSpecials from './components/GhewarSpecials';
 
 const Home = () => {
   return (
     <main className="min-h-screen">
       <CuratedGiftingHero />
       <div className="flex flex-col">
+        <GhewarSpecials />
         <BestSellers />
         <CategoriesCarousel />
         <NewArrivals />
