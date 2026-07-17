@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface AppSettings {
@@ -38,7 +38,7 @@ export interface AppSettings {
 }
 
 // Only minimal defaults for type safety - real values come from database
-const defaultSettings: AppSettings = {
+export const defaultSettings: AppSettings = {
   tax_rate: 0,
   delivery_charge: 0,
   free_delivery_threshold: 0,
@@ -65,145 +65,128 @@ const defaultSettings: AppSettings = {
   business_hours_end: '20:00'
 };
 
-export const useSettings = () => {
-  const [settings, setSettings] = useState<AppSettings | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+// ---------------------------------------------------------------------------
+// Standalone fetch function — extracted so it can be used by useQuery.
+// React Query deduplicates all simultaneous callers that share the same key
+// ('app-settings'), so Footer + FloatingWhatsApp + CartSidebar all mount at
+// the same time but only ONE network request is made.
+// ---------------------------------------------------------------------------
+async function fetchAppSettings(): Promise<AppSettings> {
+  // Use the settings function to fetch data (fallback to direct query if function doesn't exist)
+  let data: any, fetchError: any;
+  try {
+    const result = await supabase.rpc('get_app_settings' as any);
+    data = result.data;
+    fetchError = result.error;
+  } catch (rpcError) {
+    console.log('RPC function not available, using direct query');
+    // Fallback to direct query
+    const result = await supabase
+      .from('settings' as any)
+      .select('key, value')
+      .in('key', [
+        'tax_rate',
+        'delivery_charge',
+        'free_delivery_threshold',
+        'cod_charge',
+        'cod_threshold',
+        'min_order_amount',
+        'currency_symbol',
+        'cod_enabled',
+        'razorpay_enabled',
+        'cashfree_enabled',
+        'store_name',
+        'store_phone',
+        'store_email',
+        'store_address',
+        'business_hours_start',
+        'business_hours_end',
+        'delivery_time_estimate'
+      ]);
+    data = result.data;
+    fetchError = result.error;
+  }
 
-  const fetchSettings = async () => {
+  if (fetchError) throw fetchError;
+
+  if (!data || data.length === 0) {
+    console.error('No settings found in database!');
+    throw new Error('No settings configured in database');
+  }
+
+  const settingsMap: Partial<AppSettings> = {};
+
+  data.forEach((setting: any) => {
+    const key = setting.key as keyof AppSettings;
+    let value = setting.value;
+
     try {
-      setLoading(true);
-      setError(null);
-
-      // Use the settings function to fetch data (fallback to direct query if function doesn't exist)
-      let data, fetchError;
-      try {
-        const result = await supabase.rpc('get_app_settings' as any);
-        data = result.data;
-        fetchError = result.error;
-      } catch (rpcError) {
-        console.log('RPC function not available, using direct query');
-        // Fallback to direct query
-        const result = await supabase
-          .from('settings' as any)
-          .select('key, value')
-          .in('key', [
-            'tax_rate',
-            'delivery_charge',
-            'free_delivery_threshold',
-            'cod_charge',
-            'cod_threshold',
-            'min_order_amount',
-            'currency_symbol',
-            'cod_enabled',
-            'razorpay_enabled',
-            'cashfree_enabled',
-            'store_name',
-            'store_phone',
-            'store_email',
-            'store_address',
-            'business_hours_start',
-            'business_hours_end',
-            'delivery_time_estimate'
-          ]);
-        data = result.data;
-        fetchError = result.error;
-      }
-
-      if (fetchError) {
-        throw fetchError;
-      }
-
-      if (data && data.length > 0) {
-        const settingsMap: Partial<AppSettings> = {};
-
-        data.forEach((setting: any) => {
-          const key = setting.key as keyof AppSettings;
-          let value = setting.value;
-
-          console.log(`Raw setting ${key}:`, value, typeof value);
-
-          try {
-            // Parse database values - they are stored as JSONB
-            if (typeof value === 'string') {
-              // Handle JSON-encoded strings
-              if (value.startsWith('"') && value.endsWith('"')) {
-                // String values stored as JSON strings - remove quotes
-                value = value.slice(1, -1);
-              } else if (value === 'true') {
-                value = true;
-              } else if (value === 'false') {
-                value = false;
-              } else if (!isNaN(Number(value)) && value.trim() !== '') {
-                // Numeric strings
-                value = Number(value);
-              }
-            }
-            // If it's already a number or boolean, keep it as is
-
-            console.log(`Parsed setting ${key}:`, value, typeof value);
-            (settingsMap as any)[key] = value;
-          } catch (error) {
-            console.error(`Failed to parse setting ${key}:`, value, error);
-            // Keep the raw value if parsing fails
-            (settingsMap as any)[key] = value;
-          }
-        });
-
-        // Only fill missing keys with defaults, prioritize database values
-        const finalSettings = { ...defaultSettings, ...settingsMap } as AppSettings;
-
-        // ── Always fetch cashfree_enabled directly ──────────────────────────
-        // The RPC function was created before Cashfree existed and doesn't
-        // include this key, so we fetch it separately to guarantee correctness.
-        try {
-          const { data: cfRows } = await supabase
-            .from('settings' as any)
-            .select('key, value')
-            .in('key', ['cashfree_enabled', 'razorpay_enabled']);
-
-          if (cfRows && cfRows.length > 0) {
-            cfRows.forEach((row: any) => {
-              const v = row.value;
-              (finalSettings as any)[row.key] =
-                v === true || v === 'true' || v === '"true"';
-            });
-          }
-        } catch (cfErr) {
-          console.warn('Could not fetch cashfree_enabled directly:', cfErr);
+      // Parse database values - they are stored as JSONB
+      if (typeof value === 'string') {
+        if (value.startsWith('"') && value.endsWith('"')) {
+          value = value.slice(1, -1);
+        } else if (value === 'true') {
+          value = true;
+        } else if (value === 'false') {
+          value = false;
+        } else if (!isNaN(Number(value)) && value.trim() !== '') {
+          value = Number(value);
         }
-        // ────────────────────────────────────────────────────────────────────
-
-        console.log('Final settings from database:', finalSettings);
-        setSettings(finalSettings);
-      } else {
-        console.error('No settings found in database!');
-        setError('No settings configured in database');
-        setSettings(defaultSettings);
       }
-    } catch (err) {
-      console.error('Error fetching settings:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch settings');
-      // Don't use defaults on error - let user know there's an issue
-      setSettings(null);
-    } finally {
-      setLoading(false);
+      (settingsMap as any)[key] = value;
+    } catch (error) {
+      console.error(`Failed to parse setting ${key}:`, value, error);
+      (settingsMap as any)[key] = value;
     }
-  };
+  });
 
-  useEffect(() => {
-    fetchSettings();
-  }, []);
+  const finalSettings = { ...defaultSettings, ...settingsMap } as AppSettings;
 
-  const refreshSettings = () => {
-    fetchSettings();
-  };
+  // ── Always fetch cashfree_enabled directly ──────────────────────────
+  // The RPC function was created before Cashfree existed and doesn't
+  // include this key, so we fetch it separately to guarantee correctness.
+  try {
+    const { data: cfRows } = await supabase
+      .from('settings' as any)
+      .select('key, value')
+      .in('key', ['cashfree_enabled', 'razorpay_enabled']);
+
+    if (cfRows && cfRows.length > 0) {
+      cfRows.forEach((row: any) => {
+        const v = row.value;
+        (finalSettings as any)[row.key] =
+          v === true || v === 'true' || v === '"true"';
+      });
+    }
+  } catch (cfErr) {
+    console.warn('Could not fetch cashfree_enabled directly:', cfErr);
+  }
+  // ────────────────────────────────────────────────────────────────────
+
+  return finalSettings;
+}
+
+// ---------------------------------------------------------------------------
+// useSettings — backed by React Query.
+// All simultaneous callers share one in-flight request and one cached result.
+// Cache is valid for 5 minutes; settings change rarely.
+// ---------------------------------------------------------------------------
+export const useSettings = () => {
+  const { data, isLoading, error, refetch } = useQuery<AppSettings, Error>({
+    queryKey: ['app-settings'],
+    queryFn: fetchAppSettings,
+    staleTime: 5 * 60 * 1000,   // 5 minutes — settings change rarely
+    gcTime: 10 * 60 * 1000,     // keep in cache 10 minutes after last use
+    retry: 1,
+    // Fall back to defaults if the query fails so the UI doesn't break
+    placeholderData: defaultSettings,
+  });
 
   return {
-    settings: settings || defaultSettings, // Fallback to defaults only for UI safety
-    loading,
-    error,
-    refreshSettings
+    settings: data ?? defaultSettings,
+    loading: isLoading,
+    error: error?.message ?? null,
+    refreshSettings: refetch,
   };
 };
 

@@ -7,6 +7,7 @@ import { X, Search, Plus, Sparkles, TrendingUp, Grid3X3 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/utils/currency';
 import { useStore } from '@/store/useStore';
+import { useCategories } from '@/hooks/useCategories';
 
 interface SearchSidebarProps {
   isOpen: boolean;
@@ -35,7 +36,8 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose }) => {
   const addToCart = useStore((state) => state.addToCart);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchProduct[]>([]);
-  const [categories, setCategories] = useState<SearchCategory[]>([]);
+  // Categories come from shared hook — already cached from Header's mount
+  const { categories } = useCategories();
   const [selectedCategory, setSelectedCategory] = useState('');
   const [loading, setLoading] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
@@ -43,7 +45,6 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     if (isOpen) {
-      fetchCategories();
       loadRecentSearches();
       fetchFeaturedProducts();
     }
@@ -60,20 +61,6 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose }) => {
     }
   }, [searchQuery, selectedCategory]);
 
-  const fetchCategories = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .eq('is_active', true)
-        .order('name');
-
-      if (error) throw error;
-      setCategories(data || []);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-    }
-  };
 
   const fetchFeaturedProducts = async () => {
     try {

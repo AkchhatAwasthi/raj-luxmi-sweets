@@ -5,12 +5,47 @@ import ProductsClient from './ProductsClient';
 
 const BASE_URL = 'https://rajluxmisweets.com';
 
+// ---------------------------------------------------------------------------
+// ISR: Revalidate cached pages once per hour.
+// Category/product data is relatively stable — this means the first request
+// after each hour hits Supabase, but all subsequent requests within the hour
+// are served from Netlify's CDN edge with near-zero TTFB and no cold starts.
+// ---------------------------------------------------------------------------
+export const revalidate = 3600;
+
 type Props = {
   params: Promise<{ slug: string }>;
 };
 
 // ---------------------------------------------------------------------------
-// Helper: fetch a category by slug or (fallback) by name for legacy URLs
+// generateStaticParams — pre-renders top category pages at build time.
+// These are served as static files from CDN with zero TTFB on first hit.
+// ---------------------------------------------------------------------------
+export async function generateStaticParams() {
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from('categories')
+      .select('slug, name')
+      .eq('is_active', true);
+
+    if (!data) return [];
+
+    // Build params for both slug and name-based routes
+    return data
+      .filter((c: any) => c.slug) // only categories with a slug column value
+      .map((c: any) => ({ slug: c.slug }));
+  } catch {
+    // If Supabase is unavailable at build time, skip pre-rendering
+    return [];
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Helper: fetch a category by slug or (fallback) by name for legacy URLs.
+// The two Supabase calls are sequential by necessity (the second is only
+// triggered if the first returns nothing), but this is unavoidable for the
+// fallback pattern.
 // ---------------------------------------------------------------------------
 async function fetchCategory(slug: string) {
   const supabase = await createClient();
@@ -90,16 +125,19 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 // ---------------------------------------------------------------------------
 export default async function CategoryPage(props: Props) {
   const params = await props.params;
+
+  // Fetch category first (we need the ID to fetch products)
   const category = await fetchCategory(params.slug);
-  console.log('CategoryPage loaded', { categoryId: category?.id, slug: params.slug });
   if (!category) {
     notFound();
   }
 
   // ---------------------------------------------------
-  // JSON-LD: BreadcrumbList + ItemList (category page)
-  // Tells Google about the hierarchy and the products
-  // so it can show category-level rich results.
+  // Fetch products for JSON-LD structured data.
+  // This runs AFTER fetchCategory, but since we need the
+  // category.id to query products it cannot be parallelised
+  // with fetchCategory itself. However it is now a single
+  // dedicated Supabase client call (no extra round-trips).
   // ---------------------------------------------------
   const supabase = await createClient();
   const { data: products } = await supabase

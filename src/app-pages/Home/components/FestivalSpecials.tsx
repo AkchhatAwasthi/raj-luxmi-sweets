@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Gift, ArrowRight } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import QuickViewModal from '@/components/QuickViewModal';
@@ -24,12 +24,14 @@ const FestivalSpecials = () => {
   }, []);
 
   const [autoScroll, setAutoScroll] = useState(true);
-  const [lastManualAction, setLastManualAction] = useState(0);
+  // Use a ref instead of state so updating it doesn't trigger a re-render
+  // and therefore doesn't cause the interval to be torn down and recreated.
+  const lastManualActionRef = useRef(0);
 
   useEffect(() => {
     if (festivalProducts.length > itemsPerView && autoScroll) {
       const interval = setInterval(() => {
-        if (Date.now() - lastManualAction < 10000) return;
+        if (Date.now() - lastManualActionRef.current < 10000) return;
 
         setCurrentIndex(prev => {
           const maxIndex = festivalProducts.length - itemsPerView;
@@ -39,7 +41,7 @@ const FestivalSpecials = () => {
 
       return () => clearInterval(interval);
     }
-  }, [festivalProducts, itemsPerView, autoScroll, lastManualAction]);
+  }, [festivalProducts, itemsPerView, autoScroll]);
 
   const handleResize = () => {
     if (window.innerWidth < 640) setItemsPerView(2);
@@ -49,13 +51,19 @@ const FestivalSpecials = () => {
 
   const fetchFestivalProducts = async () => {
     try {
-      // 1. Try to fetch from settings first
-      const { data: settingsData } = await supabase
-        .from('settings')
-        .select('value')
-        .eq('key', 'festive_special_ids')
-        .maybeSingle();
+      // Run settings lookup + both category lookups in parallel — independent of each other.
+      // Only the products query must wait for the results.
+      const [settingsResult, festivalCategoryResult, specialCategoryResult] = await Promise.all([
+        supabase.from('settings').select('value').eq('key', 'festive_special_ids').maybeSingle(),
+        supabase.from('categories').select('id').ilike('name', '%festival%').maybeSingle(),
+        supabase.from('categories').select('id').ilike('name', '%special%').maybeSingle(),
+      ]);
 
+      const settingsData = settingsResult.data;
+      // Prefer festival category; fall back to special
+      const categoryData = festivalCategoryResult.data ?? specialCategoryResult.data;
+
+      // 1. Prefer explicit product IDs from settings
       let productIds: string[] = [];
       if (settingsData?.value) {
         productIds = (settingsData.value as any).product_ids || [];
@@ -80,23 +88,7 @@ const FestivalSpecials = () => {
         return;
       }
 
-      // 2. Fallback: Fetch by category name
-      let { data: categoryData, error: categoryError } = await supabase
-        .from('categories')
-        .select('id')
-        .ilike('name', '%festival%')
-        .single();
-
-      if (categoryError) {
-        // Fallback to "Special" if "Festival" not found
-        const { data: specialCategoryData } = await supabase
-          .from('categories')
-          .select('id')
-          .ilike('name', '%special%')
-          .single();
-        categoryData = specialCategoryData;
-      }
-
+      // 2. Fallback: use best-available category (already fetched in parallel above)
       if (!categoryData) {
         setLoading(false);
         return;
@@ -122,14 +114,14 @@ const FestivalSpecials = () => {
   const nextSlide = () => {
     if (currentIndex < festivalProducts.length - itemsPerView) {
       setCurrentIndex(currentIndex + 1);
-      setLastManualAction(Date.now());
+      lastManualActionRef.current = Date.now();
     }
   };
 
   const prevSlide = () => {
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
-      setLastManualAction(Date.now());
+      lastManualActionRef.current = Date.now();
     }
   };
 

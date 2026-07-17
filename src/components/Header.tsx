@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger as MobileDropdownTrigger,
 } from '@/components/ui/dropdown-menu';
 import SearchSidebar from './SearchSidebar';
-import { supabase } from '@/integrations/supabase/client';
+import { useCategories } from '@/hooks/useCategories';
 import Image from 'next/image';
 import logo from '@/assets/logo.png';
 
@@ -38,8 +38,8 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
     setMounted(true);
   }, []);
 
-  // Dynamic Data States
-  const [categories, setCategories] = useState<any[]>([]);
+  // Dynamic Data States — categories come from shared hook (deduplicates requests)
+  const { categories } = useCategories();
   const [collections, setCollections] = useState<any[]>([]);
   const [celebrateCategories, setCelebrateCategories] = useState<any[]>([]);
 
@@ -57,45 +57,16 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
       setIsScrolled(window.scrollY > 20);
     };
     window.addEventListener('scroll', handleScroll);
-    fetchNavigationData();
+    // Set up static data that doesn't need a Supabase call
+    const celebrateCatNames = ["Wedding Special", "Corporate Gifting", "Festive Hampers"];
+    setCelebrateCategories(celebrateCatNames.map(name => ({ name, slug: name })));
+    const mockCollections = [
+      { id: 'c1', name: "New Arrivals", slug: 'new-arrivals' },
+      { id: 'c2', name: "Bestsellers", slug: 'bestsellers' },
+    ];
+    setCollections(mockCollections);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  const fetchNavigationData = async () => {
-    try {
-      // 1. Fetch Categories
-      const { data: catData } = await supabase
-        .from('categories')
-        .select('*')
-        .eq('is_active', true)
-        .order('name');
-      if (catData) setCategories(catData);
-
-      // Define celebrate categories to be excluded from main sections
-      const celebrateCatNames = ["Wedding Special", "Corporate Gifting", "Festive Hampers"];
-      setCelebrateCategories(celebrateCatNames.map(name => ({ name, slug: name })));
-
-      // 2. Mock Collections (Adapted for Rajluxmi Sweets)
-      const mockCollections = [
-        { id: 'c1', name: "New Arrivals", slug: 'new-arrivals' },
-        { id: 'c2', name: "Bestsellers", slug: 'bestsellers' },
-        // {
-        //   id: 'c4',
-        //   name: "Gifting",
-        //   slug: 'gifting',
-        //   subcategories: [
-        //     { name: "Wedding Boxes", slug: "wedding-boxes" },
-        //     { name: "Corporate", slug: "corporate" },
-        //     { name: "Festival Packs", slug: "festival-packs" },
-        //     { name: "Custom Hampers", slug: "custom-hampers" }
-        //   ]
-        // }
-      ];
-      setCollections(mockCollections);
-    } catch (error) {
-      console.error("Error fetching nav data:", error);
-    }
-  };
 
   const cartItemsCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
@@ -272,7 +243,7 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
 
               {/* Our Gift Hampers - External Link */}
               <a
-                href="https://drive.google.com/file/d/1Lpjx1tBV4L0OVhfo7p50kOnNZ-t823GQ/view?usp=sharing"
+                href="https://drive.google.com/file/d/11hNkwBlF_4pQIS0c2KOuxjeZXX5NyiEJ/view?usp=sharing"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="relative group px-0.5 lg:px-1 py-1"
@@ -429,7 +400,7 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
 
                 <MobileMenuItem
                   label="Our Gift Hampers"
-                  onClick={() => window.open('https://drive.google.com/file/d/1Lpjx1tBV4L0OVhfo7p50kOnNZ-t823GQ/view?usp=sharing', '_blank')}
+                  onClick={() => window.open('https://drive.google.com/file/d/11hNkwBlF_4pQIS0c2KOuxjeZXX5NyiEJ/view?usp=sharing', '_blank')}
                 />
 
                 {user ? (

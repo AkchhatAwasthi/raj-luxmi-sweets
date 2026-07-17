@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Candy, ArrowRight } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import QuickViewModal from '@/components/QuickViewModal';
@@ -24,12 +24,14 @@ const MithaiSpecials = () => {
   }, []);
 
   const [autoScroll, setAutoScroll] = useState(true);
-  const [lastManualAction, setLastManualAction] = useState(0);
+  // Use a ref instead of state so updating it doesn't trigger a re-render
+  // and therefore doesn't cause the interval to be torn down and recreated.
+  const lastManualActionRef = useRef(0);
 
   useEffect(() => {
     if (mithaiProducts.length > itemsPerView && autoScroll) {
       const interval = setInterval(() => {
-        if (Date.now() - lastManualAction < 10000) return;
+        if (Date.now() - lastManualActionRef.current < 10000) return;
 
         setCurrentIndex(prev => {
           const maxIndex = mithaiProducts.length - itemsPerView;
@@ -39,7 +41,7 @@ const MithaiSpecials = () => {
 
       return () => clearInterval(interval);
     }
-  }, [mithaiProducts, itemsPerView, autoScroll, lastManualAction]);
+  }, [mithaiProducts, itemsPerView, autoScroll]);
 
   const handleResize = () => {
     if (window.innerWidth < 640) setItemsPerView(2);
@@ -49,13 +51,17 @@ const MithaiSpecials = () => {
 
   const fetchMithaiProducts = async () => {
     try {
-      // 1. Try to fetch from settings first
-      const { data: settingsData } = await supabase
-        .from('settings')
-        .select('value')
-        .eq('key', 'mithai_special_ids')
-        .maybeSingle();
+      // Run settings lookup + category lookup in parallel — independent of each other.
+      // Only the products query must wait for the results.
+      const [settingsResult, categoryResult] = await Promise.all([
+        supabase.from('settings').select('value').eq('key', 'mithai_special_ids').maybeSingle(),
+        supabase.from('categories').select('id').ilike('name', 'mithai').maybeSingle(),
+      ]);
 
+      const settingsData = settingsResult.data;
+      const categoryData = categoryResult.data;
+
+      // 1. Prefer explicit product IDs from settings
       let productIds: string[] = [];
       if (settingsData?.value) {
         productIds = (settingsData.value as any).product_ids || [];
@@ -80,14 +86,8 @@ const MithaiSpecials = () => {
         return;
       }
 
-      // 2. Fallback: Fetch by category 'Mithai'
-      const { data: categoryData, error: categoryError } = await supabase
-        .from('categories')
-        .select('id')
-        .ilike('name', 'mithai')
-        .single();
-
-      if (categoryError || !categoryData) {
+      // 2. Fallback: Fetch by category 'Mithai' (already fetched in parallel above)
+      if (!categoryData) {
         setLoading(false);
         return;
       }
@@ -113,14 +113,14 @@ const MithaiSpecials = () => {
   const nextSlide = () => {
     if (currentIndex < mithaiProducts.length - itemsPerView) {
       setCurrentIndex(currentIndex + 1);
-      setLastManualAction(Date.now());
+      lastManualActionRef.current = Date.now();
     }
   };
 
   const prevSlide = () => {
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
-      setLastManualAction(Date.now());
+      lastManualActionRef.current = Date.now();
     }
   };
 

@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Upload, X } from 'lucide-react';
+import { ArrowLeft, Upload, X, Link } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import CategoryProductManager from '@/components/CategoryProductManager';
@@ -134,6 +134,13 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
   const autoSlug = (name: string) =>
     name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
+  // Auto-inject f_auto,q_auto for Cloudinary URLs that are missing it
+  const normalizeCloudinaryUrl = (url: string): string => {
+    if (!url.includes('res.cloudinary.com')) return url;
+    if (url.includes('f_auto') && url.includes('q_auto')) return url;
+    return url.replace(/\/image\/upload\//, '/image/upload/f_auto,q_auto/');
+  };
+
   const uploadImage = async (file: File): Promise<string | null> => {
     setUploadingImage(true);
     try {
@@ -171,7 +178,7 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
 
     const imageUrl = await uploadImage(file);
     if (imageUrl) {
-      handleInputChange('image_url', imageUrl);
+      handleInputChange('image_url', normalizeCloudinaryUrl(imageUrl));
     }
   };
 
@@ -415,12 +422,40 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
                   {uploadingImage ? 'Uploading...' : 'Choose Image'}
                 </Button>
               </div>
-              
+
+              {/* URL Input */}
+              <div className="space-y-2">
+                <Label htmlFor="imageUrl">Or paste image URL</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="imageUrl"
+                    type="url"
+                    placeholder="https://res.cloudinary.com/..."
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={(e) => {
+                      const input = e.currentTarget.previousElementSibling as HTMLInputElement;
+                      const url = input.value.trim();
+                      if (url) {
+                        handleInputChange('image_url', normalizeCloudinaryUrl(url));
+                        input.value = '';
+                      }
+                    }}
+                  >
+                    <Link className="h-4 w-4 mr-1" />
+                    Add URL
+                  </Button>
+                </div>
+              </div>
+
               {!formData.image_url && (
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
                   <Upload className="h-8 w-8 mx-auto text-gray-400 mb-2" />
                   <p className="text-sm text-gray-500">
-                    Upload category image
+                    Upload an image file or paste a URL above
                   </p>
                   <p className="text-xs text-gray-400 mt-1">
                     PNG, JPG up to 10MB

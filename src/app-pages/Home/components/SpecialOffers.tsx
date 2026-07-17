@@ -7,7 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Tag, Copy, Clock, ArrowRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import heroImage from '@/assets/coupon.png';
+// import heroImage from '@/assets/coupon.png';
 
 const SpecialOffers = () => {
   const router = useRouter();
@@ -99,7 +99,7 @@ const SpecialOffers = () => {
           <div className="absolute inset-0 z-0">
             <div className="absolute inset-0 bg-black/40 z-10"></div>
             <img
-              src={heroImage.src}
+              src=""
               alt="Sweet Deals Background"
               className="w-full h-full object-cover"
             />

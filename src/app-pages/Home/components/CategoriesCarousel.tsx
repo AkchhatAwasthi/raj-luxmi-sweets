@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { supabase } from '@/integrations/supabase/client';
+import { useCategories } from '@/hooks/useCategories';
 import {
   Carousel,
   CarouselContent,
@@ -15,17 +15,11 @@ import {
 import Image from 'next/image';
 
 
-interface Category {
-  id: string;
-  name: string;
-  image_url: string | null;
-  description: string | null;
-}
 
 const CategoriesCarousel = () => {
   const router = useRouter();
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Categories come from shared hook — deduplicates with Header & SearchSidebar
+  const { categories, loading } = useCategories();
   const [api, setApi] = useState<CarouselApi>();
 
   // Auto-scroll logic
@@ -39,39 +33,18 @@ const CategoriesCarousel = () => {
     return () => clearInterval(intervalId);
   }, [api]);
 
-  // Fallback images matching the luxury sweets aesthetic
-  const fallbacks = [
-    'https://images.unsplash.com/photo-1599354607481-99c75a02797e?auto=format&fit=crop&q=80', // Sweets
-    'https://images.unsplash.com/photo-1605196377314-e575aa975b9f?auto=format&fit=crop&q=80', // Ladoo
-    'https://images.unsplash.com/photo-1517244683847-7456b63c5d69?auto=format&fit=crop&q=80', // Cake/Dessert
-    'https://images.unsplash.com/photo-1587314168485-3236d6710814?auto=format&fit=crop&q=80', // Indian Sweets
-    'https://images.unsplash.com/photo-1569383746724-6f1b88e9c906?auto=format&fit=crop&q=80', // Gulab Jamun
-  ];
-
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  const fetchCategories = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .eq('is_active', true)
-        .order('name');
-
-      if (error) throw error;
-      setCategories(data || []);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCategoryClick = (category: Category) => {
+  const handleCategoryClick = (category: { name: string }) => {
     router.push(`/products?category=${category.name}`);
   };
+
+  // Fallback images matching the luxury sweets aesthetic
+  const fallbacks = [
+    'https://images.unsplash.com/photo-1599354607481-99c75a02797e?auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1605196377314-e575aa975b9f?auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1517244683847-7456b63c5d69?auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1587314168485-3236d6710814?auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1569383746724-6f1b88e9c906?auto=format&fit=crop&q=80',
+  ];
 
   if (loading) {
     return (

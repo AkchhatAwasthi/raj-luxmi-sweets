@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Crown, ArrowRight } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import QuickViewModal from '@/components/QuickViewModal';
@@ -16,7 +16,9 @@ const GhewarSpecials = () => {
   const [quickViewProduct, setQuickViewProduct] = useState<any | null>(null);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const [autoScroll, setAutoScroll] = useState(true);
-  const [lastManualAction, setLastManualAction] = useState(0);
+  // Use a ref instead of state so updating it doesn't trigger a re-render
+  // and therefore doesn't cause the interval to be torn down and recreated.
+  const lastManualActionRef = useRef(0);
 
   useEffect(() => {
     fetchGhewarProducts();
@@ -28,7 +30,7 @@ const GhewarSpecials = () => {
   useEffect(() => {
     if (ghewarProducts.length > itemsPerView && autoScroll) {
       const interval = setInterval(() => {
-        if (Date.now() - lastManualAction < 10000) return;
+        if (Date.now() - lastManualActionRef.current < 10000) return;
 
         setCurrentIndex(prev => {
           const maxIndex = ghewarProducts.length - itemsPerView;
@@ -38,7 +40,7 @@ const GhewarSpecials = () => {
 
       return () => clearInterval(interval);
     }
-  }, [ghewarProducts, itemsPerView, autoScroll, lastManualAction]);
+  }, [ghewarProducts, itemsPerView, autoScroll]);
 
   const handleResize = () => {
     if (window.innerWidth < 640) setItemsPerView(2);
@@ -48,13 +50,19 @@ const GhewarSpecials = () => {
 
   const fetchGhewarProducts = async () => {
     try {
-      // 1. Try to fetch from settings first
-      const { data: settingsData } = await supabase
-        .from('settings')
-        .select('value')
-        .eq('key', 'ghewar_special_ids')
-        .maybeSingle();
+      // Run settings lookup + both category lookups in parallel — they are
+      // all independent of each other. Only the products query must wait.
+      const [settingsResult, ghewarCategoryResult, gheeCategoryResult] = await Promise.all([
+        supabase.from('settings').select('value').eq('key', 'ghewar_special_ids').maybeSingle(),
+        supabase.from('categories').select('id').ilike('name', 'Ghewar Sweets').maybeSingle(),
+        supabase.from('categories').select('id').ilike('name', 'Ghee Sweets').maybeSingle(),
+      ]);
 
+      const settingsData = settingsResult.data;
+      const ghewarCategoryData = ghewarCategoryResult.data;
+      const gheeCategoryData = gheeCategoryResult.data;
+
+      // 1. Prefer explicit product IDs from settings
       let productIds: string[] = [];
       if (settingsData?.value) {
         productIds = (settingsData.value as any).product_ids || [];
@@ -78,20 +86,14 @@ const GhewarSpecials = () => {
         return;
       }
 
-      // 2. Fetch by category name 'Ghewar Sweets'
-      const { data: categoryData } = await supabase
-        .from('categories')
-        .select('id')
-        .ilike('name', 'Ghewar Sweets')
-        .maybeSingle();
-
+      // 2. Try Ghewar Sweets category (already fetched in parallel above)
       let productsResult: any[] = [];
 
-      if (categoryData?.id) {
+      if (ghewarCategoryData?.id) {
         const { data: products, error } = await supabase
           .from('products')
           .select('*')
-          .eq('category_id', categoryData.id)
+          .eq('category_id', ghewarCategoryData.id)
           .eq('is_active', true)
           .order('created_at', { ascending: false })
           .limit(12);
@@ -101,26 +103,18 @@ const GhewarSpecials = () => {
         }
       }
 
-      // 3. Fallback: Fetch by category name 'Ghee Sweets' if no products found in Ghewar Sweets
-      if (productsResult.length === 0) {
-        const { data: fallbackCategoryData } = await supabase
-          .from('categories')
-          .select('id')
-          .ilike('name', 'Ghee Sweets')
-          .maybeSingle();
+      // 3. Fallback: Ghee Sweets category (already fetched in parallel above)
+      if (productsResult.length === 0 && gheeCategoryData?.id) {
+        const { data: products, error } = await supabase
+          .from('products')
+          .select('*')
+          .eq('category_id', gheeCategoryData.id)
+          .eq('is_active', true)
+          .order('created_at', { ascending: false })
+          .limit(12);
 
-        if (fallbackCategoryData?.id) {
-          const { data: products, error } = await supabase
-            .from('products')
-            .select('*')
-            .eq('category_id', fallbackCategoryData.id)
-            .eq('is_active', true)
-            .order('created_at', { ascending: false })
-            .limit(12);
-
-          if (!error && products) {
-            productsResult = products;
-          }
+        if (!error && products) {
+          productsResult = products;
         }
       }
 
@@ -135,14 +129,14 @@ const GhewarSpecials = () => {
   const nextSlide = () => {
     if (currentIndex < ghewarProducts.length - itemsPerView) {
       setCurrentIndex(currentIndex + 1);
-      setLastManualAction(Date.now());
+      lastManualActionRef.current = Date.now();
     }
   };
 
   const prevSlide = () => {
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
-      setLastManualAction(Date.now());
+      lastManualActionRef.current = Date.now();
     }
   };
 

@@ -26,7 +26,7 @@ const Home = () => {
         <BestSellers />
         <CategoriesCarousel />
         <NewArrivals />
-        <PromotionalBanner />
+        {/* <PromotionalBanner /> */}
 
         <MarqueeSection
           items={[

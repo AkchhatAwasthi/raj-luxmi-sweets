@@ -73,9 +73,21 @@ export function getOptimizedImageUrl(
     }
   }
 
-  // Cloudinary / ImageKit already handle their own URLs
-  if (src.includes('cloudinary.com') || src.includes('imagekit.io')) {
-    return src;
+  // Cloudinary: ensure f_auto,q_auto is present in the URL.
+  // Works for any Cloudinary account (cloud name). Purely a string transformation — no re-upload.
+  if (src.includes('res.cloudinary.com')) {
+    // If both optimization tokens are already present, return as-is
+    if (src.includes('f_auto') && src.includes('q_auto')) {
+      return src;
+    }
+    // Insert f_auto,q_auto immediately after /upload/
+    // Matches: .../image/upload/<optional-existing-transforms>/...
+    // Handles URLs with no transforms (e.g. /upload/v123...) and
+    // URLs with other transforms but missing f_auto or q_auto.
+    return src.replace(
+      /\/image\/upload\//,
+      '/image/upload/f_auto,q_auto/'
+    );
   }
 
   // Local or unknown — return as-is
