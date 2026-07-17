@@ -93,7 +93,7 @@ const HeritageScroll = () => {
                 {/* Left — sticky image panel */}
                 <div className="lg:w-1/2 h-screen sticky top-0 overflow-hidden z-0 bg-white">
                     <img
-                        src="https://res.cloudinary.com/dmj0smemf/image/upload/v1784286112/file_00000000672071fab0464f08805edea7_vi9qmj.png"
+                        src="https://res.cloudinary.com/dmj0smemf/image/upload/f_auto/q_auto/v1784288594/ChatGPT_Image_Jul_17_2026_05_12_48_PM_cxreoz.png"
                         alt="Sweets in Lucknow"
                         className="w-full h-full object-cover"
                     />
