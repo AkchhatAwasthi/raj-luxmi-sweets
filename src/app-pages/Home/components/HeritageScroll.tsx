@@ -37,7 +37,7 @@ const HeritageScroll = () => {
                 {/* Image — full natural height, no cropping */}
                 <div className="relative w-full overflow-hidden">
                     <img
-                        src="https://github.com/AkchhatAwasthi/chetramimages/blob/main/DSC07987.jpg.jpeg?raw=true"
+                        src="https://res.cloudinary.com/dil74qcsx/image/upload/f_auto/q_auto/v1784285229/file_00000000cbd471fa86d42982bc85912b_gtswve.png"
                         alt="Artisan crafting sweets"
                         className="w-full h-auto block"
                     />
@@ -91,14 +91,12 @@ const HeritageScroll = () => {
             <div className="hidden lg:flex flex-row">
 
                 {/* Left — sticky image panel */}
-                <div className="lg:w-1/2 h-screen sticky top-0 overflow-hidden z-0">
-                    <div className="absolute inset-0 bg-black/10 z-10" />
+                <div className="lg:w-1/2 h-screen sticky top-0 overflow-hidden z-0 bg-white">
                     <img
-                        src="https://github.com/AkchhatAwasthi/chetramimages/blob/main/DSC07987.jpg.jpeg?raw=true"
-                        alt="Artisan crafting sweets"
+                        src="https://res.cloudinary.com/dmj0smemf/image/upload/v1784286112/file_00000000672071fab0464f08805edea7_vi9qmj.png"
+                        alt="Sweets in Lucknow"
                         className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent z-10" />
                 </div>
 
                 {/* Right — scrollable text */}
