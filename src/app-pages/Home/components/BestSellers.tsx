@@ -7,17 +7,17 @@ import ProductCard from '@/components/ProductCard';
 import QuickViewModal from '@/components/QuickViewModal';
 import { supabase } from '@/integrations/supabase/client';
 
+import { useProducts } from '@/hooks/useProducts';
+
 const BestSellers = () => {
   const router = useRouter();
-  const [bestSellers, setBestSellers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { bestSellers, loading } = useProducts();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [itemsPerView, setItemsPerView] = useState(4);
   const [quickViewProduct, setQuickViewProduct] = useState<any | null>(null);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
 
   useEffect(() => {
-    fetchBestSellers();
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -52,24 +52,6 @@ const BestSellers = () => {
       setItemsPerView(2.5);
     } else {
       setItemsPerView(4);
-    }
-  };
-
-  const fetchBestSellers = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('is_bestseller', true)
-        .eq('is_active', true)
-        .limit(12);
-
-      if (error) throw error;
-      setBestSellers(data || []);
-    } catch (error) {
-      console.error('Error fetching bestsellers:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -216,7 +198,7 @@ const BestSellers = () => {
                         ...product,
                         image: product.images?.[0] || '/placeholder.svg',
                         slug: product.sku || product.id
-                      }}
+                      } as any}
                       onQuickView={(product) => handleQuickView(product)}
                       onViewDetail={() => handleViewDetail(product)}
                     />

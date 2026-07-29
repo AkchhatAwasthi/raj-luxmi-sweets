@@ -17,6 +17,18 @@ export const createClient = () =>
       db: { schema: 'public' },
       global: {
         headers: { 'X-Client-Info': 'rajluxmi-web-app' },
+        fetch: async (url, options) => {
+          try {
+            return await fetch(url, options);
+          } catch (err: any) {
+            // Intercept network/auth fetch errors gracefully to prevent unhandled promise rejections
+            console.warn('Supabase network connection notice:', err?.message || err);
+            return new Response(
+              JSON.stringify({ error: 'network_error', message: err?.message || 'Failed to fetch' }),
+              { status: 503, headers: { 'Content-Type': 'application/json' } }
+            );
+          }
+        },
       },
     }
   );

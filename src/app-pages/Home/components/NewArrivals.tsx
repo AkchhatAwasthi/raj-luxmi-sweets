@@ -7,17 +7,17 @@ import ProductCard from '@/components/ProductCard';
 import QuickViewModal from '@/components/QuickViewModal';
 import { supabase } from '@/integrations/supabase/client';
 
+import { useProducts } from '@/hooks/useProducts';
+
 const NewArrivals = () => {
   const router = useRouter();
-  const [newArrivals, setNewArrivals] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { newArrivals, loading } = useProducts();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [itemsPerView, setItemsPerView] = useState(4);
   const [quickViewProduct, setQuickViewProduct] = useState<any | null>(null);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
 
   useEffect(() => {
-    fetchNewArrivals();
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -50,26 +50,6 @@ const NewArrivals = () => {
       setItemsPerView(2.5);
     } else {
       setItemsPerView(4);
-    }
-  };
-
-  const fetchNewArrivals = async () => {
-    try {
-      const result = await supabase
-        .from('products')
-        .select('*')
-        .eq('is_active', true)
-        .eq('new_arrival', true)
-        .order('created_at', { ascending: false })
-        .limit(12);
-
-      if (result.error) throw result.error;
-
-      setNewArrivals(result.data || []);
-    } catch (error) {
-      console.error('Error fetching new arrivals:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -200,7 +180,7 @@ const NewArrivals = () => {
                         ...product,
                         image: product.images?.[0] || '/placeholder.svg',
                         slug: product.sku || product.id
-                      }}
+                      } as any}
                       onQuickView={(product) => handleQuickView(product)}
                       onViewDetail={() => handleViewDetail(product)}
                     />

@@ -140,7 +140,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
               {product.rating && (
                 <div className="flex items-center gap-1">
                   <Star className="w-3.5 h-3.5 text-[#B8860B] fill-current" />
-                  <span className="text-xs text-[#5D4037]">{product.rating} <span className="text-gray-400">({Math.floor(Math.random() * 50) + 10} reviews)</span></span>
+                  <span className="text-xs text-[#5D4037]">{product.rating}</span>
                 </div>
               )}
             </div>

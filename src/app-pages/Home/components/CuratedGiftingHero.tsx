@@ -6,9 +6,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 
 const slides = [
-  { image: "https://res.cloudinary.com/dmj0smemf/image/upload/f_auto,q_auto/v1775500759/9_3_1_skdh3p.png" },
-  { image: "https://res.cloudinary.com/dmj0smemf/image/upload/f_auto,q_auto/v1775500628/10_3_fqowfk.png" },
-  { image: "https://res.cloudinary.com/dmj0smemf/image/upload/f_auto,q_auto/v1775500627/1_igkhhk.png" },
+  { image: "https://res.cloudinary.com/dmj0smemf/image/upload/v1785318002/ChatGPT_Image_Jul_29_2026_03_09_41_PM_cokgaj.png" }
 ];
 
 const AUTOPLAY_INTERVAL = 4500;
@@ -117,8 +115,8 @@ const CuratedGiftingHero = () => {
             onClick={() => goTo(idx, idx > current ? 1 : -1)}
             aria-label={`Go to slide ${idx + 1}`}
             className={`transition-all duration-300 rounded-full ${idx === current
-                ? 'w-8 h-2 bg-[#B38B46]'
-                : 'w-2 h-2 bg-black/30 hover:bg-black/50'
+              ? 'w-8 h-2 bg-[#B38B46]'
+              : 'w-2 h-2 bg-black/30 hover:bg-black/50'
               }`}
           />
         ))}

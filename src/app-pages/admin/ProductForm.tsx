@@ -38,6 +38,7 @@ interface Product {
   meta_title?: string;
   meta_description?: string;
   meta_keywords?: string;
+  faqs?: any;
 }
 
 interface ProductFormProps {
@@ -102,6 +103,72 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
     meta_description: '',
     meta_keywords: ''
   });
+
+  const [faqsList, setFaqsList] = useState<{ question: string; answer: string }[]>([]);
+
+  const STANDARD_SWEET_FAQS = [
+    {
+      question: "Is this sweet prepared in pure Desi Ghee?",
+      answer: "Yes! All our traditional sweets are freshly handcrafted using 100% pure desi ghee and premium grade ingredients."
+    },
+    {
+      question: "What is the shelf life of this item?",
+      answer: "This sweet stays fresh for 7 to 10 days at room temperature in an airtight container, and up to 20 days when refrigerated."
+    },
+    {
+      question: "How is it packaged for shipping?",
+      answer: "We pack every order in food-grade, vacuum-sealed boxes with protective cushioning to guarantee maximum freshness upon arrival."
+    },
+    {
+      question: "What is the estimated delivery time?",
+      answer: "Orders within Lucknow are delivered within 24 hours. Pan-India shipping typically takes 3 to 5 business days."
+    }
+  ];
+
+  const addFaqItem = () => {
+    setFaqsList(prev => [...prev, { question: '', answer: '' }]);
+  };
+
+  const updateFaqItem = (index: number, field: 'question' | 'answer', value: string) => {
+    setFaqsList(prev => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      return updated;
+    });
+  };
+
+  const removeFaqItem = (index: number) => {
+    setFaqsList(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const moveFaqUp = (index: number) => {
+    if (index <= 0) return;
+    setFaqsList(prev => {
+      const updated = [...prev];
+      [updated[index - 1], updated[index]] = [updated[index], updated[index - 1]];
+      return updated;
+    });
+  };
+
+  const moveFaqDown = (index: number) => {
+    if (index >= faqsList.length - 1) return;
+    setFaqsList(prev => {
+      const updated = [...prev];
+      [updated[index], updated[index + 1]] = [updated[index + 1], updated[index]];
+      return updated;
+    });
+  };
+
+  const loadStandardFaqs = () => {
+    if (faqsList.length > 0) {
+      if (!confirm('This will append standard FAQs to your current list. Continue?')) return;
+    }
+    setFaqsList(prev => [...prev, ...STANDARD_SWEET_FAQS]);
+    toast({
+      title: "Standard FAQs Loaded",
+      description: "Added standard Mithai FAQs to the product form.",
+    });
+  };
 
   useEffect(() => {
     fetchCategories();
@@ -206,6 +273,9 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
         meta_description: (data as any).meta_description || '',
         meta_keywords: (data as any).meta_keywords || '',
       });
+      if ((data as any).faqs && Array.isArray((data as any).faqs)) {
+        setFaqsList((data as any).faqs);
+      }
     } catch (error) {
       console.error('Error fetching product:', error);
       toast({
@@ -431,6 +501,7 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
         meta_title: seoData.meta_title || null,
         meta_description: seoData.meta_description || null,
         meta_keywords: seoData.meta_keywords || null,
+        faqs: faqsList.filter(f => f.question.trim() !== '' && f.answer.trim() !== ''),
       };
 
       if (isEdit && id) {
@@ -754,6 +825,120 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
                       </Badge>
                     ))}
                   </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Product FAQs */}
+          <Card className="border-amber-200 bg-amber-50/20">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+              <div>
+                <CardTitle className="text-xl flex items-center gap-2 text-[#2C1810]">
+                  <span>❓</span> Product FAQs (Frequently Asked Questions)
+                </CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Custom Q&A displayed on the product page and used for Google FAQ rich snippets.
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={loadStandardFaqs}
+                className="text-xs border-[#8B2131] text-[#8B2131] hover:bg-[#8B2131] hover:text-white"
+              >
+                + Load Preset Sweets FAQs
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {faqsList.length === 0 ? (
+                <div className="border border-dashed border-amber-300 rounded-lg p-6 text-center bg-white/50">
+                  <p className="text-sm text-gray-600 mb-3">No custom FAQs added for this product yet.</p>
+                  <div className="flex justify-center gap-2">
+                    <Button type="button" variant="secondary" size="sm" onClick={addFaqItem}>
+                      + Add First FAQ
+                    </Button>
+                    <Button type="button" variant="outline" size="sm" onClick={loadStandardFaqs}>
+                      ⚡ Load Presets
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {faqsList.map((faq, index) => (
+                    <div key={index} className="p-4 border border-amber-200 rounded-lg bg-white shadow-sm space-y-3 relative group">
+                      <div className="flex items-center justify-between border-b pb-2">
+                        <span className="text-xs font-semibold text-[#8B2131] uppercase tracking-wider">
+                          FAQ #{index + 1}
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => moveFaqUp(index)}
+                            disabled={index === 0}
+                            className="h-7 w-7 p-0"
+                            title="Move Up"
+                          >
+                            <ChevronUp className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => moveFaqDown(index)}
+                            disabled={index === faqsList.length - 1}
+                            className="h-7 w-7 p-0"
+                            title="Move Down"
+                          >
+                            <ChevronDown className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeFaqItem(index)}
+                            className="h-7 w-7 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                            title="Remove FAQ"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor={`faq-q-${index}`} className="text-xs font-medium">Question</Label>
+                        <Input
+                          id={`faq-q-${index}`}
+                          value={faq.question}
+                          onChange={(e) => updateFaqItem(index, 'question', e.target.value)}
+                          placeholder="e.g. Is this sweet suitable for gifting?"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor={`faq-a-${index}`} className="text-xs font-medium">Answer</Label>
+                        <Textarea
+                          id={`faq-a-${index}`}
+                          value={faq.answer}
+                          onChange={(e) => updateFaqItem(index, 'answer', e.target.value)}
+                          placeholder="e.g. Yes, it comes in premium rigid box packaging suitable for all celebrations."
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                  ))}
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={addFaqItem}
+                    className="w-full border-amber-300 text-amber-900 hover:bg-amber-100/50"
+                  >
+                    + Add Another FAQ
+                  </Button>
                 </div>
               )}
             </CardContent>

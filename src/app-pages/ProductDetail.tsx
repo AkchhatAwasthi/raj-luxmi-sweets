@@ -17,6 +17,31 @@ import { formatPrice, calculateDiscount } from '@/utils/currency';
 import ProductCard from '@/components/ProductCard';
 import { supabase } from '@/integrations/supabase/client';
 import { scrollToTopInstant } from '@/utils/scrollToTop';
+import FaqAccordion from '@/components/FaqAccordion';
+import ProductReviews from '@/components/ProductReviews';
+
+const DEFAULT_BRAND_FAQS = [
+  {
+    question: "Is this sweet freshly prepared with 100% Pure Desi Ghee?",
+    answer: "Yes, absolutely! Every single batch of our sweets is handcrafted daily by master halwais in Lucknow using 100% pure desi ghee, premium grade dry fruits, and zero artificial preservatives."
+  },
+  {
+    question: "What is the shelf life and storage recommendation?",
+    answer: "Our sweets remain fresh for 7 to 10 days at room temperature when stored in a cool, dry place inside an airtight container. Refrigeration can extend freshness up to 20 days."
+  },
+  {
+    question: "How are products packaged for shipping?",
+    answer: "We use food-grade, vacuum-sealed, tamper-evident box packaging protected by rigid outer boxes to ensure your sweets arrive fresh, soft, and unbroken."
+  },
+  {
+    question: "What are the delivery timelines for Lucknow and across India?",
+    answer: "Local Lucknow orders are delivered within 24 hours (same-day express option available). Pan-India shipments are dispatched fresh and delivered in 3 to 5 business days."
+  },
+  {
+    question: "Can I order in bulk for weddings, corporate gifts, or special occasions?",
+    answer: "Yes! We specialize in custom festive and wedding sweet hampers. Please contact our support team or visit our special order page for customized bulk orders."
+  }
+];
 
 const ProductDetail = ({ product }: { product: any }) => {
   const router = useRouter();
@@ -31,7 +56,6 @@ const ProductDetail = ({ product }: { product: any }) => {
     specifications: false,
     details: false
   });
-  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   const { addToCart } = useStore();
 
@@ -234,18 +258,9 @@ const ProductDetail = ({ product }: { product: any }) => {
             </div>
 
             <div className="prose prose-brown max-w-none mb-10">
-              <p className={`text-[#5D4037] text-lg leading-relaxed font-light ${isDescriptionExpanded ? '' : 'line-clamp-4'}`}>
+              <p className="text-[#5D4037] text-lg leading-relaxed font-light">
                 {product.description}
               </p>
-              {product.description?.length > 150 && (
-                <button
-                  onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-                  className="text-[#8B2131] text-xs font-bold uppercase tracking-widest mt-4 hover:underline underline-offset-4 flex items-center gap-1"
-                >
-                  {isDescriptionExpanded ? 'Read Less' : 'Read More'}
-                  {isDescriptionExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                </button>
-              )}
             </div>
 
             {/* Actions */}
@@ -328,18 +343,64 @@ const ProductDetail = ({ product }: { product: any }) => {
                   </div>
                   {expandedSections.specifications ? <Minus className="w-4 h-4 text-[#8B2131]" /> : <Plus className="w-4 h-4 text-[#8B2131]" />}
                 </button>
-                <div className={`overflow-hidden transition-all duration-300 ${expandedSections.specifications ? 'mt-6 max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
-                  <div className="space-y-4 bg-[#FFF8F0] p-6 rounded-sm border border-[#E6D5B8]/30">
-                    {product.specifications && Object.entries(product.specifications).map(([key, value]) => (
-                      <div key={key} className="flex justify-between text-sm border-b border-[#E6D5B8]/20 pb-2 last:border-0 last:pb-0">
-                        <span className="text-[#5D4037]/80 capitalize font-medium">{key.replace('_', ' ')}</span>
-                        <span className="text-[#2C1810] font-orange-avenue font-normal">{value as string}</span>
+                <div className={`overflow-hidden transition-all duration-300 ${expandedSections.specifications ? 'mt-6 max-h-[600px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                  <div className="space-y-0 bg-[#FFF8F0] rounded-sm border border-[#E6D5B8]/30">
+                    {/* SKU — always shown */}
+                    {product.sku && (
+                      <div className="flex justify-between text-sm border-b border-[#E6D5B8]/30 px-4 py-3">
+                        <span className="text-[#5D4037]/80 font-medium">SKU</span>
+                        <span className="text-[#2C1810] font-orange-avenue font-normal text-right">{product.sku}</span>
                       </div>
-                    ))}
-                    <div className="flex justify-between text-sm border-b border-[#E6D5B8]/20 pb-2">
-                      <span className="text-[#5D4037]/80 capitalize font-medium">SKU</span>
-                      <span className="text-[#2C1810] font-orange-avenue font-normal">{product.sku}</span>
-                    </div>
+                    )}
+                    {/* Weight */}
+                    {product.nutritional_info?.weight_per_unit && (
+                      <div className="flex justify-between text-sm border-b border-[#E6D5B8]/30 px-4 py-3">
+                        <span className="text-[#5D4037]/80 font-medium">Weight</span>
+                        <span className="text-[#2C1810] font-orange-avenue font-normal text-right">{product.nutritional_info.weight_per_unit}</span>
+                      </div>
+                    )}
+                    {/* Ingredients (reuses material field) */}
+                    {product.nutritional_info?.material && (
+                      <div className="flex justify-between text-sm border-b border-[#E6D5B8]/30 px-4 py-3">
+                        <span className="text-[#5D4037]/80 font-medium">Ingredients</span>
+                        <span className="text-[#2C1810] font-orange-avenue font-normal text-right max-w-[60%]">{product.nutritional_info.material}</span>
+                      </div>
+                    )}
+                    {/* Shelf Life */}
+                    {product.storage_instructions && (
+                      <div className="flex justify-between text-sm border-b border-[#E6D5B8]/30 px-4 py-3">
+                        <span className="text-[#5D4037]/80 font-medium">Shelf Life</span>
+                        <span className="text-[#2C1810] font-orange-avenue font-normal text-right">{product.storage_instructions}</span>
+                      </div>
+                    )}
+                    {/* Origin */}
+                    {product.nutritional_info?.origin && (
+                      <div className="flex justify-between text-sm border-b border-[#E6D5B8]/30 px-4 py-3">
+                        <span className="text-[#5D4037]/80 font-medium">Origin</span>
+                        <span className="text-[#2C1810] font-orange-avenue font-normal text-right">{product.nutritional_info.origin}</span>
+                      </div>
+                    )}
+                    {/* Certifications */}
+                    {product.nutritional_info?.certification && (
+                      <div className="flex justify-between text-sm border-b border-[#E6D5B8]/30 px-4 py-3">
+                        <span className="text-[#5D4037]/80 font-medium">Certifications</span>
+                        <span className="text-[#2C1810] font-orange-avenue font-normal text-right">{product.nutritional_info.certification}</span>
+                      </div>
+                    )}
+                    {/* FSSAI License */}
+                    {product.marketing_info?.fssaiLicense && (
+                      <div className="flex justify-between text-sm border-b border-[#E6D5B8]/30 px-4 py-3">
+                        <span className="text-[#5D4037]/80 font-medium">FSSAI License</span>
+                        <span className="text-[#2C1810] font-orange-avenue font-normal text-right">{product.marketing_info.fssaiLicense}</span>
+                      </div>
+                    )}
+                    {/* Marketed By */}
+                    {product.marketing_info?.marketedBy && (
+                      <div className="flex justify-between text-sm px-4 py-3">
+                        <span className="text-[#5D4037]/80 font-medium">Marketed By</span>
+                        <span className="text-[#2C1810] font-orange-avenue font-normal text-right">{product.marketing_info.marketedBy}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -362,9 +423,45 @@ const ProductDetail = ({ product }: { product: any }) => {
                   </div>
                 </div>
               </div>
+
+              {/* Static Delivery Info Block — always visible, below accordion */}
+              <div className="mt-4 space-y-2 px-1">
+                <div className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-emerald-700 flex-shrink-0 mt-0.5" />
+                  <span className="text-xs text-[#5D4037]">Lucknow delivery: within 24 hours</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Truck className="w-4 h-4 text-[#8B2131] flex-shrink-0 mt-0.5" />
+                  <span className="text-xs text-[#5D4037]">Pan India delivery: 3–5 business days</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Info className="w-4 h-4 text-[#5D4037]/60 flex-shrink-0 mt-0.5" />
+                  <span className="text-xs text-[#5D4037]/80">Fresh food item — returns not accepted. For quality concerns contact us within 24 hours of delivery.</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
+
+        {/* Product Reviews Section */}
+        <ProductReviews product={product} />
+
+        {/* FAQ Section — rendered on every product page (custom or brand default FAQs) */}
+        {(() => {
+          const displayFaqs = Array.isArray(product?.faqs) && product.faqs.length > 0
+            ? product.faqs
+            : DEFAULT_BRAND_FAQS;
+
+          return (
+            <div className="border-t border-[#E6D5B8] pt-16 mb-16">
+              <div className="mb-8">
+                <span className="text-xs font-bold uppercase tracking-[0.3em] text-[#8B2131] mb-3 block">Support</span>
+                <h2 className="text-xl md:text-2xl lg:text-3xl font-orange-avenue font-normal uppercase text-[#2C1810]">Frequently Asked Questions</h2>
+              </div>
+              <FaqAccordion faqs={displayFaqs} />
+            </div>
+          );
+        })()}
 
         {/* Related Products Section */}
         {relatedProducts.length > 0 && (

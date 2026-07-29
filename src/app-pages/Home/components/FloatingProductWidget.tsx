@@ -4,8 +4,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Volume2, VolumeX, ExternalLink } from 'lucide-react';
 
-// ─── Drop your video file in /public and set the filename here ────────────
-const VIDEO_SRC = '/reel.mp4';
+// ─── Cloudinary Reel Video ──────────────────────────────────────────────
+const VIDEO_SRC = 'https://res.cloudinary.com/dmj0smemf/video/upload/q_auto:low,w_480,vc_auto,f_auto/v1785313177/AQOPImV8gTZyc6SDpMFMlpGV_WjatmH3alNtnFyCnRP-7XT7b-wsKzg3G18n-it_n0KYKIF9M4WtE7wPpb5O6fREdm15U22LJYZZOHw_v5rfjy.mp4';
 // ─────────────────────────────────────────────────────────────────────────
 
 // Optional: link to your Instagram profile / reel page

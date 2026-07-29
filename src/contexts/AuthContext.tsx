@@ -25,31 +25,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
+    let isMounted = true;
+
+    // Helper to safely fetch user profile without throwing
+    const fetchProfile = async (userId: string) => {
+      try {
+        const { data: profileData, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single();
+
+        if (!error && isMounted) {
+          setProfile(profileData);
+        }
+      } catch (err) {
+        console.warn('Profile fetch notice:', err);
+      }
+    };
+
+    // 1. Subscribe to auth state changes FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+      async (event, currentSession) => {
+        if (!isMounted) return;
 
-        if (session?.user) {
-          // Fetch user profile
-          setTimeout(async () => {
-            try {
-              const { data: profileData, error } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', session.user.id)
-                .single();
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
 
-              if (error) {
-                console.error('Error fetching profile:', error);
-              } else {
-                setProfile(profileData);
-              }
-            } catch (error) {
-              console.error('Error fetching profile:', error);
-            }
-          }, 0);
+        if (currentSession?.user) {
+          fetchProfile(currentSession.user.id);
         } else {
           setProfile(null);
         }
@@ -57,16 +61,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     );
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (!session) {
-        setLoading(false);
-      }
-    });
+    // 2. Safely check current session on mount
+    const checkInitialSession = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) {
+          console.warn('Stale session detected, clearing auth state:', error.message);
+          if (isMounted) {
+            setSession(null);
+            setUser(null);
+            setProfile(null);
+            setLoading(false);
+          }
+          return;
+        }
 
-    return () => subscription.unsubscribe();
+        if (isMounted) {
+          setSession(data.session);
+          setUser(data.session?.user ?? null);
+          if (data.session?.user) {
+            fetchProfile(data.session.user.id);
+          }
+          setLoading(false);
+        }
+      } catch (err) {
+        console.warn('Auth session check notice:', err);
+        if (isMounted) {
+          setSession(null);
+          setUser(null);
+          setProfile(null);
+          setLoading(false);
+        }
+      }
+    };
+
+    checkInitialSession();
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signUp = async (email: string, password: string, fullName: string) => {
@@ -104,7 +138,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.warn('Sign out notice:', err);
+    } finally {
+      setSession(null);
+      setUser(null);
+      setProfile(null);
+    }
   };
 
   const isAdmin = profile?.is_admin || false;

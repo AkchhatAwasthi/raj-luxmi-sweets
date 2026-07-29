@@ -7,11 +7,9 @@ import BestSellers from './components/BestSellers';
 import NewArrivals from './components/NewArrivals';
 import MarqueeSection from './components/MarqueeSection';
 import SpecialOffers from './components/SpecialOffers';
-import InstagramCarousel from './components/InstagramCarousel';
-import Testimonials from '@/components/ui/testimonials';
-import PromotionalBanner from './components/PromotionalBanner';
 import MithaiSpecials from './components/MithaiSpecials';
 import FestivalSpecials from './components/FestivalSpecials';
+import Testimonials from '@/components/ui/testimonials';
 import DeliverySection from './components/DeliverySection';
 import HeritageScroll from './components/HeritageScroll';
 import FloatingProductWidget from './components/FloatingProductWidget';
@@ -46,7 +44,6 @@ const Home = () => {
         <HeritageScroll />
         <Testimonials />
         <DeliverySection />
-        <InstagramCarousel />
       </div>
       <FloatingProductWidget />
     </main>
