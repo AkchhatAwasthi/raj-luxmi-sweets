@@ -73,9 +73,25 @@ export const createCashfreeOrder = async (
     });
 
     if (!response.ok) {
-        const errorData = await response.text();
-        console.error('Cashfree create order error:', errorData);
-        throw new Error('Failed to create Cashfree payment order. Please try again.');
+        const errorText = await response.text();
+        console.error('Cashfree create order error:', errorText);
+        let detailedMsg = 'Failed to create Cashfree payment order.';
+        try {
+            const parsed = JSON.parse(errorText);
+            if (parsed.details) {
+                try {
+                    const cfDetails = typeof parsed.details === 'string' ? JSON.parse(parsed.details) : parsed.details;
+                    detailedMsg = cfDetails.message || cfDetails.error || parsed.error || detailedMsg;
+                } catch {
+                    detailedMsg = parsed.details || parsed.error || detailedMsg;
+                }
+            } else if (parsed.error || parsed.message) {
+                detailedMsg = parsed.error || parsed.message;
+            }
+        } catch {
+            if (errorText) detailedMsg = errorText;
+        }
+        throw new Error(`Cashfree Error: ${detailedMsg}`);
     }
 
     const data = await response.json();
@@ -104,14 +120,15 @@ export const initiateCashfreePayment = async (
         const { order_id, payment_session_id } = await createCashfreeOrder(orderData);
 
         // 3. Get App ID from env
-        const appId = process.env.NEXT_PUBLIC_CASHFREE_APP_ID;
+        const rawAppId = process.env.NEXT_PUBLIC_CASHFREE_APP_ID || '';
+        const appId = rawAppId.trim();
         if (!appId) {
             throw new Error('Cashfree App ID not configured.');
         }
 
-        // 4. Auto-detect environment from App ID
-        //    Cashfree TEST keys always start with 'TEST' — live keys never do
-        const environment = appId.startsWith('TEST') ? 'sandbox' : 'production';
+        // 4. Determine environment from NEXT_PUBLIC_CASHFREE_ENV or App ID
+        const cfEnv = (process.env.NEXT_PUBLIC_CASHFREE_ENV || '').trim().toLowerCase();
+        const environment = cfEnv === 'sandbox' || cfEnv === 'test' || appId.startsWith('TEST') ? 'sandbox' : 'production';
         console.log('Cashfree mode:', environment, '| App ID prefix:', appId.slice(0, 8));
 
         // 5. Initialize Cashfree instance

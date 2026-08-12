@@ -27,8 +27,11 @@ serve(async (req) => {
             )
         }
 
-        const appId = Deno.env.get('CASHFREE_APP_ID')
-        const secretKey = Deno.env.get('CASHFREE_SECRET_KEY')
+        const rawAppId = Deno.env.get('CASHFREE_APP_ID') || ''
+        const rawSecretKey = Deno.env.get('CASHFREE_SECRET_KEY') || ''
+        const appId = rawAppId.trim()
+        const secretKey = rawSecretKey.trim()
+        const cashfreeEnv = (Deno.env.get('CASHFREE_ENV') || '').trim().toLowerCase()
 
         if (!appId || !secretKey) {
             return new Response(
@@ -50,16 +53,20 @@ serve(async (req) => {
         // ── Sanitize amount: must be a number with max 2 decimal places ──
         const cleanAmount = Math.round(Number(amount) * 100) / 100
 
+        // ── Determine environment: sandbox vs production ──
+        const isSandbox = cashfreeEnv === 'sandbox' || cashfreeEnv === 'test' || appId.startsWith('TEST')
+        const cashfreeApiUrl = isSandbox
+            ? 'https://sandbox.cashfree.com/pg/orders'
+            : 'https://api.cashfree.com/pg/orders'
+
         console.log('Creating Cashfree order:', {
             order_id: cleanOrderId,
             amount: cleanAmount,
             phone: cleanPhone,
             email: customer_email,
+            environment: isSandbox ? 'sandbox' : 'production',
+            apiUrl: cashfreeApiUrl
         })
-
-        // ✅ Production Live API
-        const cashfreeApiUrl = 'https://api.cashfree.com/pg/orders'
-        // For sandbox/test use: 'https://sandbox.cashfree.com/pg/orders'
 
         const orderPayload = {
             order_id: cleanOrderId,
