@@ -267,21 +267,17 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
         <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-10">
           <div className="flex items-center justify-between h-14 sm:h-16 relative">
 
-            {/* MOBILE ONLY: Menu Toggle (Left) */}
-            <div className="lg:hidden flex items-center">
+            {/* MOBILE ONLY: Menu Toggle & Logo on Left */}
+            <div className="lg:hidden flex items-center gap-3">
               <button
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="text-[#2C1810] hover:text-[#B38B46] transition-colors p-1"
+                className="text-[#2C1810] hover:text-[#B38B46] transition-colors p-1 cursor-pointer"
                 aria-label="Open menu"
               >
                 <Menu className="w-6 h-6 stroke-[1.5px]" />
               </button>
-            </div>
-
-            {/* MOBILE ONLY: Centered Logo */}
-            <div className="lg:hidden flex-1 flex justify-center items-center">
-              <Link href="/">
-                <div className="relative h-10 w-28">
+              <Link href="/" className="block">
+                <div className="relative h-9 w-24 sm:h-10 sm:w-28">
                   <Image
                     src={logo}
                     alt="Raj Luxmi"
@@ -294,69 +290,67 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
               </Link>
             </div>
 
-            {/* DESKTOP ONLY: Centered Navigation Cluster (Left Links + Logo + Right Links) */}
-            <div className="hidden lg:flex items-center justify-center flex-1 gap-6 xl:gap-9">
-              {/* Left Delivery Dropdowns */}
-              <div className="flex items-center gap-5 xl:gap-7">
-                <DeliveryCategoryDropdown
-                  label="Shop in Lucknow"
-                  mode="lucknow"
-                  categories={FIVE_MAIN_CATEGORIES}
-                  onSelectCategory={handleSelectDeliveryCategory}
-                  onViewAll={handleViewAllDelivery}
-                />
-
-                <DeliveryCategoryDropdown
-                  label="Shop Pan India"
-                  mode="pan-india"
-                  categories={FIVE_MAIN_CATEGORIES}
-                  onSelectCategory={handleSelectDeliveryCategory}
-                  onViewAll={handleViewAllDelivery}
-                />
-              </div>
-
-              {/* Center Logo */}
-              <div className="flex-shrink-0 px-2 xl:px-4">
-                <Link href="/" className="block group">
-                  <motion.div
-                    className="relative h-11 sm:h-12 lg:h-13 w-28 sm:w-34 lg:w-40 transition-transform duration-300 group-hover:scale-105"
-                    style={{ scale: logoScale }}
-                  >
-                    <Image
-                      src={logo}
-                      alt="Raj Luxmi"
-                      fill
-                      priority
-                      className="object-contain drop-shadow-xs"
-                      sizes="(max-width: 1024px) 140px, 160px"
-                    />
-                  </motion.div>
-                </Link>
-              </div>
-
-              {/* Right Links */}
-              <div className="flex items-center gap-5 xl:gap-7">
-                <Link
-                  href="/category/gifting"
-                  className="relative group py-2"
+            {/* DESKTOP ONLY: Logo on Top Left */}
+            <div className="hidden lg:flex items-center flex-shrink-0">
+              <Link href="/" className="block group">
+                <motion.div
+                  className="relative h-11 sm:h-12 lg:h-13 w-28 sm:w-34 lg:w-40 transition-transform duration-300 group-hover:scale-105"
+                  style={{ scale: logoScale }}
                 >
-                  <span className="text-[11px] xl:text-xs font-orange-avenue font-normal tracking-[0.14em] uppercase text-[#2C1810] group-hover:text-[#B38B46] transition-colors whitespace-nowrap">
-                    Our Gift Hampers
-                  </span>
-                  <span className="absolute bottom-1 left-0 w-0 h-[1.5px] bg-[#B38B46] transition-all duration-300 ease-out group-hover:w-full" />
-                </Link>
-
-                <Link
-                  href="/celebrate-with-rajluxmi"
-                  className="relative group py-2"
-                >
-                  <span className="text-[11px] xl:text-xs font-orange-avenue font-normal tracking-[0.14em] uppercase text-[#2C1810] group-hover:text-[#B38B46] transition-colors whitespace-nowrap">
-                    Bulk Orders
-                  </span>
-                  <span className="absolute bottom-1 left-0 w-0 h-[1.5px] bg-[#B38B46] transition-all duration-300 ease-out group-hover:w-full" />
-                </Link>
-              </div>
+                  <Image
+                    src={logo}
+                    alt="Raj Luxmi"
+                    fill
+                    priority
+                    className="object-contain drop-shadow-xs"
+                    sizes="(max-width: 1024px) 140px, 160px"
+                  />
+                </motion.div>
+              </Link>
             </div>
+
+            {/* DESKTOP ONLY: All 4 Categories Center-Aligned */}
+            <nav className="hidden lg:flex items-center justify-center absolute left-1/2 -translate-x-1/2 gap-5 xl:gap-8 pointer-events-auto">
+              {/* 1. Shop in Lucknow */}
+              <DeliveryCategoryDropdown
+                label="Shop in Lucknow"
+                mode="lucknow"
+                categories={FIVE_MAIN_CATEGORIES}
+                onSelectCategory={handleSelectDeliveryCategory}
+                onViewAll={handleViewAllDelivery}
+              />
+
+              {/* 2. Shop Pan India */}
+              <DeliveryCategoryDropdown
+                label="Shop Pan India"
+                mode="pan-india"
+                categories={FIVE_MAIN_CATEGORIES}
+                onSelectCategory={handleSelectDeliveryCategory}
+                onViewAll={handleViewAllDelivery}
+              />
+
+              {/* 3. Our Gift Hampers */}
+              <Link
+                href="/category/gifting"
+                className="relative group py-2"
+              >
+                <span className="text-[11px] xl:text-xs font-orange-avenue font-normal tracking-[0.14em] uppercase text-[#2C1810] group-hover:text-[#B38B46] transition-colors whitespace-nowrap">
+                  Our Gift Hampers
+                </span>
+                <span className="absolute bottom-1 left-0 w-0 h-[1.5px] bg-[#B38B46] transition-all duration-300 ease-out group-hover:w-full" />
+              </Link>
+
+              {/* 4. Bulk Orders */}
+              <Link
+                href="/celebrate-with-rajluxmi"
+                className="relative group py-2"
+              >
+                <span className="text-[11px] xl:text-xs font-orange-avenue font-normal tracking-[0.14em] uppercase text-[#2C1810] group-hover:text-[#B38B46] transition-colors whitespace-nowrap">
+                  Bulk Orders
+                </span>
+                <span className="absolute bottom-1 left-0 w-0 h-[1.5px] bg-[#B38B46] transition-all duration-300 ease-out group-hover:w-full" />
+              </Link>
+            </nav>
 
             {/* FAR RIGHT: Action Icons (Search, Heart, User, Cart) */}
             <div className="flex items-center gap-3 sm:gap-4 lg:gap-5 justify-end">

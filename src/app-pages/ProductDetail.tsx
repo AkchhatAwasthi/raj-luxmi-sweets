@@ -20,6 +20,8 @@ import { scrollToTopInstant } from '@/utils/scrollToTop';
 import FaqAccordion from '@/components/FaqAccordion';
 import ProductReviews from '@/components/ProductReviews';
 
+const BULK_WHATSAPP_NUMBER = '918448447408';
+
 // Helper to determine category type and provide tailored features, pillars, and FAQs
 const getProductCategoryInfo = (product: any) => {
   const catName = (product?.categories?.name || product?.category || '').toLowerCase();
@@ -614,7 +616,7 @@ const ProductDetail = ({ product }: { product: any }) => {
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 pt-1">
                   <a
-                    href={`https://wa.me/919996616153?text=${encodeURIComponent(
+                    href={`https://wa.me/${BULK_WHATSAPP_NUMBER}?text=${encodeURIComponent(
                       `Hello Raj Luxmi Sweets, I am interested in ordering '${product.name}' (SKU: ${product.sku || product.id}). Please share bulk options, customization and catalogue.`
                     )}`}
                     target="_blank"
@@ -817,14 +819,19 @@ const ProductDetail = ({ product }: { product: any }) => {
             </div>
 
             <div className="flex flex-wrap gap-4 justify-center">
-              <Link
-                href="/special-order"
-                className="bg-[#E6D5B8] hover:bg-[#d8c39f] text-[#2C1810] font-bold text-xs uppercase tracking-widest px-6 py-3.5 rounded-none transition-all shadow-sm hover:shadow-md"
-              >
-                Inquire for Bulk Orders
-              </Link>
               <a
-                href="tel:+919876543210"
+                href={`https://wa.me/${BULK_WHATSAPP_NUMBER}?text=${encodeURIComponent(
+                  `Hello Raj Luxmi Sweets! I would like to inquire about a bulk/corporate order for "${product.name}" (SKU: ${product.sku || product.id || 'N/A'}). Please share bulk pricing, packaging customization, and delivery details.`
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-[#E6D5B8] hover:bg-[#d8c39f] text-[#2C1810] font-bold text-xs uppercase tracking-widest px-6 py-3.5 rounded-none transition-all shadow-sm hover:shadow-md flex items-center gap-2"
+              >
+                <MessageCircle className="w-4 h-4 text-[#8B2131]" />
+                Inquire for Bulk Orders
+              </a>
+              <a
+                href={`tel:+${BULK_WHATSAPP_NUMBER}`}
                 className="border border-[#E6D5B8]/60 hover:bg-white/10 text-white font-medium text-xs uppercase tracking-widest px-5 py-3.5 transition-all flex items-center gap-2"
               >
                 <PhoneCall className="w-3.5 h-3.5" /> Call Concierge
