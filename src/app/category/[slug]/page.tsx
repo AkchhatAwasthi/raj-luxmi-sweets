@@ -1,15 +1,23 @@
 import { Metadata } from 'next';
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@supabase/supabase-js';
 import { notFound } from 'next/navigation';
+import { Suspense } from 'react';
 import ProductsClient from './ProductsClient';
 
 const BASE_URL = 'https://rajluxmisweets.com';
 
 // ---------------------------------------------------------------------------
+// Public Supabase client (does not use cookies, safe for static / ISR pages)
+// ---------------------------------------------------------------------------
+function getPublicSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+}
+
+// ---------------------------------------------------------------------------
 // ISR: Revalidate cached pages once per hour.
-// Category/product data is relatively stable — this means the first request
-// after each hour hits Supabase, but all subsequent requests within the hour
-// are served from Netlify's CDN edge with near-zero TTFB and no cold starts.
 // ---------------------------------------------------------------------------
 export const revalidate = 3600;
 
@@ -19,11 +27,10 @@ type Props = {
 
 // ---------------------------------------------------------------------------
 // generateStaticParams — pre-renders top category pages at build time.
-// These are served as static files from CDN with zero TTFB on first hit.
 // ---------------------------------------------------------------------------
 export async function generateStaticParams() {
   try {
-    const supabase = await createClient();
+    const supabase = getPublicSupabase();
     const { data } = await supabase
       .from('categories')
       .select('slug, name')
@@ -33,7 +40,7 @@ export async function generateStaticParams() {
 
     // Build params for both slug and name-based routes
     return data
-      .filter((c: any) => c.slug) // only categories with a slug column value
+      .filter((c: any) => c.slug)
       .map((c: any) => ({ slug: c.slug }));
   } catch {
     // If Supabase is unavailable at build time, skip pre-rendering
@@ -43,12 +50,9 @@ export async function generateStaticParams() {
 
 // ---------------------------------------------------------------------------
 // Helper: fetch a category by slug or (fallback) by name for legacy URLs.
-// The two Supabase calls are sequential by necessity (the second is only
-// triggered if the first returns nothing), but this is unavoidable for the
-// fallback pattern.
 // ---------------------------------------------------------------------------
 async function fetchCategory(slug: string) {
-  const supabase = await createClient();
+  const supabase = getPublicSupabase();
 
   // 1. Try slug column (primary lookup)
   let { data: category } = await supabase
@@ -56,7 +60,7 @@ async function fetchCategory(slug: string) {
     .select('id, name, description, image_url, meta_title, meta_description, meta_keywords, slug')
     .eq('slug', slug)
     .eq('is_active', true)
-    .single() as any;
+    .maybeSingle() as any;
 
   // 2. Fall back to name match so old ?category= links still resolve
   if (!category) {
@@ -65,7 +69,7 @@ async function fetchCategory(slug: string) {
       .select('id, name, description, image_url, meta_title, meta_description, meta_keywords, slug')
       .ilike('name', slug.replace(/-/g, ' '))
       .eq('is_active', true)
-      .single() as any;
+      .maybeSingle() as any;
     category = byName;
   }
 
@@ -134,12 +138,8 @@ export default async function CategoryPage(props: Props) {
 
   // ---------------------------------------------------
   // Fetch products for JSON-LD structured data.
-  // This runs AFTER fetchCategory, but since we need the
-  // category.id to query products it cannot be parallelised
-  // with fetchCategory itself. However it is now a single
-  // dedicated Supabase client call (no extra round-trips).
   // ---------------------------------------------------
-  const supabase = await createClient();
+  const supabase = getPublicSupabase();
   const { data: products } = await supabase
     .from('products')
     .select('id, name, sku, images, price')
@@ -212,12 +212,20 @@ export default async function CategoryPage(props: Props) {
         />
       )}
 
-      {/* Render the Products component with the category id passed directly — no client-side guessing */}
-      <ProductsClient
-        forcedCategoryId={category.id}
-        forcedCategoryName={category.name}
-        forcedCategoryDescription={category.description}
-      />
+      {/* Render the Products component with the category id passed directly */}
+      <Suspense
+        fallback={
+          <div className="min-h-screen flex items-center justify-center bg-[#FFFDF7]">
+            <div className="w-12 h-12 border-4 border-[#E6D5B8] border-t-[#8B2131] rounded-full animate-spin" />
+          </div>
+        }
+      >
+        <ProductsClient
+          forcedCategoryId={category.id}
+          forcedCategoryName={category.name}
+          forcedCategoryDescription={category.description}
+        />
+      </Suspense>
     </>
   );
 }
