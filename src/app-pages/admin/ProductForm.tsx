@@ -14,6 +14,7 @@ import { ArrowLeft, Upload, X, ChevronUp, ChevronDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { slugify } from '@/utils/slugify';
+import { fetchCategoryRelationships } from '@/lib/categoryHierarchy';
 
 interface Product {
   id?: string;
@@ -183,14 +184,49 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
 
   const fetchCategories = async () => {
     try {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('id, name')
-        .eq('is_active', true)
-        .order('name');
+      const [catRes, rels] = await Promise.all([
+        supabase
+          .from('categories')
+          .select('id, name')
+          .eq('is_active', true)
+          .order('name'),
+        fetchCategoryRelationships(),
+      ]);
 
-      if (error) throw error;
-      setCategories(data || []);
+      if (catRes.error) throw catRes.error;
+      const rawCats = catRes.data || [];
+
+      // Build parent map: child_id -> parent names[]
+      const catNameMap = new Map(rawCats.map(c => [c.id, c.name]));
+      const parentsMap = new Map<string, string[]>();
+      rels.forEach(r => {
+        const existing = parentsMap.get(r.child_id) || [];
+        const pName = catNameMap.get(r.parent_id);
+        if (pName && !existing.includes(pName)) existing.push(pName);
+        parentsMap.set(r.child_id, existing);
+      });
+
+      // Format categories with hierarchy information
+      const formatted = rawCats.map(cat => {
+        const parents = parentsMap.get(cat.id) || [];
+        const isSub = parents.length > 0;
+        return {
+          id: cat.id,
+          name: cat.name,
+          isSub,
+          displayName: isSub
+            ? `↳ ${cat.name} (under ${parents.join(', ')})`
+            : `📁 ${cat.name}`,
+        };
+      });
+
+      // Sort: Main categories first, then subcategories
+      formatted.sort((a, b) => {
+        if (a.isSub === b.isSub) return a.name.localeCompare(b.name);
+        return a.isSub ? 1 : -1;
+      });
+
+      setCategories(formatted);
     } catch (error) {
       console.error('Error fetching categories:', error);
     }
@@ -598,9 +634,9 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
-                      {categories.map((category) => (
+                      {categories.map((category: any) => (
                         <SelectItem key={category.id} value={category.id}>
-                          {category.name}
+                          {category.displayName || category.name}
                         </SelectItem>
                       ))}
                     </SelectContent>

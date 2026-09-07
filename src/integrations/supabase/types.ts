@@ -118,6 +118,45 @@ export type Database = {
         }
         Relationships: []
       }
+      category_relationships: {
+        Row: {
+          id: string
+          parent_id: string
+          child_id: string
+          sort_order: number | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          parent_id: string
+          child_id: string
+          sort_order?: number | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          parent_id?: string
+          child_id?: string
+          sort_order?: number | null
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "category_relationships_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "category_relationships_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coupons: {
         Row: {
           code: string

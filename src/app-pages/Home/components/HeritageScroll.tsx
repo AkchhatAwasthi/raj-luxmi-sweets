@@ -37,7 +37,7 @@ const HeritageScroll = () => {
                 {/* Image — full natural height, no cropping */}
                 <div className="relative w-full overflow-hidden">
                     <img
-                        src="https://res.cloudinary.com/dil74qcsx/image/upload/f_auto/q_auto/v1784285229/file_00000000cbd471fa86d42982bc85912b_gtswve.png"
+                        src="https://res.cloudinary.com/dmj0smemf/image/upload/f_auto,q_auto/v1788240115/DSC07987_1_1_ujxahs.jpg"
                         alt="Artisan crafting sweets"
                         className="w-full h-auto block"
                     />
@@ -61,24 +61,24 @@ const HeritageScroll = () => {
                     {content.map((item, index) => (
                         <div
                             key={item.id}
-                            className={`relative z-10 px-7 py-12 ${index !== 0 ? 'border-t border-[#B38B46]/20' : ''}`}
+                            className={`relative z-10 px-6 py-8 sm:py-10 ${index !== 0 ? 'border-t border-[#B38B46]/20' : ''}`}
                         >
                             <motion.div
-                                initial={{ opacity: 0, y: 25 }}
+                                initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.6, ease: "easeOut" }}
+                                transition={{ duration: 0.5, ease: "easeOut" }}
                                 viewport={{ once: false, margin: "-5% 0px -5% 0px" }}
                             >
-                                <div className="w-10 h-[2px] bg-[#B38B46] mb-5" />
-                                <h2 className="text-lg sm:text-xl font-instrument font-normal text-[#FAF9F6] mb-3 tracking-widest uppercase">
+                                <div className="w-8 h-[1.5px] bg-[#B38B46] mb-4" />
+                                <h2 className="text-sm sm:text-base font-orange-avenue font-normal text-[#FAF9F6] mb-2 tracking-[0.2em] uppercase">
                                     {item.title}
                                 </h2>
                                 {item.subtitle && (
-                                    <p className="text-[#B38B46] font-instrument font-normal tracking-[0.2em] uppercase text-xs sm:text-sm mb-4">
+                                    <p className="text-[#B38B46] font-orange-avenue font-normal tracking-[0.2em] uppercase text-[10px] sm:text-xs mb-3">
                                         {item.subtitle}
                                     </p>
                                 )}
-                                <p className="text-[#D4B6A2] text-sm sm:text-base font-light leading-relaxed">
+                                <p className="text-[#D4B6A2] text-xs sm:text-[13px] font-light leading-relaxed">
                                     {item.text}
                                 </p>
                             </motion.div>
@@ -93,7 +93,7 @@ const HeritageScroll = () => {
                 {/* Left — sticky image panel */}
                 <div className="lg:w-1/2 h-screen sticky top-0 overflow-hidden z-0 bg-white">
                     <img
-                        src="https://res.cloudinary.com/dmj0smemf/image/upload/f_auto/q_auto/v1784288594/ChatGPT_Image_Jul_17_2026_05_12_48_PM_cxreoz.png"
+                        src="https://res.cloudinary.com/dmj0smemf/image/upload/f_auto,q_auto/v1788240115/DSC07987_1_1_ujxahs.jpg"
                         alt="Sweets in Lucknow"
                         className="w-full h-full object-cover"
                     />
@@ -114,24 +114,24 @@ const HeritageScroll = () => {
                         {content.map((item) => (
                             <div
                                 key={item.id}
-                                className="h-screen flex flex-col justify-center px-16 lg:px-24 border-l border-[#B38B46]/10"
+                                className="h-screen flex flex-col justify-center px-12 lg:px-20 border-l border-[#B38B46]/10"
                             >
                                 <motion.div
-                                    initial={{ opacity: 0, y: 50 }}
+                                    initial={{ opacity: 0, y: 35 }}
                                     whileInView={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.8, ease: "easeOut" }}
+                                    transition={{ duration: 0.7, ease: "easeOut" }}
                                     viewport={{ once: false, margin: "-20% 0px -20% 0px" }}
                                 >
-                                    <div className="w-12 h-[2px] bg-[#B38B46] mb-6" />
-                                    <h2 className="text-2xl lg:text-3xl font-instrument font-normal text-[#FAF9F6] mb-4 tracking-wide leading-tight uppercase">
+                                    <div className="w-10 h-[1.5px] bg-[#B38B46] mb-5" />
+                                    <h2 className="text-base lg:text-lg font-orange-avenue font-normal text-[#FAF9F6] mb-3 tracking-[0.2em] leading-snug uppercase">
                                         {item.title}
                                     </h2>
                                     {item.subtitle && (
-                                        <p className="text-[#B38B46] font-instrument font-normal tracking-[0.2em] uppercase text-sm mb-6">
+                                        <p className="text-[#B38B46] font-orange-avenue font-normal tracking-[0.2em] uppercase text-xs mb-4">
                                             {item.subtitle}
                                         </p>
                                     )}
-                                    <p className="text-[#D4B6A2] text-xl font-light leading-relaxed max-w-md">
+                                    <p className="text-[#D4B6A2] text-xs sm:text-sm font-light leading-relaxed max-w-md">
                                         {item.text}
                                     </p>
                                 </motion.div>

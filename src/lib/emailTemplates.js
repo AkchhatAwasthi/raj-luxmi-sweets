@@ -252,7 +252,7 @@ function buildCustomerEmail(order) {
               <p style="font-family: 'Georgia', serif; font-size: 18px; color: #FAF9F6; margin: 0 0 4px 0; letter-spacing: 2px; text-transform: uppercase;">Raj Luxmi</p>
               <p style="font-size: 9px; color: #B38B46; margin: 0 0 16px 0; letter-spacing: 3px; text-transform: uppercase;">Royal Sweets</p>
               
-              <p style="font-size: 12px; color: #D4B6A2; margin: 0 0 4px 0;">Shop number 5, Patel Nagar, Hansi road, Patiala chowk, JIND (Haryana) 126102</p>
+              <p style="font-size: 12px; color: #D4B6A2; margin: 0 0 4px 0;">Raj Luxmi The Mithai Shop (Aashiyana): Brej Palace, Near Ashiyana Power House Chauraha, Lucknow-226012</p>
               <p style="font-size: 12px; color: #D4B6A2; margin: 0 0 4px 0;">📧 contact@rajluxmi.com | 📞 +91 9996616153</p>
               
               <div style="border-top: 1px solid rgba(179, 139, 70, 0.3); margin-top: 20px; padding-top: 16px;">

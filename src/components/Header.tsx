@@ -2,8 +2,8 @@
 
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import React, { useState, useEffect } from 'react';
-import { ShoppingCart, User, Menu, Search, Heart, X, ChevronDown, ChevronRight, LogOut } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { ShoppingCart, User, Menu, Search, Heart, X, ChevronDown, ChevronRight, ChevronLeft, LogOut } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger as MobileDropdownTrigger,
 } from '@/components/ui/dropdown-menu';
 import SearchSidebar from './SearchSidebar';
-import { useCategories } from '@/hooks/useCategories';
+import { useCategories, useCategoryTree } from '@/hooks/useCategories';
 import Image from 'next/image';
 import logo from '@/assets/logo.png';
 
@@ -24,11 +24,105 @@ interface HeaderProps {
   isAdminRoute?: boolean;
 }
 
+const FIVE_MAIN_CATEGORIES = [
+  { name: 'Sweets', slug: 'sweets' },
+  { name: 'Namkeen', slug: 'namkeen' },
+  { name: 'Dry Fruits', slug: 'dry-fruits' },
+  { name: 'Gifting', slug: 'gifting' },
+  { name: 'Festive', slug: 'festive' },
+];
+
+interface DeliveryCategoryDropdownProps {
+  label: string;
+  mode: 'lucknow' | 'pan-india';
+  categories: { name: string; slug: string }[];
+  onSelectCategory: (slug: string, mode: 'lucknow' | 'pan-india') => void;
+  onViewAll: (mode: 'lucknow' | 'pan-india') => void;
+}
+
+const DeliveryCategoryDropdown: React.FC<DeliveryCategoryDropdownProps> = ({
+  label,
+  mode,
+  categories,
+  onSelectCategory,
+  onViewAll,
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div
+      className="relative group py-2"
+      onMouseEnter={() => setIsOpen(true)}
+      onMouseLeave={() => setIsOpen(false)}
+    >
+      <button
+        onClick={() => onViewAll(mode)}
+        className="flex items-center gap-1 text-[11px] xl:text-xs font-orange-avenue font-normal tracking-[0.14em] uppercase text-[#2C1810] group-hover:text-[#B38B46] transition-colors outline-none cursor-pointer whitespace-nowrap"
+      >
+        <span>{label}</span>
+        <ChevronDown
+          className={`w-3.5 h-3.5 text-[#B38B46] transition-transform duration-300 ${
+            isOpen ? 'rotate-180' : ''
+          }`}
+        />
+      </button>
+      <span className="absolute bottom-1 left-0 w-0 h-[1.5px] bg-[#B38B46] transition-all duration-300 ease-out group-hover:w-full" />
+
+      {/* Dropdown Menu */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 6 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
+            className="absolute top-full left-0 pt-2 w-52 z-50 pointer-events-auto"
+          >
+            <div className="bg-[#FFFDF7] border border-[#D4B6A2]/40 shadow-[0_10px_30px_rgba(44,24,16,0.12)] rounded-md py-2 overflow-hidden">
+              <div className="px-4 py-1.5 border-b border-[#D4B6A2]/20 mb-1">
+                <span className="text-[9px] font-orange-avenue uppercase tracking-[0.2em] text-[#B38B46] block">
+                  {mode === 'lucknow' ? 'Same-Day in Lucknow' : 'Pan-India Delivery'}
+                </span>
+              </div>
+
+              {categories.map((cat) => (
+                <button
+                  key={cat.slug}
+                  onClick={() => {
+                    onSelectCategory(cat.slug, mode);
+                    setIsOpen(false);
+                  }}
+                  className="w-full text-left px-4 py-2 text-[11.5px] font-orange-avenue uppercase tracking-wider text-[#2C1810] hover:text-[#8B2131] hover:bg-[#FAF6F0] transition-colors flex items-center justify-between group/item cursor-pointer"
+                >
+                  <span>{cat.name}</span>
+                  <ChevronRight className="w-3 h-3 text-[#B38B46] opacity-0 group-hover/item:opacity-100 group-hover/item:translate-x-0.5 transition-all" />
+                </button>
+              ))}
+
+              <div className="border-t border-[#D4B6A2]/20 mt-1 pt-1">
+                <button
+                  onClick={() => {
+                    onViewAll(mode);
+                    setIsOpen(false);
+                  }}
+                  className="w-full text-left px-4 py-1.5 text-[10.5px] font-orange-avenue uppercase tracking-widest text-[#B38B46] hover:text-[#8B2131] hover:bg-[#FAF6F0] transition-colors cursor-pointer"
+                >
+                  View All Products →
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
 const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
   if (isAdminRoute) return null;
 
   const router = useRouter();
-  const { cartItems, toggleCart } = useStore();
+  const { cartItems, toggleCart, setDeliveryMode } = useStore();
   const { user, signOut, isAdmin } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -38,8 +132,25 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
     setMounted(true);
   }, []);
 
-  // Dynamic Data States — categories come from shared hook (deduplicates requests)
+  // Dynamic Data States — categories & root categories for navigation
   const { categories } = useCategories();
+  const { rootCategories } = useCategoryTree();
+
+  const MAIN_CATEGORY_ORDER = ['sweets', 'namkeen', 'dry-fruits', 'gifting', 'festive'];
+
+  const displayMainCategories = React.useMemo(() => {
+    const list = rootCategories.length > 0 ? rootCategories : categories;
+    const primary = list.filter(c => MAIN_CATEGORY_ORDER.includes(c.slug?.toLowerCase() || ''));
+    if (primary.length > 0) {
+      return primary.sort((a, b) => {
+        const idxA = MAIN_CATEGORY_ORDER.indexOf(a.slug?.toLowerCase() || '');
+        const idxB = MAIN_CATEGORY_ORDER.indexOf(b.slug?.toLowerCase() || '');
+        return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
+      });
+    }
+    return list;
+  }, [rootCategories, categories]);
+
   const [collections, setCollections] = useState<any[]>([]);
   const [celebrateCategories, setCelebrateCategories] = useState<any[]>([]);
 
@@ -57,7 +168,6 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
       setIsScrolled(window.scrollY > 20);
     };
     window.addEventListener('scroll', handleScroll);
-    // Set up static data that doesn't need a Supabase call
     const celebrateCatNames = ["Wedding Special", "Corporate Gifting", "Festive Hampers"];
     setCelebrateCategories(celebrateCatNames.map(name => ({ name, slug: name })));
     const mockCollections = [
@@ -70,33 +180,14 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
 
   const cartItemsCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
-  // Desktop Hover Dropdown Component
-  const DesktopNavDropdown = ({ title, items, onSelect }: { title: string, items: any[], onSelect: (slug: string) => void }) => {
-    return (
-      <div className="relative group px-1 h-full flex items-center cursor-pointer">
-        <button className="flex items-center gap-0.5 lg:gap-1 text-[10px] lg:text-xs font-kugile font-normal tracking-[0.15em] uppercase text-[#4A1C1F] group-hover:text-[#B38B46] transition-colors outline-none bg-transparent border-none p-0">
-          {title} <ChevronDown className="w-4 h-4 transition-transform duration-300 group-hover:rotate-180" />
-        </button>
+  const handleSelectDeliveryCategory = (slug: string, mode: 'lucknow' | 'pan-india') => {
+    setDeliveryMode(mode);
+    router.push(`/category/${slug}?delivery=${mode}`);
+  };
 
-        {/* Dropdown Content - Show on hover */}
-        <div className="absolute top-full left-0 pt-4 hidden group-hover:block w-64 animate-in fade-in slide-in-from-top-2 duration-200 z-50">
-          <div className="bg-[#FFFDF7] border border-[#D4B6A2]/30 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-sm py-2 relative">
-            {/* Arrow pointer */}
-            <div className="absolute -top-2 left-6 w-4 h-4 bg-[#FFFDF7] border-t border-l border-[#D4B6A2]/30 rotate-45"></div>
-
-            {items.map((item, idx) => (
-              <div
-                key={idx}
-                onClick={() => onSelect(item.slug || item.name)}
-                className="px-6 py-3 text-xs font-kugile font-normal tracking-widest uppercase transition-colors cursor-pointer relative z-10 text-[#5C4638] hover:text-[#783838] hover:bg-[#E5D8C6]/20"
-              >
-                {item.name}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
+  const handleViewAllDelivery = (mode: 'lucknow' | 'pan-india') => {
+    setDeliveryMode(mode);
+    router.push(`/products?delivery=${mode}`);
   };
 
   const MobileMenuItem = ({ label, path, onClick, subItems }: { label: string; path?: string; onClick?: () => void, subItems?: any[] }) => {
@@ -112,15 +203,15 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
               setIsMobileMenuOpen(false);
             }
           }}
-          className="flex items-center justify-between w-full py-5 px-6 text-left group"
+          className="flex items-center justify-between w-full py-4 px-6 text-left group"
         >
-          <span className={`text-sm font-kugile font-normal tracking-widest uppercase transition-colors ${isExpanded ? 'text-[#B38B46]' : 'text-[#4A1C1F]'}`}>
+          <span className={`text-xs font-orange-avenue uppercase tracking-wider transition-colors ${isExpanded ? 'text-[#B38B46]' : 'text-[#2C1810]'}`}>
             {label}
           </span>
           {subItems && subItems.length > 0 ? (
-            <ChevronDown className={`w-5 h-5 text-[#D4B6A2] transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`w-4 h-4 text-[#D4B6A2] transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
           ) : (
-            <ChevronRight className="w-5 h-5 text-[#D4B6A2] opacity-60 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+            <ChevronRight className="w-4 h-4 text-[#D4B6A2] opacity-60 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
           )}
         </button>
         <AnimatePresence>
@@ -129,16 +220,22 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden bg-[#E5D8C6]/10"
+              className="overflow-hidden bg-[#E5D8C6]/15"
             >
               {subItems.map((sub, idx) => (
                 <button
                   key={idx}
                   onClick={() => {
-                    router.push(`/products?category=${sub.slug || sub.name}`);
+                    if (sub.onClick) {
+                      sub.onClick();
+                    } else if (sub.path) {
+                      router.push(sub.path);
+                    } else {
+                      router.push(`/category/${sub.slug || sub.name}`);
+                    }
                     setIsMobileMenuOpen(false);
                   }}
-                  className="block w-full text-left py-4 px-10 text-xs font-kugile font-normal tracking-widest uppercase text-[#5C4638] hover:text-[#B38B46] border-b border-[#D4B6A2]/10 last:border-0"
+                  className="block w-full text-left py-3 px-10 text-[11.5px] font-orange-avenue tracking-wider uppercase text-[#5C4638] hover:text-[#B38B46] border-b border-[#D4B6A2]/10 last:border-0"
                 >
                   {sub.name}
                 </button>
@@ -157,143 +254,153 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
     <>
       <motion.header
         className={`
-          z-40 transition-all duration-500 
+          z-40 transition-all duration-300 
           sticky top-0
-          ${isHome && !isScrolled ? 'bg-[#F9F3EA] border-transparent py-3' : ''}
+          ${isHome && !isScrolled ? 'bg-[#F9F3EA] border-transparent py-1.5' : ''}
           ${isHome && isScrolled ? 'bg-[#FFFDF7]/95 backdrop-blur-md shadow-sm border-b border-[#D4B6A2]/30 py-1' : ''}
           ${!isHome ? 'bg-[#FFFDF7] border-b border-[#D4B6A2]/30' : ''}
-          ${!isHome && isScrolled ? 'shadow-lg py-1' : ''}
-          ${!isHome && !isScrolled ? 'py-3' : ''}
+          ${!isHome && isScrolled ? 'shadow-sm py-1' : ''}
+          ${!isHome && !isScrolled ? 'py-1.5' : ''}
         `}
         style={{ height: headerHeight }}
       >
-        <div className="container mx-auto px-4 lg:px-8">
-          <div className="flex justify-between items-center h-20 lg:h-24 relative">
+        <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-10">
+          <div className="flex items-center justify-between h-14 sm:h-16 relative">
 
-            {/* LEFT: Logo */}
-            <div className="flex-shrink-0 relative z-10 group mr-8">
+            {/* MOBILE ONLY: Menu Toggle (Left) */}
+            <div className="lg:hidden flex items-center">
+              <button
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="text-[#2C1810] hover:text-[#B38B46] transition-colors p-1"
+                aria-label="Open menu"
+              >
+                <Menu className="w-6 h-6 stroke-[1.5px]" />
+              </button>
+            </div>
+
+            {/* MOBILE ONLY: Centered Logo */}
+            <div className="lg:hidden flex-1 flex justify-center items-center">
               <Link href="/">
-                <motion.div
-                  className="relative h-16 md:h-20 lg:h-24 w-40 md:w-48 lg:w-56 transition-transform duration-500 group-hover:scale-105"
-                  style={{ scale: logoScale }}
-                >
+                <div className="relative h-10 w-28">
                   <Image
                     src={logo}
                     alt="Raj Luxmi"
                     fill
                     priority
-                    className="object-contain drop-shadow-sm"
-                    sizes="(max-width: 768px) 160px, (max-width: 1024px) 192px, 224px"
+                    className="object-contain drop-shadow-xs"
+                    sizes="120px"
                   />
-                </motion.div>
+                </div>
               </Link>
             </div>
 
-            {/* CENTER: Navigation (Desktop) */}
-            <nav className="hidden lg:flex items-center gap-4 lg:gap-8 xl:gap-10 flex-1 justify-center">
-
-              {/* New Arrivals - Mapped to Sort */}
-              <Link
-                href="/products?sort=newest"
-                className="relative group px-0.5 lg:px-1 py-1"
-              >
-                <span className="text-[10px] lg:text-xs font-kugile font-normal tracking-[0.15em] uppercase text-[#4A1C1F] group-hover:text-[#B38B46] transition-colors">
-                  New Arrivals
-                </span>
-                <span className="absolute bottom-0 left-1/2 w-0 h-[1px] bg-[#B38B46] transition-all duration-500 ease-out -translate-x-1/2 group-hover:w-full" />
-              </Link>
-
-              {/* Bestsellers - Mapped to Sort */}
-              <Link
-                href="/products?sort=bestseller"
-                className="relative group px-0.5 lg:px-1 py-1"
-              >
-                <span className="text-[10px] lg:text-xs font-kugile font-normal tracking-[0.15em] uppercase text-[#4A1C1F] group-hover:text-[#B38B46] transition-colors">
-                  Bestsellers
-                </span>
-                <span className="absolute bottom-0 left-1/2 w-0 h-[1px] bg-[#B38B46] transition-all duration-500 ease-out -translate-x-1/2 group-hover:w-full" />
-              </Link>
-
-              {/* Gifting Dropdown - Hidden as per request */}
-              {/* {collections[2] && (
-                <DesktopNavDropdown
-                  title={collections[2].name}
-                  items={collections[2].subcategories || []}
-                  onSelect={(slug) => router.push(`/products?tag=${slug}`)}
+            {/* DESKTOP ONLY: Centered Navigation Cluster (Left Links + Logo + Right Links) */}
+            <div className="hidden lg:flex items-center justify-center flex-1 gap-6 xl:gap-9">
+              {/* Left Delivery Dropdowns */}
+              <div className="flex items-center gap-5 xl:gap-7">
+                <DeliveryCategoryDropdown
+                  label="Shop in Lucknow"
+                  mode="lucknow"
+                  categories={FIVE_MAIN_CATEGORIES}
+                  onSelectCategory={handleSelectDeliveryCategory}
+                  onViewAll={handleViewAllDelivery}
                 />
-              )} */}
 
-              {/* Shop In Lucknow Dropdown */}
-              <DesktopNavDropdown
-                title="Shop In Lucknow"
-                items={categories.filter(c => !celebrateCategories.some(cc => cc.name === c.name))}
-                onSelect={(slug) => router.push(`/products?category=${slug}`)}
-              />
+                <DeliveryCategoryDropdown
+                  label="Shop Pan India"
+                  mode="pan-india"
+                  categories={FIVE_MAIN_CATEGORIES}
+                  onSelectCategory={handleSelectDeliveryCategory}
+                  onViewAll={handleViewAllDelivery}
+                />
+              </div>
 
-              {/* Shop Pan India Dropdown */}
-              <DesktopNavDropdown
-                title="Shop Pan India"
-                items={categories.filter(c => {
-                  const name = c.name.toLowerCase();
-                  const isCelebrate = celebrateCategories.some(cc => cc.name === c.name);
-                  return !isCelebrate && name !== "bengali sweets" && name !== "khoya sweets";
-                })}
-                onSelect={(slug) => router.push(`/products?category=${slug}`)}
-              />
+              {/* Center Logo */}
+              <div className="flex-shrink-0 px-2 xl:px-4">
+                <Link href="/" className="block group">
+                  <motion.div
+                    className="relative h-11 sm:h-12 lg:h-13 w-28 sm:w-34 lg:w-40 transition-transform duration-300 group-hover:scale-105"
+                    style={{ scale: logoScale }}
+                  >
+                    <Image
+                      src={logo}
+                      alt="Raj Luxmi"
+                      fill
+                      priority
+                      className="object-contain drop-shadow-xs"
+                      sizes="(max-width: 1024px) 140px, 160px"
+                    />
+                  </motion.div>
+                </Link>
+              </div>
 
-              {/* Our Gift Hampers - External Link */}
-              <a
-                href="https://drive.google.com/file/d/11hNkwBlF_4pQIS0c2KOuxjeZXX5NyiEJ/view?usp=sharing"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="relative group px-0.5 lg:px-1 py-1"
-              >
-                <span className="text-[10px] lg:text-xs font-kugile font-normal tracking-[0.15em] uppercase text-[#4A1C1F] group-hover:text-[#B38B46] transition-colors">
-                  Our Gift Hampers
-                </span>
-                <span className="absolute bottom-0 left-1/2 w-0 h-[1px] bg-[#B38B46] transition-all duration-500 ease-out -translate-x-1/2 group-hover:w-full" />
-              </a>
-            </nav>
+              {/* Right Links */}
+              <div className="flex items-center gap-5 xl:gap-7">
+                <Link
+                  href="/category/gifting"
+                  className="relative group py-2"
+                >
+                  <span className="text-[11px] xl:text-xs font-orange-avenue font-normal tracking-[0.14em] uppercase text-[#2C1810] group-hover:text-[#B38B46] transition-colors whitespace-nowrap">
+                    Our Gift Hampers
+                  </span>
+                  <span className="absolute bottom-1 left-0 w-0 h-[1.5px] bg-[#B38B46] transition-all duration-300 ease-out group-hover:w-full" />
+                </Link>
 
-            {/* ... Right Actions ... */}
-            <div className="flex items-center gap-4 lg:gap-6 justify-end">
+                <Link
+                  href="/celebrate-with-rajluxmi"
+                  className="relative group py-2"
+                >
+                  <span className="text-[11px] xl:text-xs font-orange-avenue font-normal tracking-[0.14em] uppercase text-[#2C1810] group-hover:text-[#B38B46] transition-colors whitespace-nowrap">
+                    Bulk Orders
+                  </span>
+                  <span className="absolute bottom-1 left-0 w-0 h-[1.5px] bg-[#B38B46] transition-all duration-300 ease-out group-hover:w-full" />
+                </Link>
+              </div>
+            </div>
+
+            {/* FAR RIGHT: Action Icons (Search, Heart, User, Cart) */}
+            <div className="flex items-center gap-3 sm:gap-4 lg:gap-5 justify-end">
               {/* Search */}
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 onClick={() => setIsSearchOpen(true)}
-                className="text-[#4A1C1F] hover:text-[#B38B46] transition-colors flex items-center gap-2 group"
+                className="text-[#2C1810] hover:text-[#B38B46] transition-colors p-1"
+                aria-label="Search"
               >
-                <Search className="w-5 h-5 lg:w-6 lg:h-6 stroke-[1.5px]" />
+                <Search className="w-5 h-5 stroke-[1.5px]" />
               </motion.button>
 
-              <div className="h-6 w-[1px] bg-[#D4B6A2]/40 hidden md:block"></div>
-
               {/* Heart */}
-              <motion.button className="hidden md:block text-[#4A1C1F] hover:text-[#B38B46] transition-colors">
-                <Heart className="w-5 h-5 lg:w-6 lg:h-6 stroke-[1.5px]" />
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                onClick={() => router.push('/profile')}
+                className="hidden md:block text-[#2C1810] hover:text-[#B38B46] transition-colors p-1"
+                aria-label="Wishlist"
+              >
+                <Heart className="w-5 h-5 stroke-[1.5px]" />
               </motion.button>
 
               {/* User */}
               {user ? (
                 <MobileDropdown>
                   <MobileDropdownTrigger className="outline-none">
-                    <motion.div whileHover={{ scale: 1.05 }} className="text-[#4A1C1F] hover:text-[#B38B46] transition-colors hidden md:block cursor-pointer">
-                      <User className="w-5 h-5 lg:w-6 lg:h-6 stroke-[1.5px]" />
+                    <motion.div whileHover={{ scale: 1.05 }} className="text-[#2C1810] hover:text-[#B38B46] transition-colors hidden md:block cursor-pointer p-1">
+                      <User className="w-5 h-5 stroke-[1.5px]" />
                     </motion.div>
-                    <div className="md:hidden text-[#4A1C1F]">
-                      <User className="w-6 h-6 stroke-[1.5px]" onClick={() => router.push('/profile')} />
+                    <div className="md:hidden text-[#2C1810] p-1">
+                      <User className="w-5 h-5 stroke-[1.5px]" onClick={() => router.push('/profile')} />
                     </div>
                   </MobileDropdownTrigger>
-                  <MobileDropdownContent align="end" className="hidden md:block w-64 bg-[#FFFDF7] border border-[#D4B6A2]/20 shadow-xl rounded-sm p-2 z-[60]">
+                  <MobileDropdownContent align="end" className="hidden md:block w-60 bg-[#FFFDF7] border border-[#D4B6A2]/25 shadow-xl rounded-sm p-2 z-[60]">
                     {isAdmin && (
-                      <MobileDropdownItem className="focus:bg-[#E5D8C6]/20 text-[#4A1C1F] cursor-pointer font-kugile font-normal tracking-wide text-xs uppercase py-3" onClick={() => router.push('/admin')}>
+                      <MobileDropdownItem className="focus:bg-[#E5D8C6]/20 text-[#2C1810] cursor-pointer font-orange-avenue text-xs uppercase py-2.5" onClick={() => router.push('/admin')}>
                         Admin Dashboard
                       </MobileDropdownItem>
                     )}
-                    <MobileDropdownItem className="focus:bg-[#E5D8C6]/20 text-[#4A1C1F] cursor-pointer font-kugile font-normal tracking-wide text-xs uppercase py-3" onClick={() => router.push('/profile')}>
+                    <MobileDropdownItem className="focus:bg-[#E5D8C6]/20 text-[#2C1810] cursor-pointer font-orange-avenue text-xs uppercase py-2.5" onClick={() => router.push('/profile')}>
                       Profile
                     </MobileDropdownItem>
-                    <MobileDropdownItem className="focus:bg-[#E5D8C6]/20 text-[#4A1C1F] cursor-pointer font-kugile font-normal tracking-wide text-xs uppercase py-3" onClick={signOut}>
+                    <MobileDropdownItem className="focus:bg-[#E5D8C6]/20 text-[#2C1810] cursor-pointer font-orange-avenue text-xs uppercase py-2.5" onClick={signOut}>
                       Sign Out
                     </MobileDropdownItem>
                   </MobileDropdownContent>
@@ -302,9 +409,10 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   onClick={() => router.push('/auth')}
-                  className="text-[#4A1C1F] hover:text-[#B38B46] transition-colors hidden md:block"
+                  className="text-[#2C1810] hover:text-[#B38B46] transition-colors hidden md:block p-1"
+                  aria-label="Account"
                 >
-                  <User className="w-5 h-5 lg:w-6 lg:h-6 stroke-[1.5px]" />
+                  <User className="w-5 h-5 stroke-[1.5px]" />
                 </motion.button>
               )}
 
@@ -312,22 +420,16 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 onClick={toggleCart}
-                className="relative text-[#4A1C1F] hover:text-[#B38B46] transition-colors p-1"
+                className="relative text-[#2C1810] hover:text-[#B38B46] transition-colors p-1"
+                aria-label="Shopping Cart"
               >
-                <ShoppingCart className="w-5 h-5 lg:w-6 lg:h-6 stroke-[1.5px]" />
+                <ShoppingCart className="w-5 h-5 stroke-[1.5px]" />
                 {mounted && cartItemsCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-[#783838] text-[#FFFDF7] text-xs w-4 h-4 rounded-full flex items-center justify-center shadow-sm font-kugile font-normal">
+                  <span className="absolute -top-1 -right-1 bg-[#8B2131] text-[#FAF9F6] text-[9.5px] min-w-4 h-4 px-1 rounded-full flex items-center justify-center shadow-xs font-orange-avenue font-normal">
                     {cartItemsCount}
                   </span>
                 )}
               </motion.button>
-
-              {/* Mobile Menu Toggle */}
-              <div className="lg:hidden ml-2">
-                <button onClick={() => setIsMobileMenuOpen(true)} className="text-[#4A1C1F] hover:text-[#B38B46] transition-colors">
-                  <Menu className="w-7 h-7 stroke-[1.5px]" />
-                </button>
-              </div>
             </div>
           </div>
         </div>
@@ -361,47 +463,64 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
               </div>
 
               <div className="py-2">
-                {/* Manual Links for Collections */}
-                <MobileMenuItem
-                  label="New Arrivals"
-                  path="/products?sort=newest"
-                />
-                <MobileMenuItem
-                  label="Bestsellers"
-                  path="/products?sort=bestseller"
-                />
-                {/* Gifting - Hidden as per request */}
-                {/* {collections[2] && (
+                {/* Primary Navigation Links with Delivery Subcategories */}
+                <div className="border-b border-[#D4B6A2]/20 pb-2 mb-2">
                   <MobileMenuItem
-                    label={collections[2].name}
-                    subItems={collections[2].subcategories}
+                    label="Shop in Lucknow"
+                    subItems={[
+                      ...FIVE_MAIN_CATEGORIES.map((cat) => ({
+                        name: cat.name,
+                        path: `/category/${cat.slug}?delivery=lucknow`,
+                        onClick: () => setDeliveryMode('lucknow'),
+                      })),
+                      {
+                        name: 'All Lucknow Products →',
+                        path: '/products?delivery=lucknow',
+                        onClick: () => setDeliveryMode('lucknow'),
+                      },
+                    ]}
                   />
-                )} */}
 
-                <MobileMenuItem
-                  label="Shop in Lucknow"
-                  subItems={categories
-                    .filter(c => !celebrateCategories.some(cc => cc.name === c.name))
-                    .map(c => ({ name: c.name, slug: c.name }))
-                  }
-                />
+                  <MobileMenuItem
+                    label="Shop Pan India"
+                    subItems={[
+                      ...FIVE_MAIN_CATEGORIES.map((cat) => ({
+                        name: cat.name,
+                        path: `/category/${cat.slug}?delivery=pan-india`,
+                        onClick: () => setDeliveryMode('pan-india'),
+                      })),
+                      {
+                        name: 'All Pan-India Products →',
+                        path: '/products?delivery=pan-india',
+                        onClick: () => setDeliveryMode('pan-india'),
+                      },
+                    ]}
+                  />
 
-                <MobileMenuItem
-                  label="Shop all over India"
-                  subItems={categories
-                    .filter(c => {
-                      const name = c.name.toLowerCase();
-                      const isCelebrate = celebrateCategories.some(cc => cc.name === c.name);
-                      return !isCelebrate && name !== "bengali sweets" && name !== "khoya mithai";
-                    })
-                    .map(c => ({ name: c.name, slug: c.name }))
-                  }
-                />
+                  <MobileMenuItem
+                    label="Our Gift Hampers"
+                    path="/category/gifting"
+                  />
 
-                <MobileMenuItem
-                  label="Our Gift Hampers"
-                  onClick={() => window.open('https://drive.google.com/file/d/11hNkwBlF_4pQIS0c2KOuxjeZXX5NyiEJ/view?usp=sharing', '_blank')}
-                />
+                  <MobileMenuItem
+                    label="Bulk Orders"
+                    path="/celebrate-with-rajluxmi"
+                  />
+                </div>
+
+                {/* Main Categories Mobile Links */}
+                <div className="px-6 pt-2 pb-1">
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-[#B38B46] font-orange-avenue font-medium block">
+                    Browse Categories
+                  </span>
+                </div>
+                {displayMainCategories.map((cat) => (
+                  <MobileMenuItem
+                    key={cat.id}
+                    label={cat.name}
+                    path={`/category/${cat.slug || cat.id}`}
+                  />
+                ))}
 
                 {user ? (
                   <div className="mt-8 px-6 pt-6 border-t border-[#D4B6A2]/20">

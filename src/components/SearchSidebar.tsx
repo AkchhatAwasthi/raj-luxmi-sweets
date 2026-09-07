@@ -62,6 +62,20 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose }) => {
   }, [searchQuery, selectedCategory]);
 
 
+  const hasProductImage = (p: any) =>
+    Array.isArray(p.images) &&
+    p.images.length > 0 &&
+    p.images.some((img: any) => typeof img === 'string' && img.trim() !== '');
+
+  const sortImagesFirst = (list: any[]) =>
+    [...list].sort((a, b) => {
+      const hasA = hasProductImage(a);
+      const hasB = hasProductImage(b);
+      if (hasA && !hasB) return -1;
+      if (!hasA && hasB) return 1;
+      return 0;
+    });
+
   const fetchFeaturedProducts = async () => {
     try {
       const { data, error } = await supabase
@@ -70,10 +84,10 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose }) => {
         .eq('is_active', true)
         .or('is_bestseller.eq.true,new_arrival.eq.true')
         .order('created_at', { ascending: false })
-        .limit(6);
+        .limit(12);
 
       if (error) throw error;
-      setFeaturedProducts(data || []);
+      setFeaturedProducts(sortImagesFirst(data || []).slice(0, 6));
     } catch (error) {
       console.error('Error fetching featured products:', error);
     }
@@ -99,10 +113,10 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose }) => {
         query = query.eq('category_id', selectedCategory);
       }
 
-      const { data, error } = await query.limit(20);
+      const { data, error } = await query.limit(30);
 
       if (error) throw error;
-      setSearchResults(data || []);
+      setSearchResults(sortImagesFirst(data || []));
       
       // Save to recent searches
       saveRecentSearch(searchQuery);

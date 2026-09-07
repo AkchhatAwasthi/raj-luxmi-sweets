@@ -23,7 +23,7 @@ const Footer: React.FC<FooterProps> = ({ isAdminRoute = false }) => {
   const contactInfo = {
     phone: settings?.store_phone || '+91 9996616153',
     email: settings?.store_email || 'contact@rajluxmi.com',
-    address: settings?.store_address || 'Shop number 5, Patel Nagar,\nHansi road, Patiala chowk,\nJIND (Haryana) 126102',
+    address: settings?.store_address || 'Raj Luxmi The Mithai Shop (Aashiyana): Brej Palace, Near Ashiyana Power House Chauraha, Lucknow-226012',
     storeName: 'Raj Luxmi'
   };
 

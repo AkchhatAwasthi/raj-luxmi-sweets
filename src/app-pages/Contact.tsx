@@ -27,7 +27,7 @@ const Contact = () => {
   const contactInfo = {
     phone: settings?.store_phone || '+91 9996616153',
     email: settings?.store_email || 'contact@rajluxmi.com',
-    address: settings?.store_address || 'Shop number 5, Patel Nagar, Hansi road, Patiala chowk, JIND (Haryana) 126102',
+    address: settings?.store_address || 'Raj Luxmi The Mithai Shop (Aashiyana): Brej Palace, Near Ashiyana Power House Chauraha, Lucknow-226012',
     storeName: settings?.store_name || 'Raj Luxmi',
     businessHoursStart: settings?.business_hours_start || '09:00',
     businessHoursEnd: settings?.business_hours_end || '20:00'

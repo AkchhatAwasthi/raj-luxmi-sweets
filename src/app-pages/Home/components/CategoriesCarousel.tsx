@@ -33,8 +33,8 @@ const CategoriesCarousel = () => {
     return () => clearInterval(intervalId);
   }, [api]);
 
-  const handleCategoryClick = (category: { name: string }) => {
-    router.push(`/products?category=${category.name}`);
+  const handleCategoryClick = (category: { name: string; slug?: string | null; id?: string }) => {
+    router.push(`/category/${category.slug || category.id || category.name}`);
   };
 
   // Fallback images matching the luxury sweets aesthetic
@@ -61,16 +61,18 @@ const CategoriesCarousel = () => {
   if (categories.length === 0) return null;
 
   return (
-    <section className="py-12 md:py-16 bg-[#F9F3EA]">
+    <section className="py-8 md:py-12 bg-[#F9F3EA]">
       <div className="w-full max-w-[1800px] mx-auto px-4 md:px-8 lg:px-12">
 
         {/* Section Title - Minimal */}
-        <div className="flex flex-col items-center justify-center mb-10 space-y-3">
-          <span className="text-[10px] uppercase tracking-[0.25em] text-[#9B4E4E] font-medium font-orange-avenue">CURATED FOR YOU</span>
-          <h2 className="text-xl md:text-2xl lg:text-3xl text-[#783838] uppercase font-orange-avenue font-normal tracking-wide">
+        <div className="flex flex-col items-center justify-center mb-6 md:mb-8 text-center space-y-1">
+          <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.25em] text-[#9B4E4E] font-medium font-orange-avenue">
+            EDITORIAL EDIT
+          </span>
+          <h2 className="text-sm sm:text-base md:text-lg text-[#783838] uppercase font-orange-avenue font-normal tracking-[0.18em]">
             THE COLLECTIONS
           </h2>
-          <div className="w-12 h-0.5 bg-[#B38B46]/30 mt-2"></div>
+          <div className="w-8 h-0.5 bg-[#B38B46]/30 mt-1"></div>
         </div>
 
         {/* Categories Carousel */}

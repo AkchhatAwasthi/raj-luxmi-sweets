@@ -213,7 +213,11 @@ export default async function CategoryPage(props: Props) {
       )}
 
       {/* Render the Products component with the category id passed directly — no client-side guessing */}
-      <ProductsClient forcedCategoryId={category.id} forcedCategoryName={category.name} />
+      <ProductsClient
+        forcedCategoryId={category.id}
+        forcedCategoryName={category.name}
+        forcedCategoryDescription={category.description}
+      />
     </>
   );
 }

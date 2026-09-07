@@ -2,6 +2,12 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import {
+  fetchCategoryRelationships,
+  buildCategoryTree,
+  CategoryTreeItem,
+  CategoryRelationship,
+} from '@/lib/categoryHierarchy';
 
 export interface Category {
   id: string;
@@ -10,6 +16,9 @@ export interface Category {
   image_url: string | null;
   description: string | null;
   is_active: boolean | null;
+  parent_ids?: string[];
+  parents?: Category[];
+  subcategories?: Category[];
 }
 
 // ---------------------------------------------------------------------------
@@ -45,6 +54,49 @@ export const useCategories = () => {
 
   return {
     categories: data ?? [],
+    loading: isLoading,
+    error: error?.message ?? null,
+    refetch,
+  };
+};
+
+// ---------------------------------------------------------------------------
+// useCategoryTree — fetches categories and their many-to-many relationships
+// ---------------------------------------------------------------------------
+export const useCategoryTree = () => {
+  const { data, isLoading, error, refetch } = useQuery<{
+    allWithMeta: CategoryTreeItem[];
+    rootCategories: CategoryTreeItem[];
+    subcategoriesList: CategoryTreeItem[];
+    subcategoriesByParentId: Record<string, CategoryTreeItem[]>;
+    parentsByChildId: Record<string, CategoryTreeItem[]>;
+    relationships: CategoryRelationship[];
+  }, Error>({
+    queryKey: ['categories-tree'],
+    queryFn: async () => {
+      const [categories, relationships] = await Promise.all([
+        fetchCategories(),
+        fetchCategoryRelationships(),
+      ]);
+
+      const tree = buildCategoryTree(categories, relationships);
+      return {
+        ...tree,
+        relationships,
+      };
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    retry: 1,
+  });
+
+  return {
+    categories: data?.allWithMeta ?? [],
+    rootCategories: data?.rootCategories ?? [],
+    subcategories: data?.subcategoriesList ?? [],
+    subcategoriesByParentId: data?.subcategoriesByParentId ?? {},
+    parentsByChildId: data?.parentsByChildId ?? {},
+    relationships: data?.relationships ?? [],
     loading: isLoading,
     error: error?.message ?? null,
     refetch,

@@ -200,138 +200,134 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
 
   return (
     <motion.div
-      className="group cursor-pointer bg-white overflow-hidden relative"
+      className="group cursor-pointer bg-white overflow-hidden relative flex flex-col border border-[#E8DED1]/50 hover:border-[#B38B46]/40 hover:shadow-md transition-all duration-300 rounded-sm"
       onClick={onViewDetail}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       role="article"
       aria-label={`Product card for ${product.name}`}
     >
-      {/* Image Container - Square Aspect Ratio for compact look */}
-      <div className="relative aspect-square bg-[#F0EBE0] overflow-hidden">
+      {/* Image Container */}
+      <div className="relative aspect-square bg-[#F7F3EB] overflow-hidden">
         {/* Shimmer skeleton */}
         {!primaryLoaded && (
-          <div className="absolute inset-0 bg-gradient-to-r from-[#F0EBE0] via-[#FFF8F0] to-[#F0EBE0] animate-pulse" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#F7F3EB] via-[#FFFDF9] to-[#F7F3EB] animate-pulse" />
         )}
         <motion.img
           src={primaryImage}
           alt={product.name}
           loading="lazy"
           decoding="async"
-          className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ${isHovered && hoverImage !== primaryImage ? 'opacity-0' : primaryLoaded ? 'opacity-100' : 'opacity-0'
-            }`}
-          animate={{ scale: isHovered ? 1.05 : 1 }}
+          className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-out ${
+            isHovered && hoverImage !== primaryImage ? 'opacity-0' : primaryLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
+          animate={{ scale: isHovered ? 1.04 : 1 }}
           onLoad={() => setPrimaryLoaded(true)}
         />
-        {/* Hover image (preloaded separately) */}
+        {/* Hover image */}
         {hoverImage !== primaryImage && (
           <motion.img
             src={hoverImage}
             alt={product.name}
             loading="lazy"
             decoding="async"
-            className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ${isHovered && hoverLoaded ? 'opacity-100' : 'opacity-0'
-              }`}
-            animate={{ scale: isHovered ? 1.05 : 1 }}
+            className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-out ${
+              isHovered && hoverLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
+            animate={{ scale: isHovered ? 1.04 : 1 }}
             onLoad={() => setHoverLoaded(true)}
           />
         )}
 
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-        {/* Badges - Minimal & Squared */}
-        <div className="absolute top-0 left-0 flex flex-col gap-1 p-2">
-          {/* Featured Festival Tag */}
+        {/* Badges - Minimal & Refined */}
+        <div className="absolute top-1.5 left-1.5 flex flex-col gap-1 z-10">
           {product.category === FEATURED_CATEGORY && (
-            <span className="bg-[#4A1C1F] text-white px-2 py-0.5 text-[9px] uppercase tracking-wider font-medium">
+            <span className="bg-[#783838]/90 text-[#FAF9F6] px-1.5 py-0.5 text-[8px] uppercase tracking-wider font-orange-avenue backdrop-blur-xs">
               {FEATURED_CATEGORY}
             </span>
           )}
           {product.isBestSeller && (
-            <span className="bg-[#2C1810] text-white px-2 py-0.5 text-[9px] uppercase tracking-wider font-medium">
-              Best Seller
+            <span className="bg-[#2C1810]/90 text-[#FAF9F6] px-1.5 py-0.5 text-[8px] uppercase tracking-wider font-orange-avenue backdrop-blur-xs">
+              Bestseller
             </span>
           )}
           {product.isNew && (
-            <span className="bg-[#8B2131] text-white px-2 py-0.5 text-[9px] uppercase tracking-wider font-medium">
+            <span className="bg-[#B38B46]/90 text-[#2C1810] px-1.5 py-0.5 text-[8px] uppercase tracking-wider font-orange-avenue backdrop-blur-xs font-medium">
               New
             </span>
           )}
           {discount > 0 && (
-            <span className="bg-[#D32F2F] text-white px-2 py-0.5 text-[9px] uppercase tracking-wider font-medium">
+            <span className="bg-[#A02D2D]/90 text-white px-1.5 py-0.5 text-[8px] uppercase tracking-wider font-orange-avenue backdrop-blur-xs">
               -{discount}%
             </span>
           )}
         </div>
 
-        {/* Quick Actions - Right Side */}
-        <div className="absolute top-2 right-2 flex flex-col gap-2 translate-x-4 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
+        {/* Quick Actions - Top Right */}
+        <div className="absolute top-1.5 right-1.5 flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
           <button
             onClick={handleLike}
-            className={`p-2 transition-colors ${isLiked ? 'bg-[#8B2131] text-white' : 'bg-white text-black hover:bg-[#8B2131] hover:text-white'}`}
+            className={`p-1.5 rounded-full backdrop-blur-sm transition-colors ${
+              isLiked ? 'bg-[#783838] text-white' : 'bg-white/90 text-[#2C1810] hover:bg-[#783838] hover:text-white'
+            }`}
             aria-label="Add to Wishlist"
           >
-            <Heart className={`w-3.5 h-3.5 ${isLiked ? 'fill-current' : ''}`} />
+            <Heart className={`w-3 h-3 ${isLiked ? 'fill-current' : ''}`} />
           </button>
 
           {onQuickView && (
             <button
               onClick={handleQuickView}
-              className="p-2 bg-white text-black hover:bg-[#8B2131] hover:text-white transition-colors"
+              className="p-1.5 rounded-full bg-white/90 text-[#2C1810] hover:bg-[#783838] hover:text-white backdrop-blur-sm transition-colors"
               aria-label="Quick View"
             >
-              <Eye className="w-3.5 h-3.5" />
+              <Eye className="w-3 h-3" />
             </button>
           )}
         </div>
 
-        {/* Add to Cart - Minimal Overlay Button */}
-        <div className="absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out">
+        {/* Add to Cart - Minimal Bottom Slide-up */}
+        <div className="absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-0 transition-transform duration-200 ease-out z-10">
           <button
             onClick={handleAddToCart}
             disabled={isOutOfStock}
-            className="w-full bg-[#2C1810] text-white py-3 flex items-center justify-center gap-2 text-[10px] uppercase tracking-[0.2em] font-medium hover:bg-[#1a0f0f] disabled:opacity-75 disabled:cursor-not-allowed"
+            className="w-full bg-[#2C1810]/95 hover:bg-[#783838] text-white py-2 flex items-center justify-center gap-1.5 text-[9px] uppercase tracking-[0.18em] font-orange-avenue transition-colors disabled:opacity-75 disabled:cursor-not-allowed"
           >
             <ShoppingBag className="w-3 h-3" />
-            {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
+            {isOutOfStock ? 'Out of Stock' : 'Quick Add'}
           </button>
         </div>
       </div>
 
-      {/* Product Details */}
-      <div className="p-5 text-center flex flex-col items-center gap-2">
-        <h3 className="font-orange-avenue font-normal text-sm text-[#2C1810] line-clamp-none group-hover:text-[#8B2131] transition-colors duration-300 min-h-[2.5rem] flex items-center justify-center">
+      {/* Product Details - Compact & Minimal */}
+      <div className="p-3 text-center flex flex-col items-center justify-between flex-1 gap-1">
+        <h3 className="font-orange-avenue font-normal text-xs sm:text-[13px] text-[#2C1810] group-hover:text-[#783838] transition-colors duration-200 line-clamp-1 w-full truncate">
           {product.name}
         </h3>
 
-        {/* Weight/Pieces if available could go here */}
         {product.weight && (
-          <span className="text-xs text-[#5D4037]/70 uppercase tracking-wider font-light">
+          <span className="text-[10px] text-[#783838]/70 uppercase tracking-wider font-light">
             {product.weight}
           </span>
         )}
 
-        <div className="flex flex-col items-center gap-1 mt-1">
-          <div className="flex items-center gap-3">
-            <span className="text-base font-normal text-[#2C1810] font-orange-avenue">
-              {formatPriceWithGST(product.price)}
+        <div className="flex items-center justify-center gap-2 mt-0.5">
+          <span className="text-xs sm:text-sm font-normal text-[#2C1810] font-orange-avenue">
+            {formatPriceWithGST(product.price)}
+          </span>
+          {product.originalPrice && (
+            <span className="text-[11px] text-[#5D4037]/50 line-through decoration-[#5D4037]/30">
+              {formatPriceWithGST(product.originalPrice)}
             </span>
-            {product.originalPrice && (
-              <span className="text-sm text-[#5D4037]/50 line-through decoration-[#5D4037]/30">
-                {formatPriceWithGST(product.originalPrice)}
-              </span>
-            )}
-          </div>
-
-          {/* Subtle Rating */}
-          {product.rating && (
-            <div className="flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity duration-300 mt-1">
-              <Star className="w-3 h-3 text-[#B8860B] fill-current" />
-              <span className="text-xs text-[#5D4037] mt-0.5">{product.rating}</span>
-            </div>
           )}
         </div>
+
+        {product.rating && (
+          <div className="flex items-center gap-1 opacity-70 mt-0.5">
+            <Star className="w-2.5 h-2.5 text-[#B8860B] fill-current" />
+            <span className="text-[10px] text-[#5D4037]">{product.rating}</span>
+          </div>
+        )}
       </div>
     </motion.div>
   );

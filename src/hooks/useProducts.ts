@@ -27,6 +27,14 @@ export interface ProductItem {
   [key: string]: any;
 }
 
+const hasProductImage = (p: ProductItem): boolean => {
+  return (
+    Array.isArray(p.images) &&
+    p.images.length > 0 &&
+    p.images.some(img => typeof img === 'string' && img.trim() !== '')
+  );
+};
+
 async function fetchActiveProducts(): Promise<ProductItem[]> {
   const { data, error } = await supabase
     .from('products')
@@ -35,7 +43,16 @@ async function fetchActiveProducts(): Promise<ProductItem[]> {
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return (data as any) ?? [];
+  const items: ProductItem[] = (data as any) ?? [];
+
+  // Always prioritize products with images first
+  return items.sort((a, b) => {
+    const hasA = hasProductImage(a);
+    const hasB = hasProductImage(b);
+    if (hasA && !hasB) return -1;
+    if (!hasA && hasB) return 1;
+    return 0;
+  });
 }
 
 export const useProducts = () => {

@@ -234,7 +234,7 @@ const AdminOrderDetail = () => {
         order_date: formatDate(order.orderDate),
         store_info: {
           store_name: storeSettings.store_name || 'Raj Luxmi',
-          store_address: storeSettings.store_address || 'Shop number 5, Patel Nagar, Hansi road, Patiala chowk, JIND (Haryana) 126102',
+          store_address: storeSettings.store_address || 'Raj Luxmi The Mithai Shop (Aashiyana): Brej Palace, Near Ashiyana Power House Chauraha, Lucknow-226012',
           store_phone: storeSettings.store_phone || '+91 9996616153',
           store_email: storeSettings.store_email || 'contact@rajluxmi.com',
           currency_symbol: storeSettings.currency_symbol || '₹'

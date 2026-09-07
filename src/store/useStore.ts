@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { isBengaliSweetItem } from '@/utils/deliveryCalculator';
 
 export interface Product {
   id: string;
@@ -60,6 +61,11 @@ interface Store {
   selectedCategory: string;
   setProducts: (products: Product[]) => void;
   setSelectedCategory: (category: string) => void;
+
+  // Delivery Mode
+  deliveryMode: 'lucknow' | 'pan-india' | null;
+  setDeliveryMode: (mode: 'lucknow' | 'pan-india' | null) => void;
+  removeBengaliSweetsFromCart: () => void;
 
   // User
   isAuthenticated: boolean;
@@ -154,6 +160,15 @@ export const useStore = create<Store>()(
       selectedCategory: 'All',
       setProducts: (products) => set({ products }),
       setSelectedCategory: (category) => set({ selectedCategory: category }),
+
+      // Delivery Mode
+      deliveryMode: null,
+      setDeliveryMode: (mode) => set({ deliveryMode: mode }),
+      removeBengaliSweetsFromCart: () => {
+        const filtered = get().cartItems.filter((item) => !isBengaliSweetItem(item));
+        set({ cartItems: filtered });
+        saveCartToLocalStorage(filtered);
+      },
 
       // User state
       isAuthenticated: false,

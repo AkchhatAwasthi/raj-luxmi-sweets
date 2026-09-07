@@ -24,6 +24,15 @@
   overflow: hidden;
 }
 
+/* Hide scrollbar for Chrome, Safari, Opera and Firefox/IE */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Marquee Animation */
 .animate-marquee {
   display: inline-block;
@@ -247,4 +256,30 @@
     }
   }
 }
+
+/* Scoped styles for Bulk Order / Celebrate page: Keep Orange Avenue as main font with normal casing (no uppercase transform) */
+.bulk-order-page {
+  --heading-font-family: 'Orange Avenue', sans-serif;
+  --heading-text-transform: none;
+  --heading-letter-spacing: normal;
+}
+
+.bulk-order-page h1,
+.bulk-order-page h2,
+.bulk-order-page h3,
+.bulk-order-page h4,
+.bulk-order-page h5,
+.bulk-order-page h6,
+.bulk-order-page .heading,
+.bulk-order-page .bulk-title {
+  font-family: 'Orange Avenue', sans-serif !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+}
+
+.bulk-order-page .font-orange-avenue {
+  font-family: 'Orange Avenue', sans-serif !important;
+  text-transform: none !important;
+}
+
 

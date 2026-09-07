@@ -1,19 +1,21 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { MapPin, Clock, Navigation, AlertTriangle, CheckCircle, Package, Loader2, RefreshCw } from 'lucide-react';
+import { MapPin, Clock, Navigation, AlertTriangle, CheckCircle, Package, Loader2, RefreshCw, X, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { validateAddressDetails } from '@/utils/validation';
+import { useStore } from '@/store/useStore';
 import {
   zoneFromGPS,
   zoneFromPincode,
   calculateDelivery,
   totalCartWeightKg,
   hasBengaliSweets,
+  getBengaliSweetsInCart,
   estimatedRoadKm,
   MOQ_LUCKNOW_KG,
   MOQ_OUTSIDE_KG,
@@ -100,6 +102,20 @@ const CheckoutAddressDetails = ({
   const [deliveryResult, setDeliveryResult] = useState<DeliveryResult | null>(null);
   const [zone, setZone] = useState<DeliveryZone>('unknown');
   const [showLocationPopup, setShowLocationPopup] = useState(true); // auto-open on mount
+  const { removeBengaliSweetsFromCart } = useStore();
+  const [showBengaliBlockModal, setShowBengaliBlockModal] = useState(false);
+
+  // Bengali sweets inspection
+  const bengaliItemsInCart = getBengaliSweetsInCart(cartItems);
+  const bengaliInCart = bengaliItemsInCart.length > 0;
+
+  // Bengali Sweets restriction warning popup for outside Lucknow
+  useEffect(() => {
+    const cleanPin = addressDetails.pincode.replace(/\D/g, '');
+    if (cleanPin.length === 6 && (!cleanPin.startsWith('226') || zone === 'outside') && bengaliInCart) {
+      setShowBengaliBlockModal(true);
+    }
+  }, [addressDetails.pincode, zone, bengaliInCart]);
 
   // Keep a ref so the async reverseGeocode can read the latest addressDetails
   const addressDetailsRef = React.useRef(addressDetails);
@@ -258,9 +274,11 @@ const CheckoutAddressDetails = ({
     }
 
     // Block if Bengali sweets are in cart and zone is outside Lucknow
-    if (deliveryResult?.bengaliSweetsBlocked) {
+    const cleanPin = addressDetails.pincode.replace(/\D/g, '');
+    if (bengaliInCart && (zone === 'outside' || !cleanPin.startsWith('226') || deliveryResult?.bengaliSweetsBlocked)) {
+      setShowBengaliBlockModal(true);
       setAddressErrors([
-        'Bengali Sweets cannot be delivered outside Lucknow. Please remove them from your cart or choose a Lucknow delivery address.',
+        'Bengali / Chhena sweets cannot be delivered outside Lucknow. Please remove them from your cart to proceed.',
       ]);
       return;
     }
@@ -280,7 +298,6 @@ const CheckoutAddressDetails = ({
 
   // Weight info
   const totalWeightKg = totalCartWeightKg(cartItems);
-  const bengaliInCart = hasBengaliSweets(cartItems);
 
   const zoneLabel = {
     lucknow_free: 'Within 6 km — Free Delivery',
@@ -830,6 +847,90 @@ const CheckoutAddressDetails = ({
           </div>
         </CardContent>
       </Card>
+
+      {/* ── Bengali Sweets Outside Lucknow Block Modal ── */}
+      {showBengaliBlockModal && bengaliInCart && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={() => setShowBengaliBlockModal(false)}
+          />
+          <div className="relative bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden border border-[#C0392B]/20 animate-in zoom-in-95 duration-200">
+            {/* Top warning header */}
+            <div className="bg-gradient-to-r from-[#8B2131] to-[#A93226] text-white p-5 flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                  <AlertTriangle className="h-6 w-6 text-amber-300" />
+                </div>
+                <div>
+                  <h3 className="font-orange-avenue text-lg leading-tight tracking-wide font-medium">
+                    Delivery Alert: Freshness Policy
+                  </h3>
+                  <p className="text-xs text-white/80 mt-0.5">
+                    Bengali &amp; Chhena sweets are Lucknow-exclusive
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowBengaliBlockModal(false)}
+                className="text-white/70 hover:text-white transition-colors p-1"
+                aria-label="Close"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3.5 text-xs text-amber-900 leading-relaxed">
+                <p className="font-semibold text-amber-950 mb-1">
+                  Location: {addressDetails.pincode ? `Pincode ${addressDetails.pincode}` : 'Outside Lucknow'}
+                </p>
+                Our signature Bengali &amp; Chhena sweets (Rasgulla, Cham Cham, Sandesh, etc.) are prepared fresh daily with pure milk and zero artificial preservatives. Due to short shelf life, we do not ship them outside Lucknow to ensure optimal food safety and taste.
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">
+                  Items to remove ({bengaliItemsInCart.length}):
+                </p>
+                <div className="max-h-40 overflow-y-auto space-y-2 divide-y divide-gray-100 pr-1">
+                  {bengaliItemsInCart.map((item, idx) => (
+                    <div key={idx} className="flex items-center justify-between pt-2 first:pt-0 text-sm">
+                      <div className="flex items-center gap-2 truncate">
+                        <span className="w-2 h-2 rounded-full bg-[#C0392B] shrink-0" />
+                        <span className="font-medium text-gray-800 truncate">{item.name}</span>
+                        <span className="text-xs text-gray-500">× {item.quantity}</span>
+                      </div>
+                      <span className="text-xs font-semibold text-[#8B2131] shrink-0">
+                        ₹{(item.price * item.quantity).toLocaleString('en-IN')}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-2 flex flex-col gap-2">
+                <Button
+                  onClick={() => {
+                    removeBengaliSweetsFromCart();
+                    setShowBengaliBlockModal(false);
+                  }}
+                  className="w-full bg-[#8B2131] hover:bg-[#701a26] text-white py-2.5 flex items-center justify-center gap-2 shadow-sm font-orange-avenue tracking-wider"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Remove Bengali Sweets &amp; Proceed
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowBengaliBlockModal(false)}
+                  className="w-full border-gray-300 text-gray-700 hover:bg-gray-50 text-xs py-2 font-orange-avenue"
+                >
+                  Change Pincode / Delivery Address
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

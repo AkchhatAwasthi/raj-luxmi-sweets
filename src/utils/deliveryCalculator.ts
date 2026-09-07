@@ -98,11 +98,39 @@ export function totalCartWeightKg(cartItems: Array<{ weight: string; quantity: n
     }, 0);
 }
 
-// ─── Bengali sweets check ─────────────────────────────────────────────────────
-export function hasBengaliSweets(cartItems: Array<{ category?: string }>): boolean {
-    return cartItems.some(
-        (item) => item.category?.toLowerCase() === BENGALI_SWEETS_CATEGORY.toLowerCase()
+// ─── Bengali & Chena sweets check ─────────────────────────────────────────────
+export function isBengaliSweetItem(item: { category?: string; name?: string; slug?: string }): boolean {
+    const cat = (item.category || '').toLowerCase();
+    const name = (item.name || '').toLowerCase();
+    const slug = (item.slug || '').toLowerCase();
+
+    return (
+        cat.includes('bengali') ||
+        cat.includes('chhena') ||
+        cat.includes('chena') ||
+        slug.includes('bengali') ||
+        slug.includes('chhena') ||
+        slug.includes('chena') ||
+        name.includes('chena') ||
+        name.includes('chhena') ||
+        name.includes('rasgulla') ||
+        name.includes('cham cham') ||
+        name.includes('sandesh') ||
+        name.includes('rajbhog') ||
+        name.includes('malai roll') ||
+        name.includes('chena toast') ||
+        name.includes('chena roll') ||
+        name.includes('chena paradise') ||
+        name.includes('chena paan')
     );
+}
+
+export function hasBengaliSweets(cartItems: Array<{ category?: string; name?: string; slug?: string }>): boolean {
+    return cartItems.some(isBengaliSweetItem);
+}
+
+export function getBengaliSweetsInCart<T extends { category?: string; name?: string; slug?: string }>(cartItems: T[]): T[] {
+    return cartItems.filter(isBengaliSweetItem);
 }
 
 // ─── Main delivery fee calculator ─────────────────────────────────────────────

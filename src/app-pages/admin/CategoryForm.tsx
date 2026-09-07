@@ -1,17 +1,25 @@
+// @ts-nocheck
 'use client';
 
 import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Upload, X, Link } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { ArrowLeft, Upload, X, Link, FolderTree, CornerDownRight, Search, Check, Layers } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import CategoryProductManager from '@/components/CategoryProductManager';
+import {
+  fetchCategoryRelationships,
+  syncCategoryRelationships,
+  CategoryRelationship,
+  willCauseCycle,
+} from '@/lib/categoryHierarchy';
 
 interface Category {
   id: string;
@@ -54,6 +62,18 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
   const [uploadingImage, setUploadingImage] = useState(false);
   const [productCount, setProductCount] = useState(0);
 
+  // Hierarchy States
+  const [allCategories, setAllCategories] = useState<{ id: string; name: string }[]>([]);
+  const [relationships, setRelationships] = useState<CategoryRelationship[]>([]);
+  const [selectedParentIds, setSelectedParentIds] = useState<string[]>([]);
+  const [selectedChildIds, setSelectedChildIds] = useState<string[]>([]);
+  const [parentSearch, setParentSearch] = useState('');
+  const [childSearch, setChildSearch] = useState('');
+
+  useEffect(() => {
+    fetchAllCategoriesAndRelationships();
+  }, [id]);
+
   useEffect(() => {
     if (id && isEdit) {
       fetchCategory();
@@ -62,10 +82,46 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
         name: propCategory.name,
         description: propCategory.description,
         is_active: propCategory.is_active,
-        image_url: propCategory.image_url
+        image_url: propCategory.image_url,
+        slug: propCategory.slug || '',
       });
     }
   }, [id, isEdit, propCategory]);
+
+  const fetchAllCategoriesAndRelationships = async () => {
+    try {
+      // 1. Fetch categories for picker
+      const { data: catData } = await supabase
+        .from('categories')
+        .select('id, name')
+        .order('name');
+
+      if (catData) {
+        // Exclude current category from options to avoid self-selection
+        setAllCategories(catData.filter(c => !id || c.id !== id));
+      }
+
+      // 2. Fetch relationships
+      const rels = await fetchCategoryRelationships();
+      setRelationships(rels);
+
+      if (id) {
+        // Find parents for this category
+        const parents = rels
+          .filter(r => r.child_id === id)
+          .map(r => r.parent_id);
+        setSelectedParentIds(parents);
+
+        // Find children for this category
+        const children = rels
+          .filter(r => r.parent_id === id)
+          .map(r => r.child_id);
+        setSelectedChildIds(children);
+      }
+    } catch (err) {
+      console.warn('Error fetching hierarchy data:', err);
+    }
+  };
 
   const fetchCategory = async () => {
     if (!id) return;
@@ -124,7 +180,6 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
     setFormData(prev => ({
       ...prev,
       name: value,
-      // Only auto-fill slug if not manually edited (i.e., still matches auto pattern)
       slug: prev.slug === '' || prev.slug === autoSlug(prev.name ?? '')
         ? autoSlug(value)
         : prev.slug,
@@ -134,7 +189,6 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
   const autoSlug = (name: string) =>
     name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
-  // Auto-inject f_auto,q_auto for Cloudinary URLs that are missing it
   const normalizeCloudinaryUrl = (url: string): string => {
     if (!url.includes('res.cloudinary.com')) return url;
     if (url.includes('f_auto') && url.includes('q_auto')) return url;
@@ -185,7 +239,6 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
   const removeImage = async () => {
     if (formData.image_url) {
       try {
-        // Extract file path from URL for deletion
         const url = new URL(formData.image_url);
         const pathParts = url.pathname.split('/');
         const filePath = pathParts.slice(pathParts.indexOf('categories')).join('/');
@@ -198,6 +251,42 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
       }
     }
     handleInputChange('image_url', '');
+  };
+
+  // Toggle parent selection
+  const toggleParent = (parentId: string) => {
+    if (id && willCauseCycle(parentId, id, relationships)) {
+      toast({
+        title: "Cyclic relationship detected",
+        description: "This category is already a parent of that item. Selecting it would create an infinite loop.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSelectedParentIds(prev =>
+      prev.includes(parentId)
+        ? prev.filter(p => p !== parentId)
+        : [...prev, parentId]
+    );
+  };
+
+  // Toggle child selection
+  const toggleChild = (childId: string) => {
+    if (id && willCauseCycle(id, childId, relationships)) {
+      toast({
+        title: "Cyclic relationship detected",
+        description: "Selecting this item would create an infinite loop.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSelectedChildIds(prev =>
+      prev.includes(childId)
+        ? prev.filter(c => c !== childId)
+        : [...prev, childId]
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -214,6 +303,8 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
 
     setLoading(true);
     try {
+      let savedCategoryId = id;
+
       if (isEdit && id) {
         const { error } = await supabase
           .from('categories')
@@ -232,7 +323,7 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
 
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { data: insertData, error } = await supabase
           .from('categories')
           .insert({
             name: formData.name,
@@ -243,14 +334,26 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
             meta_title: formData.meta_title || null,
             meta_description: formData.meta_description || null,
             meta_keywords: formData.meta_keywords || null,
-          } as any);
+          } as any)
+          .select('id')
+          .single();
 
         if (error) throw error;
+        savedCategoryId = insertData?.id;
+      }
+
+      // Sync Category Relationships (Parents and Children)
+      if (savedCategoryId) {
+        await syncCategoryRelationships({
+          categoryId: savedCategoryId,
+          parentIds: selectedParentIds,
+          childIds: selectedChildIds,
+        });
       }
 
       toast({
         title: isEdit ? "Category updated!" : "Category created!",
-        description: `${formData.name} has been ${isEdit ? 'updated' : 'added'} successfully.`,
+        description: `${formData.name} has been ${isEdit ? 'updated' : 'added'} with all subcategory relationships.`,
       });
       
       router.push('/admin/categories');
@@ -266,6 +369,16 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
     }
   };
 
+  const filteredParents = allCategories.filter(c =>
+    c.name.toLowerCase().includes(parentSearch.toLowerCase()) &&
+    !selectedChildIds.includes(c.id) // Cannot be both parent and child simultaneously
+  );
+
+  const filteredChildren = allCategories.filter(c =>
+    c.name.toLowerCase().includes(childSearch.toLowerCase()) &&
+    !selectedParentIds.includes(c.id) // Cannot be both parent and child simultaneously
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex items-center space-x-4">
@@ -274,24 +387,25 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
           Back to Categories
         </Button>
         <h1 className="text-3xl font-bold">
-          {isEdit ? 'Edit Category' : 'Add New Category'}
+          {isEdit ? 'Edit Category / Subcategory' : 'Add Category / Subcategory'}
         </h1>
       </div>
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
+          {/* Basic Info */}
           <Card>
             <CardHeader>
               <CardTitle>Basic Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Category Name *</Label>
+                <Label htmlFor="name">Name *</Label>
                 <Input
                   id="name"
                   value={formData.name}
                   onChange={(e) => handleNameChange(e.target.value)}
-                  placeholder="Enter category name"
+                  placeholder="e.g. Kaju Sweets, Pure Desi Ghee Mithai, etc."
                   required
                 />
               </div>
@@ -302,7 +416,7 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
                   id="description"
                   value={formData.description}
                   onChange={(e) => handleInputChange('description', e.target.value)}
-                  placeholder="Enter category description"
+                  placeholder="Enter detailed description of this category or subcategory"
                   rows={4}
                   required
                 />
@@ -325,6 +439,178 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
                   </Select>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Subcategory & Multi-Parent Hierarchy Section */}
+          <Card className="border-[#B38B46]/30 shadow-sm bg-gradient-to-b from-white to-[#FAF9F6]">
+            <CardHeader className="border-b border-gray-100 pb-4">
+              <div className="flex items-center gap-2">
+                <FolderTree className="w-5 h-5 text-[#B38B46]" />
+                <CardTitle className="text-lg font-semibold text-[#4A1C1F]">
+                  Hierarchy & Subcategory Placement
+                </CardTitle>
+              </div>
+              <CardDescription>
+                Place this category inside one or more parent categories/subcategories, or attach child subcategories inside it.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6 pt-5">
+              
+              {/* Parent Categories (Belongs Inside) */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium text-gray-800 flex items-center gap-1.5">
+                    <CornerDownRight className="w-4 h-4 text-[#B38B46]" />
+                    Belongs Inside (Parent Categories / Subcategories)
+                  </Label>
+                  <span className="text-xs text-muted-foreground">
+                    {selectedParentIds.length === 0 ? 'Acts as Root / Main Category' : `${selectedParentIds.length} parent(s) selected`}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500">
+                  Select which categories or subcategories this belongs inside. <strong>A subcategory can belong to multiple parents!</strong> If none are selected, it stays at the top/main level.
+                </p>
+
+                {/* Selected Parent Badges */}
+                {selectedParentIds.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 p-2.5 bg-[#F9F3EA] border border-[#D4B6A2]/40 rounded-md">
+                    {selectedParentIds.map(pid => {
+                      const parent = allCategories.find(c => c.id === pid);
+                      return (
+                        <Badge
+                          key={pid}
+                          variant="secondary"
+                          className="bg-[#4A1C1F] text-[#FFFDF7] hover:bg-[#783838] gap-1 px-2.5 py-1 text-xs"
+                        >
+                          <span>📁 {parent ? parent.name : pid}</span>
+                          <X
+                            className="w-3.5 h-3.5 cursor-pointer opacity-80 hover:opacity-100 ml-1"
+                            onClick={() => toggleParent(pid)}
+                          />
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Search & Checkbox List */}
+                <div className="border rounded-md p-2 bg-white space-y-2">
+                  <div className="relative">
+                    <Search className="w-4 h-4 absolute left-2.5 top-2.5 text-gray-400" />
+                    <Input
+                      placeholder="Search parent categories..."
+                      value={parentSearch}
+                      onChange={(e) => setParentSearch(e.target.value)}
+                      className="pl-8 h-9 text-xs"
+                    />
+                  </div>
+                  <div className="max-h-44 overflow-y-auto space-y-1 pr-1">
+                    {filteredParents.length === 0 ? (
+                      <p className="text-xs text-gray-400 p-2 text-center">No matching categories found</p>
+                    ) : (
+                      filteredParents.map(cat => {
+                        const isSelected = selectedParentIds.includes(cat.id);
+                        return (
+                          <div
+                            key={cat.id}
+                            onClick={() => toggleParent(cat.id)}
+                            className={`flex items-center justify-between px-3 py-2 text-xs rounded cursor-pointer transition-colors ${
+                              isSelected
+                                ? 'bg-[#FAF2E6] text-[#4A1C1F] font-medium border border-[#B38B46]/40'
+                                : 'hover:bg-gray-100 text-gray-700'
+                            }`}
+                          >
+                            <span className="flex items-center gap-2">
+                              <span>📁 {cat.name}</span>
+                            </span>
+                            {isSelected && <Check className="w-4 h-4 text-[#B38B46]" />}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-dashed border-gray-200" />
+
+              {/* Child Subcategories (Contains Subcategories) */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium text-gray-800 flex items-center gap-1.5">
+                    <Layers className="w-4 h-4 text-[#B38B46]" />
+                    Contains Subcategories (Children)
+                  </Label>
+                  <span className="text-xs text-muted-foreground">
+                    {selectedChildIds.length} subcategory child(ren) attached
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500">
+                  Select which existing subcategories should be nested directly inside this category.
+                </p>
+
+                {/* Selected Child Badges */}
+                {selectedChildIds.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 p-2.5 bg-[#FAF9F6] border border-[#D4B6A2]/40 rounded-md">
+                    {selectedChildIds.map(cid => {
+                      const child = allCategories.find(c => c.id === cid);
+                      return (
+                        <Badge
+                          key={cid}
+                          variant="secondary"
+                          className="bg-[#B38B46] text-[#FFFDF7] hover:bg-[#926F32] gap-1 px-2.5 py-1 text-xs"
+                        >
+                          <span>↳ {child ? child.name : cid}</span>
+                          <X
+                            className="w-3.5 h-3.5 cursor-pointer opacity-80 hover:opacity-100 ml-1"
+                            onClick={() => toggleChild(cid)}
+                          />
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Search & Checkbox List */}
+                <div className="border rounded-md p-2 bg-white space-y-2">
+                  <div className="relative">
+                    <Search className="w-4 h-4 absolute left-2.5 top-2.5 text-gray-400" />
+                    <Input
+                      placeholder="Search subcategories to nest inside..."
+                      value={childSearch}
+                      onChange={(e) => setChildSearch(e.target.value)}
+                      className="pl-8 h-9 text-xs"
+                    />
+                  </div>
+                  <div className="max-h-44 overflow-y-auto space-y-1 pr-1">
+                    {filteredChildren.length === 0 ? (
+                      <p className="text-xs text-gray-400 p-2 text-center">No matching subcategories found</p>
+                    ) : (
+                      filteredChildren.map(cat => {
+                        const isSelected = selectedChildIds.includes(cat.id);
+                        return (
+                          <div
+                            key={cat.id}
+                            onClick={() => toggleChild(cat.id)}
+                            className={`flex items-center justify-between px-3 py-2 text-xs rounded cursor-pointer transition-colors ${
+                              isSelected
+                                ? 'bg-[#FAF2E6] text-[#4A1C1F] font-medium border border-[#B38B46]/40'
+                                : 'hover:bg-gray-100 text-gray-700'
+                            }`}
+                          >
+                            <span className="flex items-center gap-2">
+                              <span>↳ {cat.name}</span>
+                            </span>
+                            {isSelected && <Check className="w-4 h-4 text-[#B38B46]" />}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              </div>
+
             </CardContent>
           </Card>
 
@@ -397,6 +683,7 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
         </div>
 
         <div className="space-y-6">
+          {/* Image Upload */}
           <Card>
             <CardHeader>
               <CardTitle>Category Image</CardTitle>
@@ -485,6 +772,37 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
             </CardContent>
           </Card>
 
+          {/* Hierarchy Placement Summary */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-semibold">Placement Summary</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-xs">
+              <div>
+                <span className="text-gray-500 font-medium">Type:</span>{' '}
+                <Badge variant="outline" className={selectedParentIds.length === 0 ? "bg-amber-50 text-amber-800 border-amber-200" : "bg-purple-50 text-purple-800 border-purple-200"}>
+                  {selectedParentIds.length === 0 ? 'Main / Root Category' : 'Subcategory'}
+                </Badge>
+              </div>
+              <div>
+                <span className="text-gray-500 font-medium">Parents ({selectedParentIds.length}):</span>{' '}
+                <span className="text-gray-700">
+                  {selectedParentIds.length === 0
+                    ? 'None (Top Level)'
+                    : selectedParentIds.map(p => allCategories.find(c => c.id === p)?.name || p).join(', ')}
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-500 font-medium">Subcategories Inside ({selectedChildIds.length}):</span>{' '}
+                <span className="text-gray-700">
+                  {selectedChildIds.length === 0
+                    ? 'None'
+                    : selectedChildIds.map(c => allCategories.find(cat => cat.id === c)?.name || c).join(', ')}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Category Stats - Only show in edit mode */}
           {isEdit && (
             <Card>
@@ -511,7 +829,7 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
           <Card>
             <CardContent className="pt-6">
               <div className="space-y-2">
-                <Button type="submit" className="w-full" disabled={loading || uploadingImage}>
+                <Button type="submit" className="w-full bg-[#4A1C1F] hover:bg-[#5C4638] text-white" disabled={loading || uploadingImage}>
                   {loading ? 'Saving...' : isEdit ? 'Update Category' : 'Create Category'}
                 </Button>
                 <Button

@@ -18,7 +18,7 @@ const DeliverySection = () => {
                     viewport={{ once: true }}
                 >
                     <h3 className="text-xs md:text-sm tracking-[0.25em] text-[#5D4037] uppercase font-orange-avenue font-normal">
-                        SAME DAY DELIVERY IN DELHI
+                        SAME DAY DELIVERY IN LUCKNOW
                     </h3>
                     <h2 className="text-2xl md:text-4xl lg:text-5xl text-[#2C1810] uppercase tracking-wide leading-tight max-w-4xl mx-auto font-orange-avenue font-normal">
                         SAVOUR THE SWEETNESS,<br className="hidden md:block" /> ANYTIME
