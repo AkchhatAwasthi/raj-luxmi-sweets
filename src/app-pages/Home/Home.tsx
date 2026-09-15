@@ -3,6 +3,7 @@
 import React from 'react';
 import CuratedGiftingHero from './components/CuratedGiftingHero';
 import TrustBar from './components/TrustBar';
+import ModakSpecialSection from './components/ModakSpecialSection';
 import QuickCategoryCircles from './components/QuickCategoryCircles';
 import TabbedProductShowcase from './components/TabbedProductShowcase';
 import CorporateWeddingGifting from './components/CorporateWeddingGifting';
@@ -17,13 +18,16 @@ import FloatingProductWidget from './components/FloatingProductWidget';
 const Home = () => {
   return (
     <main className="min-h-screen bg-[#FAF9F6]">
-      {/* 1. Hero Slideshow with Direct CTAs */}
+      {/* 1. Hero Banner with Direct Modak CTA */}
       <CuratedGiftingHero />
 
       {/* 2. 4-Pillar Trust & Value Proposition Strip */}
       <TrustBar />
 
       <div className="flex flex-col">
+        {/* Modak Special Section */}
+        <ModakSpecialSection />
+
         {/* 3. Quick Discovery Category Circles */}
         <QuickCategoryCircles />
 

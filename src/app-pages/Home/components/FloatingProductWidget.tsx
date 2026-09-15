@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Volume2, VolumeX, ExternalLink } from 'lucide-react';
 
 // ─── Cloudinary Reel Video ──────────────────────────────────────────────
-const VIDEO_SRC = 'https://res.cloudinary.com/dmj0smemf/video/upload/q_auto:low,w_480,vc_auto,f_auto/v1785313177/AQOPImV8gTZyc6SDpMFMlpGV_WjatmH3alNtnFyCnRP-7XT7b-wsKzg3G18n-it_n0KYKIF9M4WtE7wPpb5O6fREdm15U22LJYZZOHw_v5rfjy.mp4';
+const VIDEO_SRC = 'https://res.cloudinary.com/dmj0smemf/video/upload/q_auto:eco/v1789446705/Raj_Lakshmi_modak_3_mtabh7.mp4';
 // ─────────────────────────────────────────────────────────────────────────
 
 // Optional: link to your Instagram profile / reel page
