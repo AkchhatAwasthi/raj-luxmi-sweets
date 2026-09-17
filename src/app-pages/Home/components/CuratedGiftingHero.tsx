@@ -3,8 +3,8 @@
 import React from 'react';
 import Image from 'next/image';
 
-const PC_BANNER = 'https://res.cloudinary.com/dmj0smemf/image/upload/v1789446492/banner_vk1wum.png';
-const MOBILE_BANNER = 'https://res.cloudinary.com/dmj0smemf/image/upload/v1789446498/1_2_sruevr.png';
+const PC_BANNER = 'https://res.cloudinary.com/dmj0smemf/image/upload/f_auto,q_auto/v1789637410/222_1_bvp8ia.png';
+const MOBILE_BANNER = 'https://res.cloudinary.com/dmj0smemf/image/upload/f_auto,q_auto/v1789638998/33_tnzp5g.png';
 
 const CuratedGiftingHero = () => {
   const handleBannerClick = () => {
