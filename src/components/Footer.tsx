@@ -141,9 +141,11 @@ const Footer: React.FC<FooterProps> = ({ isAdminRoute = false }) => {
             <p className="text-[#5C4638]/70 text-xs font-orange-avenue font-normal">
               © 2025 Raj Luxmi. All rights reserved.
             </p>
-            <div className="flex items-center gap-6 mt-4 md:mt-0">
+            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-4 md:mt-0">
               <Link href="/privacy" className="text-[#5C4638]/70 hover:text-[#B38B46] text-xs transition-colors font-orange-avenue font-normal">Privacy Policy</Link>
               <Link href="/terms" className="text-[#5C4638]/70 hover:text-[#B38B46] text-xs transition-colors font-orange-avenue font-normal">Terms of Service</Link>
+              <Link href="/refund-policy" className="text-[#5C4638]/70 hover:text-[#B38B46] text-xs transition-colors font-orange-avenue font-normal">Refund Policy</Link>
+              <Link href="/shipping-policy" className="text-[#5C4638]/70 hover:text-[#B38B46] text-xs transition-colors font-orange-avenue font-normal">Shipping Policy</Link>
               <QRCodeComponent />
             </div>
           </div>
