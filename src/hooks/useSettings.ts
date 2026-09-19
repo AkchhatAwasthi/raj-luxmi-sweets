@@ -161,6 +161,13 @@ async function fetchAppSettings(): Promise<AppSettings> {
   } catch (cfErr) {
     console.warn('Could not fetch cashfree_enabled directly:', cfErr);
   }
+
+  // ── Online Payment & Fees Override ──────────────────────────────────
+  // Temporarily set to false while Cashfree live account activation is in review.
+  finalSettings.cashfree_enabled = false;
+  finalSettings.razorpay_enabled = false;
+  finalSettings.tax_rate = 0;
+  finalSettings.cod_charge = 0;
   // ────────────────────────────────────────────────────────────────────
 
   return finalSettings;

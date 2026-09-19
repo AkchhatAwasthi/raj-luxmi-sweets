@@ -73,7 +73,7 @@ const CheckoutPayment = ({
         {settings.cod_enabled && total <= Number(settings.cod_threshold) && (
           <Label
             htmlFor="cod"
-            className={`relative flex flex-col p-6 cursor-pointer border rounded-lg transition-all duration-300 ${paymentMethod === 'cod'
+            className={`relative flex flex-col p-6 cursor-pointer border rounded-lg transition-all duration-300 ${!settings.cashfree_enabled ? 'md:col-span-2' : ''} ${paymentMethod === 'cod'
               ? 'border-[#8B2131] bg-[#FFF8F0] ring-1 ring-[#8B2131]'
               : 'border-[#E6D5B8] bg-white hover:border-[#8B2131]/50 hover:bg-[#FFFDF7]'
               }`}

@@ -38,7 +38,7 @@ const Checkout = () => {
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
   const [discount, setDiscount] = useState(0);
-  const [paymentMethod, setPaymentMethod] = useState('online');
+  const [paymentMethod, setPaymentMethod] = useState('cod');
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<any>(null);
@@ -241,7 +241,7 @@ const Checkout = () => {
   const deliveryFee = deliveryResult ? deliveryResult.deliveryFee : 0;
   const estimatedDeliveryTime = `${settings.delivery_time_estimate || '3-5 business days'}`;
 
-  const codFee = paymentMethod === 'cod' ? toNumber(settings.cod_charge) : 0;
+  const codFee = 0; // COD fee removed as per requirement
   const total = subtotal + tax + deliveryFee + codFee - discount;
 
   // Weight-based MOQ (replaces amount-based MOQ)
@@ -957,10 +957,12 @@ const Checkout = () => {
                   <span className="font-normal text-[#2C1810]">{formatPrice(subtotal)}</span>
                 </div>
 
-                <div className="flex justify-between text-[#5D4037] font-inter text-sm">
-                  <span className="uppercase tracking-wide">Tax ({toNumber(settings.tax_rate).toFixed(0)}%)</span>
-                  <span className="font-normal text-[#2C1810]">{formatPrice(tax)}</span>
-                </div>
+                {tax > 0 && (
+                  <div className="flex justify-between text-[#5D4037] font-inter text-sm">
+                    <span className="uppercase tracking-wide">Tax ({toNumber(settings.tax_rate).toFixed(0)}%)</span>
+                    <span className="font-normal text-[#2C1810]">{formatPrice(tax)}</span>
+                  </div>
+                )}
 
                 <div className="flex justify-between text-[#5D4037] font-inter text-sm">
                   <span className="uppercase tracking-wide">Delivery Fee</span>
@@ -975,7 +977,7 @@ const Checkout = () => {
                   </span>
                 </div>
 
-                {paymentMethod === 'cod' && toNumber(settings.cod_charge) > 0 && (
+                {paymentMethod === 'cod' && codFee > 0 && (
                   <div className="flex justify-between text-[#5D4037]">
                     <span>COD Fee</span>
                     <span>{formatPrice(codFee)}</span>

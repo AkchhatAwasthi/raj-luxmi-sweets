@@ -212,10 +212,12 @@ const Cart = () => {
                 {settings.cod_enabled && (
                   <div className="bg-[#EBF8FF] border border-[#BEE3F8] rounded-sm p-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-[#2C5282] font-medium">COD Available</span>
+                      <span className="text-sm text-[#2C5282] font-medium">Cash on Delivery Available</span>
                     </div>
                     <p className="text-xs text-[#2B6CB0] mt-1">
-                      Additional {formatCurrency(settings.cod_charge, settings.currency_symbol)} fee for Cash on Delivery.
+                      {toNumber(settings.cod_charge) > 0
+                        ? `Additional ${formatCurrency(settings.cod_charge, settings.currency_symbol)} fee for Cash on Delivery.`
+                        : 'Pay with cash upon delivery with zero extra fees.'}
                       {settings.cod_threshold && ` Valid up to ${formatCurrency(settings.cod_threshold, settings.currency_symbol)}.`}
                     </p>
                   </div>
