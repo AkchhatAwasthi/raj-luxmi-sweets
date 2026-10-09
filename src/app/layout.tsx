@@ -30,6 +30,40 @@ export const metadata: Metadata = {
   },
 };
 
+const localBusinessSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Bakery',
+  name: 'Rajluxmi Sweets',
+  alternateName: 'Raj Luxmi The Mithai Shop',
+  image: 'https://rajluxmisweets.com/logo.png',
+  url: 'https://rajluxmisweets.com',
+  telephone: '+91 9996616153',
+  email: 'contact@rajluxmisweets.com',
+  priceRange: '₹₹',
+  servesCuisine: ['Bengali Sweets', 'Traditional Indian Mithai', 'Pure Desi Ghee Sweets', 'Namkeen'],
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: 'Brej Palace, Near Ashiyana Power House Chauraha, Aashiyana',
+    addressLocality: 'Lucknow',
+    addressRegion: 'Uttar Pradesh',
+    postalCode: '226012',
+    addressCountry: 'IN',
+  },
+  geo: {
+    '@type': 'GeoCoordinates',
+    latitude: '26.7924',
+    longitude: '80.9125',
+  },
+  openingHoursSpecification: [
+    {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+      opens: '09:00',
+      closes: '20:00',
+    },
+  ],
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
@@ -49,6 +83,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Script>
       </head>
       <body>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
+        />
         <Providers>
           <div className="min-h-screen bg-background">
             <Header />

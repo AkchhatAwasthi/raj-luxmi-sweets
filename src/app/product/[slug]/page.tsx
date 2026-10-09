@@ -62,15 +62,22 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     const imageUrl = product.images && product.images.length > 0 ? product.images[0] : '/logo.png';
     const keywords = (product as any).meta_keywords || undefined;
 
+    const productUrl = `${BASE_URL}/product/${slug}`;
+
     return {
       title,
       description,
+      alternates: {
+        canonical: productUrl,
+      },
       ...(keywords && {
         keywords,
       }),
       openGraph: {
         title,
         description,
+        url: productUrl,
+        type: 'website',
         images: [{ url: imageUrl }],
       },
     };

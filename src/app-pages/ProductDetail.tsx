@@ -465,7 +465,7 @@ const ProductDetail = ({ product }: { product: any }) => {
             <div className="relative aspect-square bg-[#FAF6EE] rounded-sm overflow-hidden border border-[#E6D5B8] shadow-sm group">
               <img
                 src={product.images?.[currentImageIndex] || '/placeholder.svg'}
-                alt={product.name}
+                alt={product.image_alt || product.name}
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
 
@@ -590,7 +590,7 @@ const ProductDetail = ({ product }: { product: any }) => {
 
             {/* Clean Description */}
             <div className="prose prose-brown max-w-none mb-8">
-              <p className="text-[#5D4037] text-base leading-relaxed font-light">
+              <p className="text-[#5D4037] text-base leading-relaxed font-light whitespace-pre-line">
                 {product.description}
               </p>
             </div>
