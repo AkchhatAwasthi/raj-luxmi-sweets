@@ -5,7 +5,7 @@ import { Providers } from './providers';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import CartSidebar from '@/components/CartSidebar';
-import FloatingWhatsApp from '@/components/FloatingWhatsApp';
+import FloatingCatalogueButton from '@/components/FloatingCatalogueButton';
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as Sonner } from '@/components/ui/sonner';
 
@@ -93,7 +93,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <main>{children}</main>
             <Footer />
             <CartSidebar />
-            <FloatingWhatsApp />
+            <FloatingCatalogueButton />
             <Toaster />
             <Sonner />
           </div>

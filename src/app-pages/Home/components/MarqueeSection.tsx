@@ -23,9 +23,15 @@ const MarqueeSection: React.FC<MarqueeSectionProps> = ({
 }) => {
   return (
     <div className={`w-full bg-[#F9F3EA] overflow-hidden border-y border-[#B38B46]/20 relative z-20 ${className}`}>
-      <div className="flex w-fit animate-infinite-scroll">
-        {/* Render 4 copies for continuous loop on all screens */}
-        {[1, 2, 3, 4].map((copyIndex) => (
+      <div
+        className="flex w-max select-none"
+        style={{
+          animation: `infinite-marquee-scroll ${duration} linear infinite`,
+          willChange: 'transform',
+        }}
+      >
+        {/* Render 2 copies for smooth continuous loop */}
+        {[1, 2].map((copyIndex) => (
           <div key={copyIndex} className="flex items-center space-x-8 sm:space-x-12 px-4 sm:px-6 flex-nowrap shrink-0">
             {items.map((item, i) => (
               <div key={`${copyIndex}-${i}`} className="flex items-center space-x-8 sm:space-x-12 flex-nowrap shrink-0">
@@ -38,18 +44,14 @@ const MarqueeSection: React.FC<MarqueeSectionProps> = ({
           </div>
         ))}
       </div>
-      <style>{`
-        @keyframes infinite-scroll {
-          from { transform: translateX(0); }
-          to { transform: translateX(-25%); }
-        }
-        .animate-infinite-scroll {
-          display: flex;
-          width: max-content;
-          animation: infinite-scroll ${duration} linear infinite;
-        }
-        .animate-infinite-scroll:hover {
-          animation-play-state: paused;
+      <style jsx global>{`
+        @keyframes infinite-marquee-scroll {
+          from {
+            transform: translateX(0);
+          }
+          to {
+            transform: translateX(-50%);
+          }
         }
       `}</style>
     </div>

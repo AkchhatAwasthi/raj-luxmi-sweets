@@ -1,35 +1,29 @@
 'use client';
 
-"use client";
-import React from "react";
-import { motion } from "framer-motion";
-import { Testimonial } from "@/data/testimonials";
+import React from 'react';
+import { Testimonial } from '@/data/testimonials';
 
 export const TestimonialsColumn = (props: {
   className?: string;
   testimonials: Testimonial[];
   duration?: number;
 }) => {
+  const duration = props.duration || 25;
+
   return (
     <div className={props.className}>
-      <motion.div
-        animate={{
-          translateY: "-50%",
+      <div
+        className="flex flex-col gap-6 pb-6 select-none"
+        style={{
+          animation: `testimonials-scroll ${duration}s linear infinite`,
+          willChange: 'transform',
         }}
-        transition={{
-          duration: props.duration || 10,
-          repeat: Infinity,
-          ease: "linear",
-          repeatType: "loop",
-        }}
-        className="flex flex-col gap-6 pb-6"
       >
         {/* Create two sets of testimonials for infinite scrolling effect */}
-        {[...new Array(2)].map((_, index) => (
-          // Using a div instead of React.Fragment to avoid prop warnings
-          <div key={`testimonial-set-${index}`}>
-            {props.testimonials.map(({ id, text, image, name, role, company }, i) => {
-              const key = `testimonial-${index}-${i}`;
+        {[0, 1].map((setIndex) => (
+          <div key={`testimonial-set-${setIndex}`} className="flex flex-col gap-6">
+            {props.testimonials.map(({ text, image, name, role, company }, i) => {
+              const key = `testimonial-${setIndex}-${i}`;
               return (
                 <div
                   key={key}
@@ -37,8 +31,12 @@ export const TestimonialsColumn = (props: {
                 >
                   <div className="relative">
                     {/* Quote Icon */}
-                    <span className="absolute -top-4 -left-2 text-6xl text-[#E6D5B8] opacity-30 font-instrument leading-none">"</span>
-                    <p className="text-[#5D4037] relative z-10 italic leading-relaxed pt-4 font-instrument font-light">{text}</p>
+                    <span className="absolute -top-4 -left-2 text-6xl text-[#E6D5B8] opacity-30 font-instrument leading-none">
+                      "
+                    </span>
+                    <p className="text-[#5D4037] relative z-10 italic leading-relaxed pt-4 font-instrument font-light">
+                      {text}
+                    </p>
                   </div>
 
                   <div className="flex items-center gap-4 mt-8 pt-6 border-t border-[#F5E6D3]/50">
@@ -50,13 +48,18 @@ export const TestimonialsColumn = (props: {
                       className="h-12 w-12 rounded-full object-cover border border-[#E6D5B8]"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
-                        target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff`;
+                        target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                          name
+                        )}&background=random&color=fff`;
                       }}
                     />
                     <div className="flex flex-col">
-                      <div className="font-instrument font-normal text-lg text-[#2C1810]">{name}</div>
+                      <div className="font-instrument font-normal text-lg text-[#2C1810]">
+                        {name}
+                      </div>
                       <div className="text-xs uppercase tracking-wider text-[#8B2131] opacity-80 font-instrument font-normal">
-                        {role}{company ? `, ${company}` : ''}
+                        {role}
+                        {company ? `, ${company}` : ''}
                       </div>
                     </div>
                   </div>
@@ -65,7 +68,18 @@ export const TestimonialsColumn = (props: {
             })}
           </div>
         ))}
-      </motion.div>
+      </div>
+
+      <style jsx global>{`
+        @keyframes testimonials-scroll {
+          0% {
+            transform: translateY(0);
+          }
+          100% {
+            transform: translateY(-50%);
+          }
+        }
+      `}</style>
     </div>
   );
 };

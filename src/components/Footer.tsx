@@ -21,7 +21,7 @@ const Footer: React.FC<FooterProps> = ({ isAdminRoute = false }) => {
   const { settings, loading } = useSettings();
 
   const contactInfo = {
-    phone: settings?.store_phone || '+91 9996616153',
+    phone: settings?.store_phone && settings.store_phone !== '+91 9996616153' ? settings.store_phone : '+91 8448447408',
     email: settings?.store_email || 'contact@rajluxmi.com',
     address: settings?.store_address || 'Raj Luxmi The Mithai Shop (Aashiyana): Brej Palace, Near Ashiyana Power House Chauraha, Lucknow-226012',
     storeName: 'Raj Luxmi'
@@ -100,22 +100,28 @@ const Footer: React.FC<FooterProps> = ({ isAdminRoute = false }) => {
           <div className="space-y-6">
             <h4 className="text-base font-orange-avenue font-normal text-[#4A1C1F]">Contact Us</h4>
             <div className="space-y-4">
-              <div className="flex items-center space-x-3 group cursor-pointer">
+              <a
+                href={`tel:${contactInfo.phone.replace(/\s+/g, '')}`}
+                className="flex items-center space-x-3 group cursor-pointer"
+              >
                 <div className="w-8 h-8 rounded-full bg-[#4A1C1F]/5 flex items-center justify-center group-hover:bg-[#B38B46]/10 transition-colors">
                   <Phone className="h-4 w-4 text-[#4A1C1F] group-hover:text-[#B38B46]" />
                 </div>
                 <span className="text-[#5C4638] text-xs group-hover:text-[#B38B46] transition-colors font-orange-avenue font-normal">
                   {loading ? '...' : contactInfo.phone}
                 </span>
-              </div>
-              <div className="flex items-center space-x-3 group cursor-pointer">
+              </a>
+              <a
+                href={`mailto:${contactInfo.email}`}
+                className="flex items-center space-x-3 group cursor-pointer"
+              >
                 <div className="w-8 h-8 rounded-full bg-[#4A1C1F]/5 flex items-center justify-center group-hover:bg-[#B38B46]/10 transition-colors">
                   <Mail className="h-4 w-4 text-[#4A1C1F] group-hover:text-[#B38B46]" />
                 </div>
                 <span className="text-[#5C4638] text-xs group-hover:text-[#B38B46] transition-colors font-orange-avenue font-normal">
                   {loading ? '...' : contactInfo.email}
                 </span>
-              </div>
+              </a>
               <div className="flex items-start space-x-3 group">
                 <div className="w-8 h-8 rounded-full bg-[#4A1C1F]/5 flex items-center justify-center mt-1 group-hover:bg-[#B38B46]/10 transition-colors">
                   <MapPin className="h-4 w-4 text-[#4A1C1F] group-hover:text-[#B38B46]" />

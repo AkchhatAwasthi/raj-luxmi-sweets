@@ -51,12 +51,14 @@ const CorporateWeddingGifting = () => {
                   Enquire Bulk Gifting
                 </button>
 
-                <button
-                  onClick={() => router.push('/celebrate-with-rajluxmi')}
-                  className="px-5 sm:px-6 py-2.5 sm:py-3 border border-[#E6C687]/40 hover:bg-white/10 text-[#FAF9F6] font-orange-avenue text-xs sm:text-sm uppercase tracking-wider rounded-lg sm:rounded-xl transition-all duration-300 cursor-pointer"
+                <a
+                  href="https://res.cloudinary.com/dmj0smemf/image/upload/v1791800492/Rajluxmi_Diwali_Catalogue_1__compressed_aumrdz.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-5 sm:px-6 py-2.5 sm:py-3 border border-[#E6C687]/40 hover:bg-white/10 text-[#FAF9F6] font-orange-avenue text-xs sm:text-sm uppercase tracking-wider rounded-lg sm:rounded-xl transition-all duration-300 cursor-pointer inline-flex items-center"
                 >
-                  View Catalogue
-                </button>
+                  View Catalogue (PDF)
+                </a>
               </div>
             </div>
 

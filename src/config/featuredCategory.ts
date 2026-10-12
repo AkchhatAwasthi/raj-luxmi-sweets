@@ -12,4 +12,4 @@
 //  ✅ Product card    → festive tag shown automatically
 // ============================================================
 
-export const FEATURED_CATEGORY = "Holi Special";
+export const FEATURED_CATEGORY = "Diwali Special";

@@ -67,7 +67,7 @@ const HeritageScroll = () => {
                                 initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.5, ease: "easeOut" }}
-                                viewport={{ once: false, margin: "-5% 0px -5% 0px" }}
+                                viewport={{ once: true, margin: "-5% 0px -5% 0px" }}
                             >
                                 <div className="w-8 h-[1.5px] bg-[#B38B46] mb-4" />
                                 <h2 className="text-sm sm:text-base font-orange-avenue font-normal text-[#FAF9F6] mb-2 tracking-[0.2em] uppercase">
@@ -120,7 +120,7 @@ const HeritageScroll = () => {
                                     initial={{ opacity: 0, y: 35 }}
                                     whileInView={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.7, ease: "easeOut" }}
-                                    viewport={{ once: false, margin: "-20% 0px -20% 0px" }}
+                                    viewport={{ once: true, margin: "-20% 0px -20% 0px" }}
                                 >
                                     <div className="w-10 h-[1.5px] bg-[#B38B46] mb-5" />
                                     <h2 className="text-base lg:text-lg font-orange-avenue font-normal text-[#FAF9F6] mb-3 tracking-[0.2em] leading-snug uppercase">

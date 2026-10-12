@@ -1,9 +1,11 @@
 'use client';
 
 import React from 'react';
-import CuratedGiftingHero from './components/CuratedGiftingHero';
+import DiwaliHeroSection from './components/DiwaliHeroSection';
+import HeroWhatsAppBar from './components/HeroWhatsAppBar';
 import TrustBar from './components/TrustBar';
-import ModakSpecialSection from './components/ModakSpecialSection';
+import DiwaliSpecialSection from './components/DiwaliSpecialSection';
+import DiwaliBannersSection from './components/DiwaliBannersSection';
 import QuickCategoryCircles from './components/QuickCategoryCircles';
 import TabbedProductShowcase from './components/TabbedProductShowcase';
 import CorporateWeddingGifting from './components/CorporateWeddingGifting';
@@ -13,61 +15,64 @@ import MarqueeSection from './components/MarqueeSection';
 import HeritageScroll from './components/HeritageScroll';
 import Testimonials from '@/components/ui/testimonials';
 import DeliverySection from './components/DeliverySection';
-import FloatingProductWidget from './components/FloatingProductWidget';
 
 const Home = () => {
   return (
     <main className="min-h-screen bg-[#FAF9F6]">
-      {/* 1. Hero Banner with Direct Modak CTA */}
-      <CuratedGiftingHero />
+      {/* 1. Diwali Festive Hero Banner (Desktop reference match & Mobile shoot portrait) */}
+      <DiwaliHeroSection />
 
-      {/* 2. 4-Pillar Trust & Value Proposition Strip */}
+      {/* 2. WhatsApp Official Info Bar (Pill design matching verified brand) */}
+      <HeroWhatsAppBar />
+
+      {/* 3. 4-Pillar Trust & Value Proposition Strip */}
       <TrustBar />
 
       <div className="flex flex-col">
-        {/* Modak Special Section */}
-        <ModakSpecialSection />
+        {/* 3. Dedicated Diwali Special Section (Curated Hampers & Festive Sweets) */}
+        <DiwaliSpecialSection />
 
-        {/* 3. Quick Discovery Category Circles */}
+        {/* 4. Grand Diwali Banners & Festive Shoot Moments Showcase */}
+        <DiwaliBannersSection />
+
+        {/* 5. Quick Discovery Category Circles */}
         <QuickCategoryCircles />
 
-        {/* 4. Unified Tabbed Product Showcase (Bestsellers | Mithai | Namkeen | Gifting) */}
+        {/* 6. Unified Tabbed Product Showcase (Bestsellers | Mithai | Namkeen | Gifting) */}
         <TabbedProductShowcase />
 
-        {/* 5. Royal Wedding & Corporate Bulk Gifting Banner */}
+        {/* 7. Royal Wedding & Corporate Bulk Gifting Banner */}
         <CorporateWeddingGifting />
 
-        {/* 6. Our Legacy of Taste (Purity Standard) */}
+        {/* 8. Our Legacy of Taste (Purity Standard) */}
         <LegacyOfTaste />
 
-        {/* 7. Dual Delivery Spotlight (Lucknow Same-Day & Pan-India Air Express) */}
+        {/* 9. Dual Delivery Spotlight (Lucknow Same-Day & Pan-India Air Express) */}
         <DualDeliverySpotlight />
 
-        {/* 8. Minimal Brand Ticker */}
+        {/* 10. Minimal Brand & Festive Ticker */}
         <MarqueeSection
           items={[
+            "YE DIWALI, RAJLUXMI WALI",
             "100% PURE DESI GHEE",
             "ROYAL LUCKNOWI RECIPES",
-            "CROWD FAVORITES",
-            "FRESHNESS GUARANTEED",
-            "BESPOKE GIFTING",
-            "AUTHENTIC TASTE"
+            "DIWALI FESTIVE HAMPERS",
+            "PAN-INDIA EXPRESS AIR DELIVERY",
+            "BESPOKE CORPORATE GIFTING",
+            "HANDCRAFTED PURITY GUARANTEED"
           ]}
           className="py-3 bg-[#F9F3EA]"
         />
 
-        {/* 10. Heritage, Authenticity & Trust Scroll */}
+        {/* 11. Heritage, Authenticity & Trust Scroll */}
         <HeritageScroll />
 
-        {/* 11. Customer Reviews & Social Proof */}
+        {/* 12. Customer Reviews & Social Proof */}
         <Testimonials />
 
-        {/* 12. Same Day Lucknow Delivery & Security Badges */}
+        {/* 13. Same Day Lucknow Delivery & Security Badges */}
         <DeliverySection />
       </div>
-
-      {/* 13. Quick Cart / Floating Product Widget */}
-      <FloatingProductWidget />
     </main>
   );
 };

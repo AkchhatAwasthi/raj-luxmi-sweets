@@ -41,10 +41,10 @@ const DEFAULT_MAIN_CATEGORIES: FallbackMeta[] = [
     image: 'https://res.cloudinary.com/danag6hn5/image/upload/q_auto/f_auto/v1775412964/DSC07955.jpg',
   },
   {
-    name: 'Festive',
-    slug: 'festive',
-    subtitle: 'Seasonal Specials & Mithai',
-    image: 'https://res.cloudinary.com/dmj0smemf/image/upload/f_auto,q_auto/v1788240115/DSC07987_1_1_ujxahs.jpg',
+    name: 'Diwali Specials',
+    slug: 'diwali-special',
+    subtitle: 'Royal Festive Mithai & Hampers',
+    image: 'https://res.cloudinary.com/dmj0smemf/image/upload/f_auto,q_auto/v1791790965/DSC00866_wu7zwn.jpg',
   },
 ];
 
