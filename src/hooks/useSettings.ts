@@ -142,6 +142,11 @@ async function fetchAppSettings(): Promise<AppSettings> {
 
   const finalSettings = { ...defaultSettings, ...settingsMap } as AppSettings;
 
+  // Ensure store_phone uses the correct active business number
+  if (finalSettings.store_phone === '+91 9996616153' || !finalSettings.store_phone) {
+    finalSettings.store_phone = '+91 8448447408';
+  }
+
   // ── Always fetch cashfree_enabled directly ──────────────────────────
   // The RPC function was created before Cashfree existed and doesn't
   // include this key, so we fetch it separately to guarantee correctness.

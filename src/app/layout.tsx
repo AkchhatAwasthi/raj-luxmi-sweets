@@ -37,7 +37,7 @@ const localBusinessSchema = {
   alternateName: 'Raj Luxmi The Mithai Shop',
   image: 'https://rajluxmisweets.com/logo.png',
   url: 'https://rajluxmisweets.com',
-  telephone: '+91 9996616153',
+  telephone: '+91 8448447408',
   email: 'contact@rajluxmisweets.com',
   priceRange: '₹₹',
   servesCuisine: ['Bengali Sweets', 'Traditional Indian Mithai', 'Pure Desi Ghee Sweets', 'Namkeen'],

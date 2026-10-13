@@ -25,7 +25,7 @@ const Contact = () => {
 
   // Dynamic contact information from database
   const contactInfo = {
-    phone: settings?.store_phone || '+91 9996616153',
+    phone: settings?.store_phone && settings.store_phone !== '+91 9996616153' ? settings.store_phone : '+91 8448447408',
     email: settings?.store_email || 'contact@rajluxmi.com',
     address: settings?.store_address || 'Raj Luxmi The Mithai Shop (Aashiyana): Brej Palace, Near Ashiyana Power House Chauraha, Lucknow-226012',
     storeName: settings?.store_name || 'Raj Luxmi',

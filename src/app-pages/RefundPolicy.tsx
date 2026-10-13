@@ -41,7 +41,7 @@ const RefundPolicy = () => {
               </p>
               <ul className="list-disc pl-5 space-y-1.5 text-sm">
                 <li><strong>Cancellation Window:</strong> You may cancel your order within <strong>1 hour</strong> of placing it or before the order has been dispatched from our kitchen, whichever is earlier.</li>
-                <li><strong>How to Cancel:</strong> To cancel, call or WhatsApp our customer care immediately at <a href="tel:+919996616153" className="text-[#B38B46] font-medium hover:underline">+91 99966 16153</a> with your Order ID.</li>
+                <li><strong>How to Cancel:</strong> To cancel, call or WhatsApp our customer care immediately at <a href="tel:+918448447408" className="text-[#B38B46] font-medium hover:underline">+91 8448447408</a> with your Order ID.</li>
                 <li><strong>Post-Dispatch:</strong> Once an order is prepared and out for delivery / handed to the courier partner, cancellations cannot be processed due to the perishable nature of fresh food items.</li>
               </ul>
             </div>
@@ -83,7 +83,7 @@ const RefundPolicy = () => {
               <ol className="list-decimal pl-5 space-y-1.5 text-sm">
                 <li>Contact us within <strong>24 hours</strong> of receiving the package.</li>
                 <li>Provide clear photographs or a short video showing the outer package, shipping label, and the condition of the affected item.</li>
-                <li>Send the details via WhatsApp to <a href="tel:+919996616153" className="text-[#B38B46] hover:underline font-medium">+91 99966 16153</a> or email <a href="mailto:contact@rajluxmisweets.com" className="text-[#B38B46] hover:underline font-medium">contact@rajluxmisweets.com</a> along with your Order ID.</li>
+                <li>Send the details via WhatsApp to <a href="tel:+918448447408" className="text-[#B38B46] hover:underline font-medium">+91 8448447408</a> or email <a href="mailto:contact@rajluxmisweets.com" className="text-[#B38B46] hover:underline font-medium">contact@rajluxmisweets.com</a> along with your Order ID.</li>
                 <li>Our quality team will review your claim and issue an approval within 24 business hours.</li>
               </ol>
             </div>
@@ -120,7 +120,7 @@ const RefundPolicy = () => {
               <div className="bg-[#FAF7F2] rounded-xl p-4 border border-[#D4C3A3]/50 text-sm space-y-1">
                 <p><strong>Raj Luxmi Customer Care</strong></p>
                 <p>Brej Palace, Near Ashiyana Power House Chauraha, Lucknow &ndash; 226012, Uttar Pradesh, India</p>
-                <p>Phone / WhatsApp: <a href="tel:+919996616153" className="text-[#B38B46] hover:underline">+91 99966 16153</a></p>
+                <p>Phone / WhatsApp: <a href="tel:+918448447408" className="text-[#B38B46] hover:underline">+91 8448447408</a></p>
                 <p>Email: <a href="mailto:contact@rajluxmisweets.com" className="text-[#B38B46] hover:underline">contact@rajluxmisweets.com</a></p>
                 <p>Support Hours: 9:00 AM &ndash; 8:00 PM (Monday to Sunday)</p>
               </div>

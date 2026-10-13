@@ -8,7 +8,7 @@ import { useSettings } from '@/hooks/useSettings';
 
 const HeroWhatsAppBar: React.FC = () => {
   const { settings } = useSettings();
-  const phone = settings?.store_phone || '+91 9996616153';
+  const phone = settings?.store_phone && settings.store_phone !== '+91 9996616153' ? settings.store_phone : '+91 8448447408';
   const cleanPhone = phone.replace(/\D/g, '');
   const formattedWhatsAppUrl = `https://wa.me/${cleanPhone.startsWith('91') ? cleanPhone : '91' + cleanPhone}?text=Hi%20Raj%20Luxmi%20Sweets%2C%20I%20would%20like%20to%20order%20Diwali%20sweets%20and%20gifting%20hampers`;
 

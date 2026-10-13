@@ -123,7 +123,7 @@ const DiwaliBannersSection: React.FC = () => {
               {/* Action Buttons */}
               <div className="flex flex-wrap items-center gap-3.5 pt-3">
                 <a
-                  href="https://wa.me/919996616153?text=Hi%20Raj%20Luxmi%20Sweets%2C%20we%20want%20to%20order%20Custom%20Diwali%20Hampers%20for%20our%20company"
+                  href="https://wa.me/918448447408?text=Hi%20Raj%20Luxmi%20Sweets%2C%20we%20want%20to%20order%20Custom%20Diwali%20Hampers%20for%20our%20company"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center space-x-2 px-6 py-3.5 bg-[#E5B56E] hover:bg-[#F2C785] text-[#2C1810] rounded-md text-xs sm:text-sm font-bold tracking-[0.14em] uppercase transition-all duration-300 shadow-md hover:shadow-lg cursor-pointer"

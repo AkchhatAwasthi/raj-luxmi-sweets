@@ -138,7 +138,7 @@ const ShippingPolicy = () => {
               <div className="bg-[#FAF7F2] rounded-xl p-4 border border-[#D4C3A3]/50 text-sm space-y-1">
                 <p><strong>Raj Luxmi Dispatch Desk</strong></p>
                 <p>Brej Palace, Near Ashiyana Power House Chauraha, Lucknow &ndash; 226012, Uttar Pradesh, India</p>
-                <p>Phone / WhatsApp: <a href="tel:+919996616153" className="text-[#B38B46] hover:underline">+91 99966 16153</a></p>
+                <p>Phone / WhatsApp: <a href="tel:+918448447408" className="text-[#B38B46] hover:underline">+91 8448447408</a></p>
                 <p>Email: <a href="mailto:contact@rajluxmisweets.com" className="text-[#B38B46] hover:underline">contact@rajluxmisweets.com</a></p>
               </div>
             </div>
