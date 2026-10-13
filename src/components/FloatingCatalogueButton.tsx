@@ -50,10 +50,7 @@ const FloatingCatalogueButton: React.FC = () => {
             <div className="absolute inset-0 bg-radial from-white/10 to-transparent pointer-events-none" />
 
             {/* "This" script */}
-            <span
-              className="text-[8px] sm:text-[9px] text-[#FFE8C2] italic leading-none font-serif tracking-normal"
-              style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
-            >
+            <span className="text-[8px] sm:text-[9px] text-[#FFE8C2] font-orange-avenue uppercase tracking-wider leading-none">
               This
             </span>
 

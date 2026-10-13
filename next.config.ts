@@ -38,6 +38,40 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ['nodemailer'],
   // Transpile packages that might have issues with Turbopack/Next.js SSR
   transpilePackages: ['framer-motion', 'lucide-react', 'recharts'],
+  async redirects() {
+    return [
+      {
+        source: '/category/diwali-special',
+        destination: '/category/diwali-specials',
+        permanent: true,
+      },
+      {
+        source: '/category/baklava',
+        destination: '/category/mewa-bites-baklava',
+        permanent: true,
+      },
+      {
+        source: '/category/baklawa',
+        destination: '/category/mewa-bites-baklava',
+        permanent: true,
+      },
+      {
+        source: '/category/balva-box',
+        destination: '/category/mewa-bites-baklava',
+        permanent: true,
+      },
+      {
+        source: '/category/baklava-box',
+        destination: '/category/mewa-bites-baklava',
+        permanent: true,
+      },
+      {
+        source: '/category/baklawa-box',
+        destination: '/category/mewa-bites-baklava',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

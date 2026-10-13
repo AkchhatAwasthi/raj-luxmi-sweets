@@ -74,7 +74,7 @@ const DiwaliBannersSection: React.FC = () => {
 
               {/* Float badge on image */}
               <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 z-10 bg-[#1A0B06]/85 backdrop-blur-md border border-[#E5B56E]/40 px-4 py-2 rounded-lg">
-                <span className="text-[10px] sm:text-xs uppercase tracking-widest text-[#E5B56E] font-medium font-sans">
+                <span className="text-[10px] sm:text-xs uppercase tracking-widest text-[#E5B56E] font-normal font-orange-avenue">
                   The Royal Wicker Hamper 2026
                 </span>
               </div>
@@ -84,19 +84,16 @@ const DiwaliBannersSection: React.FC = () => {
             <div className="lg:col-span-6 p-6 sm:p-10 lg:p-14 flex flex-col justify-center space-y-6 z-10">
               <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#E5B56E]/15 border border-[#E5B56E]/30 w-fit">
                 <Gift className="w-3.5 h-3.5 text-[#E5B56E]" />
-                <span className="text-[10px] sm:text-xs font-semibold tracking-[0.22em] text-[#E5B56E] uppercase font-sans">
+                <span className="text-[10px] sm:text-xs font-normal tracking-[0.22em] text-[#E5B56E] uppercase font-orange-avenue">
                   Corporate & Royal Family Gifting
                 </span>
               </div>
 
               <div className="space-y-3">
-                <h3
-                  className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl text-[#FFF6E9] leading-tight font-normal"
-                  style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
-                >
+                <h3 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl text-[#FFF6E9] leading-tight font-normal uppercase tracking-wide font-orange-avenue">
                   Grand Diwali Hampers That Tell A Royal Story
                 </h3>
-                <p className="text-sm sm:text-base text-[#D4C3B2] font-light leading-relaxed max-w-xl">
+                <p className="text-xs sm:text-sm text-[#D4C3B2] font-normal leading-relaxed max-w-xl font-orange-avenue">
                   Impress your clients, partners, and dearest family members with bespoke Raj Luxmi gift boxes. Crafted with 100% pure desi ghee sweets, premium Californian dry fruits, and regal presentation.
                 </p>
               </div>
@@ -105,18 +102,18 @@ const DiwaliBannersSection: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
                 <div className="p-3 rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm">
                   <ShieldCheck className="w-4 h-4 text-[#E5B56E] mb-1.5" />
-                  <div className="text-xs font-semibold text-white">Custom Branding</div>
-                  <div className="text-[11px] text-[#C4B29E]">Personalized sleeves & cards</div>
+                  <div className="text-xs font-normal text-white uppercase font-orange-avenue tracking-wide">Custom Branding</div>
+                  <div className="text-[11px] text-[#C4B29E] font-orange-avenue">Personalized sleeves & cards</div>
                 </div>
                 <div className="p-3 rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm">
                   <Truck className="w-4 h-4 text-[#E5B56E] mb-1.5" />
-                  <div className="text-xs font-semibold text-white">Pan-India Express</div>
-                  <div className="text-[11px] text-[#C4B29E]">Direct doorstep dispatch</div>
+                  <div className="text-xs font-normal text-white uppercase font-orange-avenue tracking-wide">Pan-India Express</div>
+                  <div className="text-[11px] text-[#C4B29E] font-orange-avenue">Direct doorstep dispatch</div>
                 </div>
                 <div className="p-3 rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm">
                   <Sparkles className="w-4 h-4 text-[#E5B56E] mb-1.5" />
-                  <div className="text-xs font-semibold text-white">Bespoke Curation</div>
-                  <div className="text-[11px] text-[#C4B29E]">Custom sweet assortments</div>
+                  <div className="text-xs font-normal text-white uppercase font-orange-avenue tracking-wide">Bespoke Curation</div>
+                  <div className="text-[11px] text-[#C4B29E] font-orange-avenue">Custom sweet assortments</div>
                 </div>
               </div>
 
@@ -126,7 +123,7 @@ const DiwaliBannersSection: React.FC = () => {
                   href="https://wa.me/918448447408?text=Hi%20Raj%20Luxmi%20Sweets%2C%20we%20want%20to%20order%20Custom%20Diwali%20Hampers%20for%20our%20company"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center space-x-2 px-6 py-3.5 bg-[#E5B56E] hover:bg-[#F2C785] text-[#2C1810] rounded-md text-xs sm:text-sm font-bold tracking-[0.14em] uppercase transition-all duration-300 shadow-md hover:shadow-lg cursor-pointer"
+                  className="inline-flex items-center space-x-2 px-6 py-3.5 bg-[#E5B56E] hover:bg-[#F2C785] text-[#2C1810] rounded-md text-xs sm:text-sm font-normal tracking-[0.14em] uppercase font-orange-avenue transition-all duration-300 shadow-md hover:shadow-lg cursor-pointer"
                 >
                   <PhoneCall className="w-4 h-4" />
                   <span>Enquire Corporate Bulk</span>
@@ -136,7 +133,7 @@ const DiwaliBannersSection: React.FC = () => {
                   href="https://res.cloudinary.com/dmj0smemf/image/upload/v1791800492/Rajluxmi_Diwali_Catalogue_1__compressed_aumrdz.pdf"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center space-x-2 px-6 py-3.5 bg-transparent hover:bg-white/10 text-[#FFF6E9] border border-[#E5B56E]/50 rounded-md text-xs sm:text-sm font-semibold tracking-wider uppercase transition-all duration-300 cursor-pointer"
+                  className="inline-flex items-center space-x-2 px-6 py-3.5 bg-transparent hover:bg-white/10 text-[#FFF6E9] border border-[#E5B56E]/50 rounded-md text-xs sm:text-sm font-normal tracking-wider uppercase font-orange-avenue transition-all duration-300 cursor-pointer"
                 >
                   <span>Explore Gifting Catalog (PDF)</span>
                   <ArrowRight className="w-4 h-4" />
@@ -164,22 +161,19 @@ const DiwaliBannersSection: React.FC = () => {
             <div className="absolute inset-0 bg-gradient-to-t from-[#1F0E09] via-[#1F0E09]/75 to-transparent pointer-events-none" />
 
             <div className="relative z-10 space-y-2.5">
-              <span className="text-[10px] sm:text-xs font-semibold tracking-[0.25em] text-[#E5B56E] uppercase font-sans">
+              <span className="text-[10px] sm:text-xs font-normal tracking-[0.25em] text-[#E5B56E] uppercase font-orange-avenue">
                 Artisanal Baklawa Tin
               </span>
-              <h4
-                className="text-2xl sm:text-3xl text-white font-normal"
-                style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
-              >
+              <h4 className="text-2xl sm:text-3xl text-white font-normal uppercase tracking-wide font-orange-avenue">
                 Turkish Crunch & Pure Desi Ghee
               </h4>
-              <p className="text-xs sm:text-sm text-[#D8C7B5] font-light max-w-md line-clamp-2">
+              <p className="text-xs sm:text-sm text-[#D8C7B5] font-normal max-w-md line-clamp-2 font-orange-avenue">
                 Multi-layered pastry loaded with crunchy pistachios and golden dry fruits, encased in an ornate gift tin.
               </p>
               <div className="pt-2">
                 <button
-                  onClick={() => router.push('/category/diwali-special')}
-                  className="inline-flex items-center space-x-2 text-xs sm:text-sm font-bold tracking-widest text-[#E5B56E] hover:text-[#FFF6E9] transition-colors uppercase group-hover:translate-x-1 duration-300"
+                  onClick={() => router.push('/category/mewa-bites-baklava')}
+                  className="inline-flex items-center space-x-2 text-xs sm:text-sm font-normal tracking-widest text-[#E5B56E] hover:text-[#FFF6E9] transition-colors uppercase font-orange-avenue group-hover:translate-x-1 duration-300 cursor-pointer"
                 >
                   <span>Explore Baklawa Collection</span>
                   <ArrowRight className="w-4 h-4" />
@@ -200,22 +194,19 @@ const DiwaliBannersSection: React.FC = () => {
             <div className="absolute inset-0 bg-gradient-to-t from-[#120E1C] via-[#120E1C]/75 to-transparent pointer-events-none" />
 
             <div className="relative z-10 space-y-2.5">
-              <span className="text-[10px] sm:text-xs font-semibold tracking-[0.25em] text-[#E5B56E] uppercase font-sans">
+              <span className="text-[10px] sm:text-xs font-normal tracking-[0.25em] text-[#E5B56E] uppercase font-orange-avenue">
                 Royal Keepsake Boxes
               </span>
-              <h4
-                className="text-2xl sm:text-3xl text-white font-normal"
-                style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
-              >
+              <h4 className="text-2xl sm:text-3xl text-white font-normal uppercase tracking-wide font-orange-avenue">
                 Khushiyon Ka Swaad, Apno Ke Naam
               </h4>
-              <p className="text-xs sm:text-sm text-[#D8C7B5] font-light max-w-md line-clamp-2">
+              <p className="text-xs sm:text-sm text-[#D8C7B5] font-normal max-w-md line-clamp-2 font-orange-avenue">
                 Pure silver-vark cashew delicacies, saffron pedas & handcrafted mithai presented in royal velvet keepsakes.
               </p>
               <div className="pt-2">
                 <button
-                  onClick={() => router.push('/category/diwali-special')}
-                  className="inline-flex items-center space-x-2 text-xs sm:text-sm font-bold tracking-widest text-[#E5B56E] hover:text-[#FFF6E9] transition-colors uppercase group-hover:translate-x-1 duration-300"
+                  onClick={() => router.push('/category/diwali-specials')}
+                  className="inline-flex items-center space-x-2 text-xs sm:text-sm font-normal tracking-widest text-[#E5B56E] hover:text-[#FFF6E9] transition-colors uppercase font-orange-avenue group-hover:translate-x-1 duration-300 cursor-pointer"
                 >
                   <span>Discover Shahi Boxes</span>
                   <ArrowRight className="w-4 h-4" />
@@ -231,16 +222,13 @@ const DiwaliBannersSection: React.FC = () => {
       {/* ========================================================================= */}
       <section className="w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12">
         <div className="text-center mb-8">
-          <span className="text-[10px] sm:text-xs font-semibold tracking-[0.25em] text-[#8C5E1B] uppercase font-sans">
+          <span className="text-[10px] sm:text-xs font-normal tracking-[0.25em] text-[#8C5E1B] uppercase font-orange-avenue">
             Ye Diwali, Rajluxmi Wali
           </span>
-          <h3
-            className="text-2xl sm:text-3xl lg:text-4xl text-[#2C1810] font-normal mt-1"
-            style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
-          >
+          <h3 className="text-2xl sm:text-3xl lg:text-4xl text-[#2C1810] font-normal mt-1 uppercase tracking-wide font-orange-avenue">
             Moments Of Royal Joy & Pure Celebration
           </h3>
-          <p className="text-xs sm:text-sm text-[#6E4F39] font-light mt-1 max-w-xl mx-auto">
+          <p className="text-xs sm:text-sm text-[#6E4F39] font-normal mt-1 max-w-xl mx-auto font-orange-avenue">
             From laughter shared over pure desi ghee laddoos to the warm glow of diyas, celebrate with timeless Awadhi authenticity.
           </p>
         </div>
@@ -262,13 +250,10 @@ const DiwaliBannersSection: React.FC = () => {
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
 
               <div className="absolute bottom-0 inset-x-0 p-3 text-left">
-                <p
-                  className="text-sm font-normal text-[#FFF6E9] leading-snug"
-                  style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
-                >
+                <p className="text-xs sm:text-sm font-normal text-[#FFF6E9] leading-snug uppercase tracking-wide font-orange-avenue">
                   {item.title}
                 </p>
-                <p className="text-[10px] text-[#E5B56E] line-clamp-1 font-light mt-0.5">
+                <p className="text-[10px] text-[#E5B56E] line-clamp-1 font-normal mt-0.5 font-orange-avenue">
                   {item.subtitle}
                 </p>
               </div>

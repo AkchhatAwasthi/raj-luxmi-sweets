@@ -135,21 +135,18 @@ const DiwaliSpecialSection: React.FC = () => {
           {/* Eyebrow badge */}
           <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-[#E5B56E]/15 border border-[#E5B56E]/30 mb-3">
             <Sparkles className="w-3.5 h-3.5 text-[#B38B46]" />
-            <span className="text-[11px] sm:text-xs font-semibold tracking-[0.25em] text-[#8C5E1B] uppercase font-sans">
+            <span className="text-[11px] sm:text-xs font-semibold tracking-[0.25em] text-[#8C5E1B] uppercase font-orange-avenue">
               Shubh Deepavali &middot; 2026
             </span>
           </div>
 
-          <h2
-            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-[#2C1810] tracking-tight font-normal mb-3"
-            style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
-          >
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-[#2C1810] tracking-wide font-normal mb-3 uppercase font-orange-avenue">
             {diwaliMainCategory?.name || 'Diwali Specials'}
           </h2>
 
           <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-[#B38B46] to-transparent mb-3" />
 
-          <p className="text-sm sm:text-base text-[#6E4F39] max-w-2xl font-light leading-relaxed">
+          <p className="text-xs sm:text-sm text-[#6E4F39] max-w-2xl font-normal leading-relaxed font-orange-avenue">
             Curated festive hampers, handcrafted pure desi ghee mithai, and imperial dry fruit boxes created to celebrate Diwali the royal Lucknowi way.
           </p>
 
@@ -158,7 +155,7 @@ const DiwaliSpecialSection: React.FC = () => {
             <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 mt-7">
               <button
                 onClick={() => setActiveTab('all')}
-                className={`px-4 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-medium tracking-wider transition-all duration-300 cursor-pointer ${
+                className={`px-4 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-normal tracking-wider uppercase font-orange-avenue transition-all duration-300 cursor-pointer ${
                   activeTab === 'all'
                     ? 'bg-[#2C1810] text-[#E5B56E] shadow-md scale-105'
                     : 'bg-white/80 hover:bg-white text-[#5D4037] border border-[#B38B46]/20'
@@ -172,7 +169,7 @@ const DiwaliSpecialSection: React.FC = () => {
                   <button
                     key={sub.id}
                     onClick={() => setActiveTab(sub.id)}
-                    className={`px-4 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-medium tracking-wider transition-all duration-300 cursor-pointer ${
+                    className={`px-4 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-normal tracking-wider uppercase font-orange-avenue transition-all duration-300 cursor-pointer ${
                       isActive
                         ? 'bg-[#2C1810] text-[#E5B56E] shadow-md scale-105'
                         : 'bg-white/80 hover:bg-white text-[#5D4037] border border-[#B38B46]/20'
@@ -227,7 +224,7 @@ const DiwaliSpecialSection: React.FC = () => {
             href="https://res.cloudinary.com/dmj0smemf/image/upload/v1791800492/Rajluxmi_Diwali_Catalogue_1__compressed_aumrdz.pdf"
             target="_blank"
             rel="noopener noreferrer"
-            className="group inline-flex items-center space-x-2.5 px-8 py-3.5 bg-[#2C1810] hover:bg-[#432316] text-[#E5B56E] rounded-md text-xs sm:text-sm font-bold tracking-[0.16em] uppercase transition-all duration-300 shadow-lg hover:shadow-xl active:scale-95 cursor-pointer"
+            className="group inline-flex items-center space-x-2.5 px-8 py-3.5 bg-[#2C1810] hover:bg-[#432316] text-[#E5B56E] rounded-md text-xs sm:text-sm font-normal tracking-[0.16em] uppercase font-orange-avenue transition-all duration-300 shadow-lg hover:shadow-xl active:scale-95 cursor-pointer"
           >
             <span>Download Diwali Catalogue (PDF)</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform duration-300" />
@@ -237,7 +234,7 @@ const DiwaliSpecialSection: React.FC = () => {
             href="https://wa.me/918448447408?text=Hi%20Raj%20Luxmi%20Sweets%2C%20I%20am%20interested%20in%20Bulk%20Diwali%20Gifting%20and%20Custom%20Hampers"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center space-x-2 px-6 py-3.5 bg-white hover:bg-[#FAF5EC] text-[#2C1810] border border-[#B38B46]/40 rounded-md text-xs sm:text-sm font-medium tracking-wider uppercase transition-all duration-300 cursor-pointer shadow-sm"
+            className="inline-flex items-center space-x-2 px-6 py-3.5 bg-white hover:bg-[#FAF5EC] text-[#2C1810] border border-[#B38B46]/40 rounded-md text-xs sm:text-sm font-normal tracking-wider uppercase font-orange-avenue transition-all duration-300 cursor-pointer shadow-sm"
           >
             <Gift className="w-4 h-4 text-[#B38B46]" />
             <span>Customize Corporate Diwali Boxes</span>

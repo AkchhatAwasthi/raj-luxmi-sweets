@@ -38,6 +38,7 @@ interface DeliveryCategoryDropdownProps {
   categories: { name: string; slug: string }[];
   onSelectCategory: (slug: string, mode: 'lucknow' | 'pan-india') => void;
   onViewAll: (mode: 'lucknow' | 'pan-india') => void;
+  isLightHeader?: boolean;
 }
 
 const DeliveryCategoryDropdown: React.FC<DeliveryCategoryDropdownProps> = ({
@@ -46,6 +47,7 @@ const DeliveryCategoryDropdown: React.FC<DeliveryCategoryDropdownProps> = ({
   categories,
   onSelectCategory,
   onViewAll,
+  isLightHeader = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -57,16 +59,26 @@ const DeliveryCategoryDropdown: React.FC<DeliveryCategoryDropdownProps> = ({
     >
       <button
         onClick={() => onViewAll(mode)}
-        className="flex items-center gap-1 text-[11px] xl:text-xs font-orange-avenue font-normal tracking-[0.14em] uppercase text-[#2C1810] lg:text-white hover:text-[#B38B46] lg:hover:text-[#E5B56E] transition-colors outline-none cursor-pointer whitespace-nowrap drop-shadow-sm"
+        className={`flex items-center gap-1 text-[11px] xl:text-xs font-orange-avenue font-normal tracking-[0.14em] uppercase transition-colors outline-none cursor-pointer whitespace-nowrap drop-shadow-sm ${
+          isLightHeader
+            ? 'text-[#2C1810] hover:text-[#8B2131]'
+            : 'text-[#2C1810] lg:text-white hover:text-[#B38B46] lg:hover:text-[#E5B56E]'
+        }`}
       >
         <span>{label}</span>
         <ChevronDown
-          className={`w-3.5 h-3.5 text-[#B38B46] lg:text-[#E5B56E] transition-transform duration-300 ${
-            isOpen ? 'rotate-180' : ''
-          }`}
+          className={`w-3.5 h-3.5 transition-transform duration-300 ${
+            isLightHeader
+              ? 'text-[#2C1810] group-hover:text-[#8B2131]'
+              : 'text-[#B38B46] lg:text-[#E5B56E]'
+          } ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
-      <span className="absolute bottom-1 left-0 w-0 h-[1.5px] bg-[#B38B46] lg:bg-[#E5B56E] transition-all duration-300 ease-out group-hover:w-full" />
+      <span
+        className={`absolute bottom-1 left-0 w-0 h-[1.5px] transition-all duration-300 ease-out group-hover:w-full ${
+          isLightHeader ? 'bg-[#8B2131]' : 'bg-[#B38B46] lg:bg-[#E5B56E]'
+        }`}
+      />
 
       {/* Dropdown Menu */}
       <AnimatePresence>
@@ -264,9 +276,9 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
           z-40 transition-all duration-300 
           ${isHome 
             ? (isScrolled 
-                ? 'fixed top-0 inset-x-0 bg-[#140A07]/92 backdrop-blur-md shadow-md border-b border-[#E5B56E]/20 py-1 text-white' 
-                : 'absolute top-0 inset-x-0 bg-[#F9F3EA] lg:bg-transparent border-transparent py-2.5 text-white') 
-            : 'sticky top-0 bg-[#FFFDF7] border-b border-[#D4B6A2]/30 py-1.5'
+                ? 'relative lg:fixed lg:top-0 lg:inset-x-0 bg-[#140A07]/92 backdrop-blur-md shadow-md border-b border-[#E5B56E]/20 py-1 text-white' 
+                : 'relative lg:absolute lg:top-0 lg:inset-x-0 bg-[#F9F3EA] lg:bg-transparent border-transparent py-2.5 text-white') 
+            : 'relative lg:sticky lg:top-0 bg-[#FFFDF7] border-b border-[#D4B6A2]/30 py-1.5 text-[#2C1810]'
           }
         `}
       >
@@ -324,6 +336,7 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                 categories={FIVE_MAIN_CATEGORIES}
                 onSelectCategory={handleSelectDeliveryCategory}
                 onViewAll={handleViewAllDelivery}
+                isLightHeader={!isHome}
               />
 
               {/* 2. Shop Pan India */}
@@ -333,6 +346,7 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                 categories={FIVE_MAIN_CATEGORIES}
                 onSelectCategory={handleSelectDeliveryCategory}
                 onViewAll={handleViewAllDelivery}
+                isLightHeader={!isHome}
               />
 
               {/* 3. Our Gift Hampers */}
@@ -340,10 +354,16 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                 href="/category/gifting"
                 className="relative group py-2"
               >
-                <span className="text-[11px] xl:text-xs font-orange-avenue font-normal tracking-[0.14em] uppercase text-[#2C1810] lg:text-white group-hover:text-[#B38B46] lg:group-hover:text-[#E5B56E] transition-colors whitespace-nowrap drop-shadow-sm">
+                <span className={`text-[11px] xl:text-xs font-orange-avenue font-normal tracking-[0.14em] uppercase transition-colors whitespace-nowrap drop-shadow-sm ${
+                  !isHome
+                    ? 'text-[#2C1810] hover:text-[#8B2131]'
+                    : 'text-[#2C1810] lg:text-white group-hover:text-[#B38B46] lg:group-hover:text-[#E5B56E]'
+                }`}>
                   Our Gift Hampers
                 </span>
-                <span className="absolute bottom-1 left-0 w-0 h-[1.5px] bg-[#B38B46] lg:bg-[#E5B56E] transition-all duration-300 ease-out group-hover:w-full" />
+                <span className={`absolute bottom-1 left-0 w-0 h-[1.5px] transition-all duration-300 ease-out group-hover:w-full ${
+                  !isHome ? 'bg-[#8B2131]' : 'bg-[#B38B46] lg:bg-[#E5B56E]'
+                }`} />
               </Link>
 
               {/* 4. Bulk Orders */}
@@ -351,10 +371,16 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                 href="/celebrate-with-rajluxmi"
                 className="relative group py-2"
               >
-                <span className="text-[11px] xl:text-xs font-orange-avenue font-normal tracking-[0.14em] uppercase text-[#2C1810] lg:text-white group-hover:text-[#B38B46] lg:group-hover:text-[#E5B56E] transition-colors whitespace-nowrap drop-shadow-sm">
+                <span className={`text-[11px] xl:text-xs font-orange-avenue font-normal tracking-[0.14em] uppercase transition-colors whitespace-nowrap drop-shadow-sm ${
+                  !isHome
+                    ? 'text-[#2C1810] hover:text-[#8B2131]'
+                    : 'text-[#2C1810] lg:text-white group-hover:text-[#B38B46] lg:group-hover:text-[#E5B56E]'
+                }`}>
                   Bulk Orders
                 </span>
-                <span className="absolute bottom-1 left-0 w-0 h-[1.5px] bg-[#B38B46] lg:bg-[#E5B56E] transition-all duration-300 ease-out group-hover:w-full" />
+                <span className={`absolute bottom-1 left-0 w-0 h-[1.5px] transition-all duration-300 ease-out group-hover:w-full ${
+                  !isHome ? 'bg-[#8B2131]' : 'bg-[#B38B46] lg:bg-[#E5B56E]'
+                }`} />
               </Link>
             </nav>
 
@@ -364,7 +390,11 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 onClick={() => setIsSearchOpen(true)}
-                className="text-[#2C1810] lg:text-white hover:text-[#B38B46] lg:hover:text-[#E5B56E] transition-colors p-1 drop-shadow-sm cursor-pointer"
+                className={`transition-colors p-1 drop-shadow-sm cursor-pointer ${
+                  !isHome
+                    ? 'text-[#2C1810] hover:text-[#8B2131]'
+                    : (isScrolled ? 'text-white hover:text-[#E5B56E]' : 'text-[#2C1810] lg:text-white hover:text-[#B38B46] lg:hover:text-[#E5B56E]')
+                }`}
                 aria-label="Search"
               >
                 <Search className="w-5 h-5 stroke-[1.5px]" />
@@ -374,7 +404,11 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 onClick={() => router.push('/profile')}
-                className="hidden md:block text-[#2C1810] lg:text-white hover:text-[#B38B46] lg:hover:text-[#E5B56E] transition-colors p-1 drop-shadow-sm cursor-pointer"
+                className={`hidden md:block transition-colors p-1 drop-shadow-sm cursor-pointer ${
+                  !isHome
+                    ? 'text-[#2C1810] hover:text-[#8B2131]'
+                    : (isScrolled ? 'text-white hover:text-[#E5B56E]' : 'text-[#2C1810] lg:text-white hover:text-[#B38B46] lg:hover:text-[#E5B56E]')
+                }`}
                 aria-label="Wishlist"
               >
                 <Heart className="w-5 h-5 stroke-[1.5px]" />
@@ -384,7 +418,11 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
               {user ? (
                 <MobileDropdown>
                   <MobileDropdownTrigger className="outline-none">
-                    <motion.div whileHover={{ scale: 1.05 }} className="text-[#2C1810] lg:text-white hover:text-[#B38B46] lg:hover:text-[#E5B56E] transition-colors hidden md:block cursor-pointer p-1 drop-shadow-sm">
+                    <motion.div whileHover={{ scale: 1.05 }} className={`transition-colors hidden md:block cursor-pointer p-1 drop-shadow-sm ${
+                      !isHome
+                        ? 'text-[#2C1810] hover:text-[#8B2131]'
+                        : (isScrolled ? 'text-white hover:text-[#E5B56E]' : 'text-[#2C1810] lg:text-white hover:text-[#B38B46] lg:hover:text-[#E5B56E]')
+                    }`}>
                       <User className="w-5 h-5 stroke-[1.5px]" />
                     </motion.div>
                     <div className="md:hidden text-[#2C1810] p-1">
@@ -409,7 +447,11 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   onClick={() => router.push('/auth')}
-                  className="text-[#2C1810] lg:text-white hover:text-[#B38B46] lg:hover:text-[#E5B56E] transition-colors hidden md:block p-1 drop-shadow-sm cursor-pointer"
+                  className={`transition-colors hidden md:block p-1 drop-shadow-sm cursor-pointer ${
+                    !isHome
+                      ? 'text-[#2C1810] hover:text-[#8B2131]'
+                      : (isScrolled ? 'text-white hover:text-[#E5B56E]' : 'text-[#2C1810] lg:text-white hover:text-[#B38B46] lg:hover:text-[#E5B56E]')
+                  }`}
                   aria-label="Account"
                 >
                   <User className="w-5 h-5 stroke-[1.5px]" />
@@ -420,7 +462,11 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 onClick={toggleCart}
-                className="relative text-[#2C1810] lg:text-white hover:text-[#B38B46] lg:hover:text-[#E5B56E] transition-colors p-1 drop-shadow-sm cursor-pointer"
+                className={`relative transition-colors p-1 drop-shadow-sm cursor-pointer ${
+                  !isHome
+                    ? 'text-[#2C1810] hover:text-[#8B2131]'
+                    : (isScrolled ? 'text-white hover:text-[#E5B56E]' : 'text-[#2C1810] lg:text-white hover:text-[#B38B46] lg:hover:text-[#E5B56E]')
+                }`}
                 aria-label="Shopping Cart"
               >
                 <ShoppingCart className="w-5 h-5 stroke-[1.5px]" />

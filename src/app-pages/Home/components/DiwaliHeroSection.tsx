@@ -55,7 +55,7 @@ const DiwaliHeroSection: React.FC = () => {
     <>
       <section
         id="diwali-hero"
-        className="relative w-screen overflow-hidden select-none bg-[#140A07] pt-[72px] sm:pt-[76px] md:pt-0"
+        className="relative w-screen overflow-hidden select-none bg-[#140A07] pt-0"
         style={{ marginLeft: 'calc(-50vw + 50%)' }}
         aria-label="Ye Diwali, Rajluxmi Wali - The Festive Collection 2026"
       >

@@ -44,7 +44,7 @@ const HeroWhatsAppBar: React.FC = () => {
                   </svg>
                 </span>
               </div>
-              <span className="text-xs sm:text-sm text-[#7D6B5D] font-mono tracking-wide mt-0.5">
+              <span className="text-xs sm:text-sm text-[#7D6B5D] font-orange-avenue tracking-wide mt-0.5">
                 {phone}
               </span>
             </div>
@@ -55,7 +55,7 @@ const HeroWhatsAppBar: React.FC = () => {
             href={formattedWhatsAppUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-6 sm:px-8 py-2.5 sm:py-3 bg-[#00A884] hover:bg-[#008F6F] active:scale-95 text-white font-sans text-xs sm:text-sm font-semibold rounded-xl sm:rounded-full shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer"
+            className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-6 sm:px-8 py-2.5 sm:py-3 bg-[#00A884] hover:bg-[#008F6F] active:scale-95 text-white font-orange-avenue text-xs sm:text-sm font-semibold tracking-wider uppercase rounded-xl sm:rounded-full shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer"
             aria-label="Chat with Raj Luxmi Sweets on WhatsApp"
           >
             {/* WhatsApp Icon */}

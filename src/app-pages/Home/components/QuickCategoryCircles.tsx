@@ -42,7 +42,7 @@ const DEFAULT_MAIN_CATEGORIES: FallbackMeta[] = [
   },
   {
     name: 'Diwali Specials',
-    slug: 'diwali-special',
+    slug: 'diwali-specials',
     subtitle: 'Royal Festive Mithai & Hampers',
     image: 'https://res.cloudinary.com/dmj0smemf/image/upload/f_auto,q_auto/v1791790965/DSC00866_wu7zwn.jpg',
   },
