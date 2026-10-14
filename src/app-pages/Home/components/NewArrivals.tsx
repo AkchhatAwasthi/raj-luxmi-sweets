@@ -6,52 +6,32 @@ import { ChevronLeft, ChevronRight, Sparkles, ArrowRight } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import QuickViewModal from '@/components/QuickViewModal';
 import { supabase } from '@/integrations/supabase/client';
-
 import { useProducts } from '@/hooks/useProducts';
+import { useVisibleInterval } from '@/hooks/useVisibleInterval';
+import { useResponsiveItemsPerView } from '@/hooks/useResponsiveItemsPerView';
 
 const NewArrivals = () => {
   const router = useRouter();
   const { newArrivals, loading } = useProducts();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [itemsPerView, setItemsPerView] = useState(4);
+  const itemsPerView = useResponsiveItemsPerView();
   const [quickViewProduct, setQuickViewProduct] = useState<any | null>(null);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
-
-  useEffect(() => {
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
   const [autoScroll, setAutoScroll] = useState(true);
-  // Use a ref instead of state so updating it doesn't trigger a re-render
-  // and therefore doesn't cause the interval to be torn down and recreated.
   const lastManualActionRef = useRef(0);
 
-  useEffect(() => {
-    if (newArrivals.length > itemsPerView && autoScroll) {
-      const interval = setInterval(() => {
-        if (Date.now() - lastManualActionRef.current < 10000) return;
+  const sectionRef = useVisibleInterval(
+    () => {
+      if (Date.now() - lastManualActionRef.current < 10000) return;
 
-        setCurrentIndex(prev => {
-          const maxIndex = newArrivals.length - itemsPerView;
-          return prev >= maxIndex ? 0 : prev + 1;
-        });
-      }, 5000);
-
-      return () => clearInterval(interval);
-    }
-  }, [newArrivals, itemsPerView, autoScroll]);
-
-  const handleResize = () => {
-    if (window.innerWidth < 640) {
-      setItemsPerView(2);
-    } else if (window.innerWidth < 1024) {
-      setItemsPerView(2.5);
-    } else {
-      setItemsPerView(4);
-    }
-  };
+      setCurrentIndex(prev => {
+        const maxIndex = newArrivals.length - itemsPerView;
+        return prev >= maxIndex ? 0 : prev + 1;
+      });
+    },
+    5000,
+    newArrivals.length > itemsPerView && autoScroll,
+  );
 
   const nextSlide = () => {
     if (currentIndex < newArrivals.length - itemsPerView) {
@@ -103,7 +83,7 @@ const NewArrivals = () => {
   };
 
   return (
-    <section className="py-12 md:py-16 bg-[#F9F3EA] relative overflow-hidden">
+    <section ref={sectionRef as any} className="py-12 md:py-16 bg-[#F9F3EA] relative overflow-hidden">
       {/* Background accent - Rajluxmi Theme */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-[#FFF8F0] rounded-full filter blur-[100px] opacity-60 pointer-events-none"></div>
 

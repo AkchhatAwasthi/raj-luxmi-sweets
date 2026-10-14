@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Tag, Copy, Clock, ArrowRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useVisibleInterval } from '@/hooks/useVisibleInterval';
 // import heroImage from '@/assets/coupon.png';
 
 const SpecialOffers = () => {
@@ -18,15 +19,14 @@ const SpecialOffers = () => {
     fetchCoupons();
   }, []);
 
-  // Auto-rotate coupons every 4 seconds
-  useEffect(() => {
-    if (coupons.length > 1) {
-      const interval = setInterval(() => {
-        setCurrentCouponIndex(prev => (prev + 1) % coupons.length);
-      }, 4000);
-      return () => clearInterval(interval);
-    }
-  }, [coupons.length]);
+  // Visibility-aware auto-rotate coupons every 4 seconds
+  const sectionRef = useVisibleInterval(
+    () => {
+      setCurrentCouponIndex(prev => (prev + 1) % coupons.length);
+    },
+    4000,
+    coupons.length > 1
+  );
 
   const fetchCoupons = async () => {
     try {
@@ -59,7 +59,7 @@ const SpecialOffers = () => {
   };
 
   return (
-    <section className="py-12">
+    <section ref={sectionRef as any} className="py-12">
       {/* Added max-width container with proper padding and margins */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}

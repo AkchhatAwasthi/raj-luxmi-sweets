@@ -327,22 +327,26 @@ const ProductDetail = ({ product }: { product: any }) => {
   }, [product?.id]);
 
   useEffect(() => {
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+    let timer: ReturnType<typeof setTimeout>;
+    const updateSize = () => {
+      if (window.innerWidth < 640) setItemsPerView(1);
+      else if (window.innerWidth < 768) setItemsPerView(2);
+      else if (window.innerWidth < 1024) setItemsPerView(3);
+      else setItemsPerView(4);
+    };
 
-  const handleResize = () => {
-    if (window.innerWidth < 640) {
-      setItemsPerView(1);
-    } else if (window.innerWidth < 768) {
-      setItemsPerView(2);
-    } else if (window.innerWidth < 1024) {
-      setItemsPerView(3);
-    } else {
-      setItemsPerView(4);
-    }
-  };
+    const handleResize = () => {
+      clearTimeout(timer);
+      timer = setTimeout(updateSize, 150);
+    };
+
+    updateSize();
+    window.addEventListener('resize', handleResize, { passive: true });
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(timer);
+    };
+  }, []);
 
   const fetchRelatedProducts = async (categoryId: string, productId: string) => {
     try {

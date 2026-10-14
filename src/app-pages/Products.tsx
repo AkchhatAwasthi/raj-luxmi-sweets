@@ -72,6 +72,12 @@ const Products = ({
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const observer = useRef<IntersectionObserver | null>(null);
 
+  useEffect(() => {
+    return () => {
+      if (observer.current) observer.current.disconnect();
+    };
+  }, []);
+
   // Cached sorted list for current filter to allow instant infinite scrolling with image priority
   const allProductsRef = useRef<any[]>([]);
 

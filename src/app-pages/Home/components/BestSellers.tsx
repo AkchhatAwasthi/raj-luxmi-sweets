@@ -1,59 +1,43 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Star, Shirt, ArrowRight } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import QuickViewModal from '@/components/QuickViewModal';
 import { supabase } from '@/integrations/supabase/client';
 
 import { useProducts } from '@/hooks/useProducts';
+import { useVisibleInterval } from '@/hooks/useVisibleInterval';
+import { useResponsiveItemsPerView } from '@/hooks/useResponsiveItemsPerView';
 
 const BestSellers = () => {
   const router = useRouter();
   const { bestSellers, loading } = useProducts();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [itemsPerView, setItemsPerView] = useState(4);
+  const itemsPerView = useResponsiveItemsPerView();
   const [quickViewProduct, setQuickViewProduct] = useState<any | null>(null);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
 
-  useEffect(() => {
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
   // Auto-scroll carousel with manual override
-  const [autoScroll, setAutoScroll] = useState(true);
   // Use a ref instead of state so updating it doesn't trigger a re-render
   // and therefore doesn't cause the interval to be torn down and recreated.
   const lastManualActionRef = useRef(0);
 
-  useEffect(() => {
-    if (bestSellers.length > itemsPerView && autoScroll) {
-      const interval = setInterval(() => {
-        // Pause auto-scroll for 10 seconds after manual action
-        if (Date.now() - lastManualActionRef.current < 10000) return;
+  // Visibility-aware interval: only ticks when this section is on-screen
+  const sectionRef = useVisibleInterval(
+    () => {
+      // Pause auto-scroll for 10 seconds after manual action
+      if (Date.now() - lastManualActionRef.current < 10000) return;
 
-        setCurrentIndex(prev => {
-          const maxIndex = bestSellers.length - itemsPerView;
-          return prev >= maxIndex ? 0 : prev + 1;
-        });
-      }, 5000); // Slower for luxury feel
-
-      return () => clearInterval(interval);
-    }
-  }, [bestSellers, itemsPerView, autoScroll]);
-
-  const handleResize = () => {
-    if (window.innerWidth < 640) {
-      setItemsPerView(2); // Mobile: 2 cards at a time
-    } else if (window.innerWidth < 1024) {
-      setItemsPerView(2.5);
-    } else {
-      setItemsPerView(4);
-    }
-  };
+      setCurrentIndex(prev => {
+        const maxIndex = bestSellers.length - itemsPerView;
+        return prev >= maxIndex ? 0 : prev + 1;
+      });
+    },
+    5000, // Slower for luxury feel
+    bestSellers.length > itemsPerView,
+  );
 
   const nextSlide = () => {
     if (currentIndex < bestSellers.length - itemsPerView) {
@@ -121,7 +105,7 @@ const BestSellers = () => {
   };
 
   return (
-    <section className="py-12 md:py-16 bg-[#F9F3EA] relative overflow-hidden">
+    <section ref={sectionRef as any} className="py-12 md:py-16 bg-[#F9F3EA] relative overflow-hidden">
       {/* Background accent - Rajluxmi Theme */}
       <div className="absolute top-0 left-0 w-full h-full bg-[#F9F3EA] -z-10"></div>
 

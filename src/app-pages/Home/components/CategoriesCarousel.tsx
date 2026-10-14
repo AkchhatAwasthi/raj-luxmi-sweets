@@ -13,8 +13,7 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import Image from 'next/image';
-
-
+import { useVisibleInterval } from '@/hooks/useVisibleInterval';
 
 const CategoriesCarousel = () => {
   const router = useRouter();
@@ -22,16 +21,14 @@ const CategoriesCarousel = () => {
   const { categories, loading } = useCategories();
   const [api, setApi] = useState<CarouselApi>();
 
-  // Auto-scroll logic
-  useEffect(() => {
-    if (!api) return;
-
-    const intervalId = setInterval(() => {
-      api.scrollNext();
-    }, 4000);
-
-    return () => clearInterval(intervalId);
-  }, [api]);
+  // Visibility-aware auto-scroll logic
+  const sectionRef = useVisibleInterval(
+    () => {
+      if (api) api.scrollNext();
+    },
+    4000,
+    Boolean(api && categories.length > 0)
+  );
 
   const handleCategoryClick = (category: { name: string; slug?: string | null; id?: string }) => {
     router.push(`/category/${category.slug || category.id || category.name}`);
@@ -61,7 +58,7 @@ const CategoriesCarousel = () => {
   if (categories.length === 0) return null;
 
   return (
-    <section className="py-8 md:py-12 bg-[#F9F3EA]">
+    <section ref={sectionRef as any} className="py-8 md:py-12 bg-[#F9F3EA]">
       <div className="w-full max-w-[1800px] mx-auto px-4 md:px-8 lg:px-12">
 
         {/* Section Title - Minimal */}

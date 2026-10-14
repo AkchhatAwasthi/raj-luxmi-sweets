@@ -14,6 +14,7 @@ import {
   type CarouselApi,
 } from '@/components/ui/carousel';
 import { Instagram, Sparkles } from 'lucide-react';
+import { useVisibleInterval } from '@/hooks/useVisibleInterval';
 
 interface InstagramPost {
   id: string;
@@ -25,7 +26,16 @@ const InstagramCarousel = () => {
   const [instagramPosts, setInstagramPosts] = useState<InstagramPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [api, setApi] = useState<CarouselApi | null>(null);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [isHovered, setIsHovered] = useState(false);
+
+  // Visibility-aware auto-scroll hook
+  const sectionRef = useVisibleInterval(
+    () => {
+      if (api) api.scrollNext();
+    },
+    4000,
+    Boolean(api && instagramPosts.length > 0 && !isHovered)
+  );
 
   useEffect(() => {
     fetchInstagramPosts();
@@ -48,34 +58,6 @@ const InstagramCarousel = () => {
       setLoading(false);
     }
   };
-
-  // Set up the API reference
-  useEffect(() => {
-    if (!api) {
-      return;
-    }
-
-    // Auto-scroll functionality
-    const startAutoScroll = () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-
-      intervalRef.current = setInterval(() => {
-        if (api) {
-          api.scrollNext();
-        }
-      }, 4000); // Auto-scroll every 4 seconds
-    };
-
-    startAutoScroll();
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [api]);
 
   // Load Instagram embed script only once on initial component mount.
   // Previously this ran on every instagramPosts state change, causing
@@ -132,7 +114,7 @@ const InstagramCarousel = () => {
   }
 
   return (
-    <section className="py-24 bg-[#F9F3EA] relative overflow-hidden">
+    <section ref={sectionRef as any} className="py-24 bg-[#F9F3EA] relative overflow-hidden">
       {/* Royal Background Accents */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#FFEBE8] rounded-full filter blur-[100px] opacity-60 pointer-events-none -translate-y-1/2 translate-x-1/2"></div>
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#E6D5B8] rounded-full filter blur-[100px] opacity-30 pointer-events-none translate-y-1/2 -translate-x-1/2"></div>
@@ -169,15 +151,8 @@ const InstagramCarousel = () => {
               loop: true,
             }}
             className="w-full"
-            onMouseEnter={() => {
-              if (intervalRef.current) clearInterval(intervalRef.current);
-            }}
-            onMouseLeave={() => {
-              if (intervalRef.current) clearInterval(intervalRef.current);
-              intervalRef.current = setInterval(() => {
-                if (api) api.scrollNext();
-              }, 4000);
-            }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
           >
             <CarouselContent className="-ml-4">
               {instagramPosts.map((post) => (

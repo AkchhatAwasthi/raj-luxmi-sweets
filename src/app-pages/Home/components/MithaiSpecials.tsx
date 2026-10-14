@@ -6,48 +6,36 @@ import { ChevronLeft, ChevronRight, Candy, ArrowRight } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import QuickViewModal from '@/components/QuickViewModal';
 import { supabase } from '@/integrations/supabase/client';
+import { useVisibleInterval } from '@/hooks/useVisibleInterval';
+import { useResponsiveItemsPerView } from '@/hooks/useResponsiveItemsPerView';
 
 const MithaiSpecials = () => {
   const router = useRouter();
   const [mithaiProducts, setMithaiProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [itemsPerView, setItemsPerView] = useState(4);
+  const itemsPerView = useResponsiveItemsPerView();
   const [quickViewProduct, setQuickViewProduct] = useState<any | null>(null);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
-
-  useEffect(() => {
-    fetchMithaiProducts();
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
   const [autoScroll, setAutoScroll] = useState(true);
-  // Use a ref instead of state so updating it doesn't trigger a re-render
-  // and therefore doesn't cause the interval to be torn down and recreated.
   const lastManualActionRef = useRef(0);
 
   useEffect(() => {
-    if (mithaiProducts.length > itemsPerView && autoScroll) {
-      const interval = setInterval(() => {
-        if (Date.now() - lastManualActionRef.current < 10000) return;
+    fetchMithaiProducts();
+  }, []);
 
-        setCurrentIndex(prev => {
-          const maxIndex = mithaiProducts.length - itemsPerView;
-          return prev >= maxIndex ? 0 : prev + 1;
-        });
-      }, 5000);
+  const sectionRef = useVisibleInterval(
+    () => {
+      if (Date.now() - lastManualActionRef.current < 10000) return;
 
-      return () => clearInterval(interval);
-    }
-  }, [mithaiProducts, itemsPerView, autoScroll]);
-
-  const handleResize = () => {
-    if (window.innerWidth < 640) setItemsPerView(2);
-    else if (window.innerWidth < 1024) setItemsPerView(2.5);
-    else setItemsPerView(4);
-  };
+      setCurrentIndex(prev => {
+        const maxIndex = mithaiProducts.length - itemsPerView;
+        return prev >= maxIndex ? 0 : prev + 1;
+      });
+    },
+    5000,
+    mithaiProducts.length > itemsPerView && autoScroll,
+  );
 
   const fetchMithaiProducts = async () => {
     try {
@@ -149,7 +137,7 @@ const MithaiSpecials = () => {
   };
 
   return (
-    <section className="py-12 md:py-16 bg-[#F9F3EA] relative overflow-hidden">
+    <section ref={sectionRef as any} className="py-12 md:py-16 bg-[#F9F3EA] relative overflow-hidden">
       <div className="max-w-[1600px] mx-auto px-6 relative z-10">
 
         <div className="flex flex-col items-center justify-center text-center mb-8 gap-4 border-b border-[#D4C3A3]/30 pb-4 relative">

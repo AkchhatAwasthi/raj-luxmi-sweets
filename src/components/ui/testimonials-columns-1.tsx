@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Testimonial } from '@/data/testimonials';
 
 export const TestimonialsColumn = (props: {
@@ -9,14 +9,36 @@ export const TestimonialsColumn = (props: {
   duration?: number;
 }) => {
   const duration = props.duration || 25;
+  const colRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    const node = colRef.current;
+    if (!node) return;
+
+    const io = new IntersectionObserver(([entry]) => {
+      setIsVisible(entry.isIntersecting && !document.hidden);
+    }, { threshold: 0 });
+    io.observe(node);
+
+    const onVisibility = () => {
+      setIsVisible(!document.hidden);
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      io.disconnect();
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, []);
 
   return (
-    <div className={props.className}>
+    <div ref={colRef} className={props.className}>
       <div
         className="flex flex-col gap-6 pb-6 select-none"
         style={{
           animation: `testimonials-scroll ${duration}s linear infinite`,
-          willChange: 'transform',
+          animationPlayState: isVisible ? 'running' : 'paused',
         }}
       >
         {/* Create two sets of testimonials for infinite scrolling effect */}

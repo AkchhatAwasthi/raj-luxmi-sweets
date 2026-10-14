@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 interface MarqueeSectionProps {
   items?: string[];
@@ -21,13 +21,39 @@ const MarqueeSection: React.FC<MarqueeSectionProps> = ({
   duration = "30s",
   className = "py-2.5"
 }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    const node = containerRef.current;
+    if (!node) return;
+
+    const io = new IntersectionObserver(([entry]) => {
+      setIsVisible(entry.isIntersecting && !document.hidden);
+    }, { threshold: 0 });
+    io.observe(node);
+
+    const onVisibility = () => {
+      setIsVisible(!document.hidden);
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      io.disconnect();
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, []);
+
   return (
-    <div className={`w-full bg-[#F9F3EA] overflow-hidden border-y border-[#B38B46]/20 relative z-20 ${className}`}>
+    <div
+      ref={containerRef}
+      className={`w-full bg-[#F9F3EA] overflow-hidden border-y border-[#B38B46]/20 relative z-20 ${className}`}
+    >
       <div
         className="flex w-max select-none"
         style={{
           animation: `infinite-marquee-scroll ${duration} linear infinite`,
-          willChange: 'transform',
+          animationPlayState: isVisible ? 'running' : 'paused',
         }}
       >
         {/* Render 2 copies for smooth continuous loop */}

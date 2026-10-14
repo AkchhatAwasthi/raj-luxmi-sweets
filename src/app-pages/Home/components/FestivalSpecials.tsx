@@ -6,48 +6,37 @@ import { ChevronLeft, ChevronRight, Gift, ArrowRight } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import QuickViewModal from '@/components/QuickViewModal';
 import { supabase } from '@/integrations/supabase/client';
+import { useVisibleInterval } from '@/hooks/useVisibleInterval';
+import { useResponsiveItemsPerView } from '@/hooks/useResponsiveItemsPerView';
 
 const FestivalSpecials = () => {
   const router = useRouter();
   const [festivalProducts, setFestivalProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [itemsPerView, setItemsPerView] = useState(4);
+  const itemsPerView = useResponsiveItemsPerView();
   const [quickViewProduct, setQuickViewProduct] = useState<any | null>(null);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
 
   useEffect(() => {
     fetchFestivalProducts();
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const [autoScroll, setAutoScroll] = useState(true);
-  // Use a ref instead of state so updating it doesn't trigger a re-render
-  // and therefore doesn't cause the interval to be torn down and recreated.
   const lastManualActionRef = useRef(0);
 
-  useEffect(() => {
-    if (festivalProducts.length > itemsPerView && autoScroll) {
-      const interval = setInterval(() => {
-        if (Date.now() - lastManualActionRef.current < 10000) return;
+  const sectionRef = useVisibleInterval(
+    () => {
+      if (Date.now() - lastManualActionRef.current < 10000) return;
 
-        setCurrentIndex(prev => {
-          const maxIndex = festivalProducts.length - itemsPerView;
-          return prev >= maxIndex ? 0 : prev + 1;
-        });
-      }, 5000);
-
-      return () => clearInterval(interval);
-    }
-  }, [festivalProducts, itemsPerView, autoScroll]);
-
-  const handleResize = () => {
-    if (window.innerWidth < 640) setItemsPerView(2);
-    else if (window.innerWidth < 1024) setItemsPerView(2.5);
-    else setItemsPerView(4);
-  };
+      setCurrentIndex(prev => {
+        const maxIndex = festivalProducts.length - itemsPerView;
+        return prev >= maxIndex ? 0 : prev + 1;
+      });
+    },
+    5000,
+    festivalProducts.length > itemsPerView && autoScroll,
+  );
 
   const fetchFestivalProducts = async () => {
     try {
@@ -148,7 +137,7 @@ const FestivalSpecials = () => {
   };
 
   return (
-    <section className="py-12 md:py-16 bg-[#F9F3EA] relative overflow-hidden">
+    <section ref={sectionRef as any} className="py-12 md:py-16 bg-[#F9F3EA] relative overflow-hidden">
       {/* Background accent */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#FFFDF7] to-[#FFF8F0] opacity-50 -z-10"></div>
 

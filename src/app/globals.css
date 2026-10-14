@@ -282,4 +282,10 @@
   text-transform: none !important;
 }
 
+/* Optimize rendering and reduce main-thread memory pressure on long pages */
+.section-content-visibility {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 600px;
+}
+
 
