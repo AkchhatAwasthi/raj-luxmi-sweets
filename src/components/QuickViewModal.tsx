@@ -34,8 +34,12 @@ const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, isOpen, onClos
   const addToCart = useStore((state) => state.addToCart);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
-
   const [isHovered, setIsHovered] = useState(false);
+
+  const variants = Array.isArray(product?.variants) && product.variants.length > 0 ? product.variants : [];
+  const hasVariants = variants.length > 0;
+  const initialVariant = variants.find((v: any) => v.is_default) || variants[0] || null;
+  const [selectedVariant, setSelectedVariant] = useState(initialVariant);
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -54,30 +58,48 @@ const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, isOpen, onClos
     if (product) {
       setSelectedImageIndex(0);
       setQuantity(1);
+      if (product.variants && Array.isArray(product.variants) && product.variants.length > 0) {
+        const def = product.variants.find((v: any) => v.is_default) || product.variants[0];
+        setSelectedVariant(def);
+      } else {
+        setSelectedVariant(null);
+      }
     }
   }, [product]);
 
-
-
   if (!product) return null;
 
+  const activePrice = selectedVariant ? Number(selectedVariant.price) : Number(product.price);
+  const activeOriginalPrice = selectedVariant?.original_price !== undefined && selectedVariant?.original_price !== null
+    ? (selectedVariant.original_price ? Number(selectedVariant.original_price) : undefined)
+    : (product.originalPrice || product.original_price);
+  const activeWeight = selectedVariant?.weight || product.weight || '';
+  const activePieces = selectedVariant?.pieces || product.pieces || '';
+  const activeStock = selectedVariant?.stock_quantity !== undefined ? selectedVariant.stock_quantity : product.stock_quantity;
+
   const images = product.images || [product.image];
-  const discount = product.originalPrice
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+  const discount = activeOriginalPrice && activeOriginalPrice > activePrice
+    ? Math.round(((activeOriginalPrice - activePrice) / activeOriginalPrice) * 100)
     : 0;
 
   const handleAddToCart = () => {
+    const cartItemKey = selectedVariant ? `${product.id}_${selectedVariant.id}` : product.id;
     for (let i = 0; i < quantity; i++) {
-      // Fix: Explicitly map all required StoreProduct fields
       addToCart({
         ...product,
+        cartItemId: cartItemKey,
+        variantId: selectedVariant?.id,
+        variantTitle: selectedVariant?.title,
+        selectedVariant: selectedVariant || undefined,
+        price: activePrice,
+        originalPrice: activeOriginalPrice,
         image: product.images?.[0] || product.image || '/placeholder.svg',
         category: product.category || 'General',
         description: product.description || '',
-        inStock: product.stock_quantity !== undefined ? product.stock_quantity > 0 : true,
+        inStock: activeStock !== undefined ? activeStock > 0 : true,
         slug: product.slug || product.id,
-        weight: product.weight || '',
-        pieces: product.pieces || ''
+        weight: activeWeight,
+        pieces: activePieces
       } as any);
     }
     onClose();
@@ -94,9 +116,9 @@ const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, isOpen, onClos
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-0 md:p-4">
-          {/* Backdrop with Blur */}
+          {/* Backdrop */}
           <motion.div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/75"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -192,43 +214,89 @@ const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, isOpen, onClos
                         <span className="text-xs font-medium text-[#5C4638]">{product.rating}</span>
                       </div>
                     )}
-                    <span className={`text-xs font-medium px-2 py-1 rounded-md ${(product.stock_quantity !== undefined && product.stock_quantity <= 0)
+                    <span className={`text-xs font-medium px-2 py-1 rounded-md ${(activeStock !== undefined && activeStock <= 0)
                       ? 'bg-red-50 text-red-700'
                       : 'bg-green-50 text-green-700'
                       }`}>
-                      {(product.stock_quantity !== undefined && product.stock_quantity <= 0) ? 'Out of Stock' : 'In Stock'}
+                      {(activeStock !== undefined && activeStock <= 0) ? 'Out of Stock' : 'In Stock'}
                     </span>
                   </div>
                 </div>
 
                 {/* Price Block */}
-                <div className="flex items-baseline gap-3 mb-8 pb-6 border-b border-[#F0E6D9]">
+                <div className="flex items-baseline gap-3 mb-6 pb-4 border-b border-[#F0E6D9]">
                   <span className="text-3xl font-light text-[#2C1810] font-orange-avenue font-normal">
-                    {formatPrice(product.price)}
+                    {formatPrice(activePrice)}
                   </span>
-                  {product.originalPrice && (
+                  {activeOriginalPrice && (
                     <span className="text-lg text-[#D4B6A2] line-through decoration-1">
-                      {formatPrice(product.originalPrice)}
+                      {formatPrice(activeOriginalPrice)}
+                    </span>
+                  )}
+                  {discount > 0 && (
+                    <span className="text-xs font-bold text-[#8B2131] border border-[#8B2131] px-2 py-0.5 rounded-sm">
+                      {discount}% OFF
                     </span>
                   )}
                 </div>
 
+                {/* Variant Options Selector */}
+                {hasVariants && (
+                  <div className="mb-6 p-3.5 bg-gradient-to-b from-[#FDFCF8] to-[#F7F2E8] border border-[#E8DEC8] rounded-2xl shadow-xs space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#8B2131]" />
+                        <span className="text-[11px] font-semibold text-[#5D4037] uppercase tracking-[0.14em]">
+                          Select Option / Weight
+                        </span>
+                      </div>
+                      {selectedVariant && (
+                        <span className="text-[11px] font-bold text-[#8B2131] bg-[#8B2131]/10 border border-[#8B2131]/20 px-2 py-0.5 rounded-full">
+                          {selectedVariant.title}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {variants.map((v: any) => {
+                        const isSelected = selectedVariant?.id === v.id;
+                        return (
+                          <button
+                            key={v.id}
+                            type="button"
+                            onClick={() => setSelectedVariant(v)}
+                            className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all text-left flex items-center gap-1.5 ${
+                              isSelected
+                                ? 'bg-white text-[#8B2131] border-[#8B2131] shadow-xs ring-1.5 ring-[#8B2131]/20'
+                                : 'bg-white/80 text-[#2C1810] border-[#E6D5B8]/80 hover:border-[#B38B46]/60 hover:bg-white'
+                            }`}
+                          >
+                            <span className="font-bold">{v.title}</span>
+                            <span className={`text-[11px] font-normal ${isSelected ? 'text-[#8B2131]' : 'text-[#5D4037]/75'}`}>
+                              • {formatPrice(v.price)}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 {/* Description */}
-                <div className="mb-8">
+                <div className="mb-6">
                   <p className="text-[#5D4037] text-sm md:text-base leading-relaxed font-light">
                     {product.description || "Experience the royal taste of authentic ingredients handcrafted to perfection. A delight for your senses."}
                   </p>
 
                   {/* Weight/Pieces Feature Pills */}
                   <div className="flex flex-wrap gap-2 mt-4">
-                    {product.weight && (
+                    {activeWeight && (
                       <div className="text-xs text-[#5C4638] bg-[#F9F3EA] px-3 py-1.5 rounded-full font-medium">
-                        Weight: {product.weight}
+                        Weight: {activeWeight}
                       </div>
                     )}
-                    {product.pieces && (
+                    {activePieces && (
                       <div className="text-xs text-[#5C4638] bg-[#F9F3EA] px-3 py-1.5 rounded-full font-medium">
-                        Contains: {product.pieces}
+                        Contains: {activePieces}
                       </div>
                     )}
                   </div>

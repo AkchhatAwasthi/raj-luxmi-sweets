@@ -92,16 +92,6 @@ export const TestimonialsColumn = (props: {
         ))}
       </div>
 
-      <style jsx global>{`
-        @keyframes testimonials-scroll {
-          0% {
-            transform: translateY(0);
-          }
-          100% {
-            transform: translateY(-50%);
-          }
-        }
-      `}</style>
     </div>
   );
 };

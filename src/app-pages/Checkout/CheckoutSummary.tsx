@@ -168,7 +168,7 @@ const CheckoutSummary = ({
               <CardContent className="p-0">
                 <div className="divide-y divide-[#E6D5B8]/50">
                   {cartItems.map((item) => (
-                    <div key={item.id} className="flex p-4 hover:bg-[#FFFDF7] transition-colors">
+                    <div key={item.cartItemId || item.id} className="flex p-4 hover:bg-[#FFFDF7] transition-colors">
                       <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border border-[#E6D5B8]">
                         <img
                           src={item.image}
@@ -182,7 +182,13 @@ const CheckoutSummary = ({
                             <h3 className="font-instrument font-normal tracking-wide uppercase">{item.name}</h3>
                             <p className="ml-4">{formatPrice(item.price * item.quantity)}</p>
                           </div>
-                          <p className="mt-1 text-sm text-[#5D4037]">{item.weight}</p>
+                          <p className="mt-1 text-sm text-[#5D4037]">
+                            {item.variantTitle ? (
+                              <span className="font-semibold text-[#8B2131]">Option: {item.variantTitle} {item.weight && item.weight !== item.variantTitle ? `(${item.weight})` : ''}</span>
+                            ) : (
+                              item.weight
+                            )}
+                          </p>
                         </div>
                         <div className="flex flex-1 items-end justify-between text-sm">
                           <p className="text-[#5D4037]">Qty {item.quantity}</p>

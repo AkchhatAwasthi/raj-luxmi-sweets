@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Plus, Star, Eye, Heart, ShoppingBag } from 'lucide-react';
 import { useStore, Product as StoreProduct } from '@/store/useStore';
 import { formatPrice } from '@/utils/currency';
@@ -55,18 +54,32 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
 
   const displayImage = isHovered ? hoverImage : primaryImage;
 
+  const variants = Array.isArray(product.variants) && product.variants.length > 0 ? product.variants : [];
+  const hasVariants = variants.length > 0;
+  const defaultVar = variants.find((v: any) => v.is_default) || variants[0] || null;
+  const minPrice = hasVariants
+    ? Math.min(...variants.map((v: any) => Number(v.price) || product.price))
+    : product.price;
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
+    const cartItemKey = defaultVar ? `${product.id}_${defaultVar.id}` : product.id;
     // Ensure product matches StoreProduct requirements
     const cartProduct: StoreProduct = {
       ...product,
+      cartItemId: cartItemKey,
+      variantId: defaultVar?.id,
+      variantTitle: defaultVar?.title,
+      selectedVariant: defaultVar || undefined,
+      price: defaultVar ? Number(defaultVar.price) : Number(product.price),
+      originalPrice: defaultVar?.original_price ? Number(defaultVar.original_price) : product.originalPrice,
       image: primaryImage,
       category: product.category || 'General',
       description: product.description || '',
-      inStock: product.inStock ?? (product.stock_quantity !== undefined ? product.stock_quantity > 0 : true),
+      inStock: product.inStock ?? ((defaultVar?.stock_quantity ?? product.stock_quantity) !== undefined ? (defaultVar?.stock_quantity ?? product.stock_quantity) > 0 : true),
       slug: product.slug || product.id,
-      weight: product.weight || '',
-      pieces: product.pieces || '',
+      weight: defaultVar?.weight || product.weight || '',
+      pieces: defaultVar?.pieces || product.pieces || '',
       rating: product.rating || 0,
       // Handle features type mismatch (local string[] vs store object)
       features: undefined
@@ -97,7 +110,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
 
   if (variant === 'list') {
     return (
-      <motion.div
+      <div
         className="group cursor-pointer bg-white overflow-hidden relative flex flex-col sm:flex-row border border-[#E6D5B8]/30 hover:shadow-lg transition-all duration-300 rounded-none h-auto sm:h-52"
         onClick={onViewDetail}
         onMouseEnter={() => setIsHovered(true)}
@@ -109,22 +122,21 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
           {!primaryLoaded && (
             <div className="absolute inset-0 bg-gradient-to-r from-[#F0EBE0] via-[#FFF8F0] to-[#F0EBE0] animate-pulse" />
           )}
-          <motion.img
+          <img
             src={displayImage}
             alt={product.name}
             loading="lazy"
             decoding="async"
-            className={`w-full h-full object-cover transition-all duration-500 ${primaryLoaded ? 'opacity-100' : 'opacity-0'}`}
-            animate={{ scale: isHovered ? 1.05 : 1 }}
+            className={`w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105 ${primaryLoaded ? 'opacity-100' : 'opacity-0'}`}
             onLoad={() => setPrimaryLoaded(true)}
           />
           {/* Badges */}
-          <div className="absolute top-0 left-0 flex flex-col gap-1 p-2">
+          <div className="absolute top-0 left-0 flex flex-col gap-1 p-2 pointer-events-none">
             {product.isBestSeller && (
-              <span className="bg-[#2C1810] text-white px-2 py-0.5 text-[9px] uppercase tracking-wider font-medium">Bestseller</span>
+              <span className="bg-[#2C1810] text-white px-2 py-0.5 text-[9px] uppercase tracking-wider font-medium shadow-xs">Bestseller</span>
             )}
             {discount > 0 && (
-              <span className="bg-[#D32F2F] text-white px-2 py-0.5 text-[9px] uppercase tracking-wider font-medium">-{discount}%</span>
+              <span className="bg-[#D32F2F] text-white px-2 py-0.5 text-[9px] uppercase tracking-wider font-medium shadow-xs">-{discount}%</span>
             )}
           </div>
         </div>
@@ -156,9 +168,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
 
           <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 mt-4">
             <div className="space-y-1">
-              <div className="flex items-baseline gap-3">
+              <div className="flex items-baseline gap-2">
+                {hasVariants && <span className="text-xs text-[#5D4037]/70 font-light">From</span>}
                 <span className="text-xl font-normal text-[#2C1810] font-orange-avenue">
-                  {formatPriceWithGST(product.price)}
+                  {formatPriceWithGST(minPrice)}
                 </span>
                 {product.originalPrice && (
                   <span className="text-sm text-[#5D4037]/50 line-through decoration-[#5D4037]/30">
@@ -166,11 +179,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
                   </span>
                 )}
               </div>
-              {product.weight && (
+              {hasVariants ? (
+                <span className="text-xs text-[#8B2131] font-medium uppercase tracking-wider block">
+                  {variants.length} Options Available • {defaultVar?.weight || product.weight}
+                </span>
+              ) : product.weight ? (
                 <span className="text-xs text-[#5D4037] uppercase tracking-wider font-light block">
                   {product.weight} {product.pieces ? `• ${product.pieces}` : ''}
                 </span>
-              )}
+              ) : null}
             </div>
 
             <div className="flex gap-3 w-full sm:w-auto">
@@ -194,12 +211,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
     );
   }
 
   return (
-    <motion.div
+    <div
       className="group cursor-pointer bg-white overflow-hidden relative flex flex-col border border-[#E8DED1]/50 hover:border-[#B38B46]/40 hover:shadow-md transition-all duration-300 rounded-sm"
       onClick={onViewDetail}
       onMouseEnter={() => setIsHovered(true)}
@@ -213,51 +230,49 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
         {!primaryLoaded && (
           <div className="absolute inset-0 bg-gradient-to-r from-[#F7F3EB] via-[#FFFDF9] to-[#F7F3EB] animate-pulse" />
         )}
-        <motion.img
+        <img
           src={primaryImage}
           alt={product.name}
           loading="lazy"
           decoding="async"
-          className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-out ${
+          className={`absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105 ${
             isHovered && hoverImage !== primaryImage ? 'opacity-0' : primaryLoaded ? 'opacity-100' : 'opacity-0'
           }`}
-          animate={{ scale: isHovered ? 1.04 : 1 }}
           onLoad={() => setPrimaryLoaded(true)}
         />
         {/* Hover image */}
         {hoverImage !== primaryImage && (
-          <motion.img
+          <img
             src={hoverImage}
             alt={product.name}
             loading="lazy"
             decoding="async"
-            className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-out ${
+            className={`absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105 ${
               isHovered && hoverLoaded ? 'opacity-100' : 'opacity-0'
             }`}
-            animate={{ scale: isHovered ? 1.04 : 1 }}
             onLoad={() => setHoverLoaded(true)}
           />
         )}
 
         {/* Badges - Minimal & Refined */}
-        <div className="absolute top-1.5 left-1.5 flex flex-col gap-1 z-10">
+        <div className="absolute top-1.5 left-1.5 flex flex-col gap-1 z-10 pointer-events-none">
           {product.category === FEATURED_CATEGORY && (
-            <span className="bg-[#783838]/90 text-[#FAF9F6] px-1.5 py-0.5 text-[8px] uppercase tracking-wider font-orange-avenue backdrop-blur-xs">
+            <span className="bg-[#783838] text-[#FAF9F6] px-1.5 py-0.5 text-[8px] uppercase tracking-wider font-orange-avenue shadow-xs">
               {FEATURED_CATEGORY}
             </span>
           )}
           {product.isBestSeller && (
-            <span className="bg-[#2C1810]/90 text-[#FAF9F6] px-1.5 py-0.5 text-[8px] uppercase tracking-wider font-orange-avenue backdrop-blur-xs">
+            <span className="bg-[#2C1810] text-[#FAF9F6] px-1.5 py-0.5 text-[8px] uppercase tracking-wider font-orange-avenue shadow-xs">
               Bestseller
             </span>
           )}
           {product.isNew && (
-            <span className="bg-[#B38B46]/90 text-[#2C1810] px-1.5 py-0.5 text-[8px] uppercase tracking-wider font-orange-avenue backdrop-blur-xs font-medium">
+            <span className="bg-[#B38B46] text-[#2C1810] px-1.5 py-0.5 text-[8px] uppercase tracking-wider font-orange-avenue font-medium shadow-xs">
               New
             </span>
           )}
           {discount > 0 && (
-            <span className="bg-[#A02D2D]/90 text-white px-1.5 py-0.5 text-[8px] uppercase tracking-wider font-orange-avenue backdrop-blur-xs">
+            <span className="bg-[#A02D2D] text-white px-1.5 py-0.5 text-[8px] uppercase tracking-wider font-orange-avenue shadow-xs">
               -{discount}%
             </span>
           )}
@@ -267,8 +282,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
         <div className="absolute top-1.5 right-1.5 flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
           <button
             onClick={handleLike}
-            className={`p-1.5 rounded-full backdrop-blur-sm transition-colors ${
-              isLiked ? 'bg-[#783838] text-white' : 'bg-white/90 text-[#2C1810] hover:bg-[#783838] hover:text-white'
+            className={`p-1.5 rounded-full transition-colors shadow-sm ${
+              isLiked ? 'bg-[#783838] text-white' : 'bg-white/95 text-[#2C1810] hover:bg-[#783838] hover:text-white'
             }`}
             aria-label="Add to Wishlist"
           >
@@ -278,7 +293,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
           {onQuickView && (
             <button
               onClick={handleQuickView}
-              className="p-1.5 rounded-full bg-white/90 text-[#2C1810] hover:bg-[#783838] hover:text-white backdrop-blur-sm transition-colors"
+              className="p-1.5 rounded-full bg-white/95 text-[#2C1810] hover:bg-[#783838] hover:text-white transition-colors shadow-sm"
               aria-label="Quick View"
             >
               <Eye className="w-3 h-3" />
@@ -305,15 +320,20 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
           {product.name}
         </h3>
 
-        {product.weight && (
+        {hasVariants ? (
+          <span className="text-[10px] text-[#8B2131] font-medium uppercase tracking-wider">
+            {variants.length} Sizes • {defaultVar?.weight || product.weight}
+          </span>
+        ) : product.weight ? (
           <span className="text-[10px] text-[#783838]/70 uppercase tracking-wider font-light">
             {product.weight}
           </span>
-        )}
+        ) : null}
 
-        <div className="flex items-center justify-center gap-2 mt-0.5">
+        <div className="flex items-center justify-center gap-1.5 mt-0.5">
+          {hasVariants && <span className="text-[10px] text-[#5D4037]/70 font-light">From</span>}
           <span className="text-xs sm:text-sm font-normal text-[#2C1810] font-orange-avenue">
-            {formatPriceWithGST(product.price)}
+            {formatPriceWithGST(minPrice)}
           </span>
           {product.originalPrice && (
             <span className="text-[11px] text-[#5D4037]/50 line-through decoration-[#5D4037]/30">
@@ -329,7 +349,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 };
 

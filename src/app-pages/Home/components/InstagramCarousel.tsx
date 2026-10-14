@@ -116,8 +116,8 @@ const InstagramCarousel = () => {
   return (
     <section ref={sectionRef as any} className="py-24 bg-[#F9F3EA] relative overflow-hidden">
       {/* Royal Background Accents */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#FFEBE8] rounded-full filter blur-[100px] opacity-60 pointer-events-none -translate-y-1/2 translate-x-1/2"></div>
-      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#E6D5B8] rounded-full filter blur-[100px] opacity-30 pointer-events-none translate-y-1/2 -translate-x-1/2"></div>
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[radial-gradient(circle,_#FFEBE8_0%,_transparent_70%)] opacity-70 pointer-events-none -translate-y-1/2 translate-x-1/2"></div>
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[radial-gradient(circle,_#E6D5B8_0%,_transparent_70%)] opacity-40 pointer-events-none translate-y-1/2 -translate-x-1/2"></div>
 
       <div className="max-w-[1600px] mx-auto px-6 relative z-10">
         <motion.div

@@ -6,7 +6,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ShoppingCart, User, Menu, Search, Heart, X, ChevronDown, ChevronRight, ChevronLeft, LogOut } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { useAuth } from '@/contexts/AuthContext';
-import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 import {
   DropdownMenu as MobileDropdown,
@@ -130,6 +130,87 @@ const DeliveryCategoryDropdown: React.FC<DeliveryCategoryDropdownProps> = ({
   );
 };
 
+interface MobileMenuItemProps {
+  label: string;
+  path?: string;
+  onClick?: () => void;
+  subItems?: any[];
+  onNavigate?: (path: string) => void;
+  onClose?: () => void;
+}
+
+const MobileMenuItem: React.FC<MobileMenuItemProps> = ({
+  label,
+  path,
+  onClick,
+  subItems,
+  onNavigate,
+  onClose,
+}) => {
+  const router = useRouter();
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const navigateTo = (p: string) => {
+    if (onNavigate) onNavigate(p);
+    else router.push(p);
+    if (onClose) onClose();
+  };
+
+  return (
+    <div className="border-b border-[#D4B6A2]/20 last:border-0 bg-[#FAF9F6] bg-opacity-100">
+      <button
+        onClick={() => {
+          if (subItems && subItems.length > 0) setIsExpanded(!isExpanded);
+          else {
+            if (path) navigateTo(path);
+            if (onClick) onClick();
+            if (onClose) onClose();
+          }
+        }}
+        className="flex items-center justify-between w-full py-4 px-6 text-left group cursor-pointer"
+      >
+        <span className={`text-xs font-orange-avenue uppercase tracking-wider transition-colors ${isExpanded ? 'text-[#B38B46]' : 'text-[#2C1810]'}`}>
+          {label}
+        </span>
+        {subItems && subItems.length > 0 ? (
+          <ChevronDown className={`w-4 h-4 text-[#D4B6A2] transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
+        ) : (
+          <ChevronRight className="w-4 h-4 text-[#D4B6A2] opacity-60 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+        )}
+      </button>
+      <AnimatePresence>
+        {isExpanded && subItems && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden bg-[#E5D8C6]/15"
+          >
+            {subItems.map((sub, idx) => (
+              <button
+                key={idx}
+                onClick={() => {
+                  if (sub.onClick) {
+                    sub.onClick();
+                  } else if (sub.path) {
+                    navigateTo(sub.path);
+                  } else {
+                    navigateTo(`/category/${sub.slug || sub.name}`);
+                  }
+                  if (onClose) onClose();
+                }}
+                className="block w-full text-left py-3 px-10 text-[11.5px] font-orange-avenue tracking-wider uppercase text-[#5C4638] hover:text-[#B38B46] border-b border-[#D4B6A2]/10 last:border-0 cursor-pointer"
+              >
+                {sub.name}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
 const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
   if (isAdminRoute) return null;
 
@@ -163,37 +244,22 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
     return list;
   }, [rootCategories, categories]);
 
-  const [collections, setCollections] = useState<any[]>([]);
-  const [celebrateCategories, setCelebrateCategories] = useState<any[]>([]);
-
-  // Scroll handling
-  const { scrollY } = useScroll();
-  const headerHeight = useTransform(scrollY, [0, 100], ["auto", "auto"]);
-
-  // Logo scale animation
-  const logoScale = useTransform(scrollY, [0, 100], [1, 0.9]);
-
+  // Throttled scroll handling (max 1 check per browser repaint frame)
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
-    let lastScrolled = window.scrollY > 20;
-    setIsScrolled(lastScrolled);
-
+    let ticking = false;
     const handleScroll = () => {
-      const scrolled = window.scrollY > 20;
-      if (scrolled !== lastScrolled) {
-        lastScrolled = scrolled;
-        setIsScrolled(scrolled);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setIsScrolled(window.scrollY > 20);
+          ticking = false;
+        });
+        ticking = true;
       }
     };
+    handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
-    const celebrateCatNames = ["Wedding Special", "Corporate Gifting", "Festive Hampers"];
-    setCelebrateCategories(celebrateCatNames.map(name => ({ name, slug: name })));
-    const mockCollections = [
-      { id: 'c1', name: "New Arrivals", slug: 'new-arrivals' },
-      { id: 'c2', name: "Bestsellers", slug: 'bestsellers' },
-    ];
-    setCollections(mockCollections);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -209,74 +275,17 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
     router.push(`/products?delivery=${mode}`);
   };
 
-  const MobileMenuItem = ({ label, path, onClick, subItems }: { label: string; path?: string; onClick?: () => void, subItems?: any[] }) => {
-    const [isExpanded, setIsExpanded] = useState(false);
-    return (
-      <div className="border-b border-[#D4B6A2]/20 last:border-0 bg-[#FAF9F6] bg-opacity-100">
-        <button
-          onClick={() => {
-            if (subItems && subItems.length > 0) setIsExpanded(!isExpanded);
-            else {
-              if (path) router.push(path);
-              if (onClick) onClick();
-              setIsMobileMenuOpen(false);
-            }
-          }}
-          className="flex items-center justify-between w-full py-4 px-6 text-left group"
-        >
-          <span className={`text-xs font-orange-avenue uppercase tracking-wider transition-colors ${isExpanded ? 'text-[#B38B46]' : 'text-[#2C1810]'}`}>
-            {label}
-          </span>
-          {subItems && subItems.length > 0 ? (
-            <ChevronDown className={`w-4 h-4 text-[#D4B6A2] transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
-          ) : (
-            <ChevronRight className="w-4 h-4 text-[#D4B6A2] opacity-60 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-          )}
-        </button>
-        <AnimatePresence>
-          {isExpanded && subItems && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden bg-[#E5D8C6]/15"
-            >
-              {subItems.map((sub, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => {
-                    if (sub.onClick) {
-                      sub.onClick();
-                    } else if (sub.path) {
-                      router.push(sub.path);
-                    } else {
-                      router.push(`/category/${sub.slug || sub.name}`);
-                    }
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="block w-full text-left py-3 px-10 text-[11.5px] font-orange-avenue tracking-wider uppercase text-[#5C4638] hover:text-[#B38B46] border-b border-[#D4B6A2]/10 last:border-0"
-                >
-                  {sub.name}
-                </button>
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    );
-  };
-
   const pathname = usePathname();
   const isHome = pathname === '/';
 
   return (
     <>
-      <motion.header
+      <header
         className={`
           z-40 transition-all duration-300 
           ${isHome 
             ? (isScrolled 
-                ? 'relative lg:fixed lg:top-0 lg:inset-x-0 bg-[#140A07]/92 backdrop-blur-md shadow-md border-b border-[#E5B56E]/20 py-1 text-white' 
+                ? 'relative lg:fixed lg:top-0 lg:inset-x-0 bg-[#140A07]/98 shadow-md border-b border-[#E5B56E]/20 py-1 text-white' 
                 : 'relative lg:absolute lg:top-0 lg:inset-x-0 bg-[#F9F3EA] lg:bg-transparent border-transparent py-2.5 text-white') 
             : 'relative lg:sticky lg:top-0 bg-[#FFFDF7] border-b border-[#D4B6A2]/30 py-1.5 text-[#2C1810]'
           }
@@ -311,9 +320,10 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
             {/* DESKTOP ONLY: Logo on Top Left */}
             <div className="hidden lg:flex items-center flex-shrink-0">
               <Link href="/" className="block group">
-                <motion.div
-                  className="relative h-11 sm:h-12 lg:h-13 w-28 sm:w-34 lg:w-40 transition-transform duration-300 group-hover:scale-105"
-                  style={{ scale: logoScale }}
+                <div
+                  className={`relative h-11 sm:h-12 lg:h-13 w-28 sm:w-34 lg:w-40 transition-transform duration-300 group-hover:scale-105 ${
+                    isScrolled ? 'scale-90' : 'scale-100'
+                  }`}
                 >
                   <Image
                     src={logo}
@@ -323,7 +333,7 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                     className="object-contain drop-shadow-xs"
                     sizes="(max-width: 1024px) 140px, 160px"
                   />
-                </motion.div>
+                </div>
               </Link>
             </div>
 
@@ -479,7 +489,7 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
             </div>
           </div>
         </div>
-      </motion.header>
+      </header>
 
       {/* Mobile Menu */}
       <AnimatePresence>
@@ -490,7 +500,7 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsMobileMenuOpen(false)}
-              className="fixed inset-0 bg-[#4A1C1F]/60 backdrop-blur-sm z-50 lg:hidden"
+              className="fixed inset-0 bg-[#4A1C1F]/80 z-50 lg:hidden"
             />
             <motion.div
               initial={{ x: '-100%' }}
@@ -513,6 +523,7 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                 <div className="border-b border-[#D4B6A2]/20 pb-2 mb-2">
                   <MobileMenuItem
                     label="Shop in Lucknow"
+                    onClose={() => setIsMobileMenuOpen(false)}
                     subItems={[
                       ...FIVE_MAIN_CATEGORIES.map((cat) => ({
                         name: cat.name,
@@ -529,6 +540,7 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
 
                   <MobileMenuItem
                     label="Shop Pan India"
+                    onClose={() => setIsMobileMenuOpen(false)}
                     subItems={[
                       ...FIVE_MAIN_CATEGORIES.map((cat) => ({
                         name: cat.name,
@@ -546,11 +558,13 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                   <MobileMenuItem
                     label="Our Gift Hampers"
                     path="/category/gifting"
+                    onClose={() => setIsMobileMenuOpen(false)}
                   />
 
                   <MobileMenuItem
                     label="Bulk Orders"
                     path="/celebrate-with-rajluxmi"
+                    onClose={() => setIsMobileMenuOpen(false)}
                   />
                 </div>
 
@@ -565,6 +579,7 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                     key={cat.id}
                     label={cat.name}
                     path={`/category/${cat.slug || cat.id}`}
+                    onClose={() => setIsMobileMenuOpen(false)}
                   />
                 ))}
 

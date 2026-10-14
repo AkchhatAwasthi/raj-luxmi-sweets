@@ -294,7 +294,7 @@ export default function BulkOrderClient() {
                       Gift Collection
                     </div>
                     {box.sku && (
-                      <div className="absolute bottom-2.5 left-2.5 bg-white/90 backdrop-blur-xs text-[10px] font-mono text-[#5D4037] px-2 py-0.5 border border-[#E6D5B8]">
+                      <div className="absolute bottom-2.5 left-2.5 bg-white/95 text-[10px] font-mono text-[#5D4037] px-2 py-0.5 border border-[#E6D5B8] shadow-xs">
                         SKU: {box.sku}
                       </div>
                     )}
@@ -509,7 +509,7 @@ export default function BulkOrderClient() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
-                <div className="p-4 bg-white/10 backdrop-blur-xs border border-[#E6C687]/30 rounded-sm">
+                <div className="p-4 bg-white/10 border border-[#E6C687]/30 rounded-sm">
                   <Award className="w-4 h-4 text-[#E6C687] mb-2" />
                   <h4 className="text-xs sm:text-sm font-semibold text-white mb-1">Custom monogram &amp; logo</h4>
                   <p className="text-[11px] text-[#E6D5B8] font-light">
@@ -517,7 +517,7 @@ export default function BulkOrderClient() {
                   </p>
                 </div>
 
-                <div className="p-4 bg-white/10 backdrop-blur-xs border border-[#E6C687]/30 rounded-sm">
+                <div className="p-4 bg-white/10 border border-[#E6C687]/30 rounded-sm">
                   <Gift className="w-4 h-4 text-[#E6C687] mb-2" />
                   <h4 className="text-xs sm:text-sm font-semibold text-white mb-1">Curated sweets menu</h4>
                   <p className="text-[11px] text-[#E6D5B8] font-light">
@@ -525,7 +525,7 @@ export default function BulkOrderClient() {
                   </p>
                 </div>
 
-                <div className="p-4 bg-white/10 backdrop-blur-xs border border-[#E6C687]/30 rounded-sm">
+                <div className="p-4 bg-white/10 border border-[#E6C687]/30 rounded-sm">
                   <FileText className="w-4 h-4 text-[#E6C687] mb-2" />
                   <h4 className="text-xs sm:text-sm font-semibold text-white mb-1">Greeting cards &amp; ribbons</h4>
                   <p className="text-[11px] text-[#E6D5B8] font-light">
@@ -533,7 +533,7 @@ export default function BulkOrderClient() {
                   </p>
                 </div>
 
-                <div className="p-4 bg-white/10 backdrop-blur-xs border border-[#E6C687]/30 rounded-sm">
+                <div className="p-4 bg-white/10 border border-[#E6C687]/30 rounded-sm">
                   <Truck className="w-4 h-4 text-[#E6C687] mb-2" />
                   <h4 className="text-xs sm:text-sm font-semibold text-white mb-1">Pan-India multi-drop</h4>
                   <p className="text-[11px] text-[#E6D5B8] font-light">
@@ -705,7 +705,7 @@ export default function BulkOrderClient() {
                   className="w-full h-full object-cover object-center"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-transparent to-[#4D1119]/70 lg:to-[#4D1119] opacity-60" />
-                <div className="absolute top-4 left-4 bg-[#8B2131]/90 backdrop-blur-xs border border-[#E6C687]/40 text-[#E6C687] text-xs font-semibold px-3 py-1 rounded-sm font-sans">
+                <div className="absolute top-4 left-4 bg-[#8B2131] border border-[#E6C687]/40 text-[#E6C687] text-xs font-semibold px-3 py-1 rounded-sm font-sans shadow-sm">
                   Sample Hamper
                 </div>
               </div>
@@ -881,7 +881,7 @@ export default function BulkOrderClient() {
       ───────────────────────────────────────────────────────────── */}
       <AnimatePresence>
         {previewProduct && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}

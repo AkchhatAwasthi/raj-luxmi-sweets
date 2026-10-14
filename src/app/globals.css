@@ -282,10 +282,33 @@
   text-transform: none !important;
 }
 
-/* Optimize rendering and reduce main-thread memory pressure on long pages */
-.section-content-visibility {
-  content-visibility: auto;
-  contain-intrinsic-size: auto 600px;
+/* Static Keyframes for Smooth Compositor-Driven Scrolling (avoids style injection in React renders) */
+@keyframes testimonials-scroll {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
 }
+
+@keyframes infinite-marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes footer-marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
 
 

@@ -70,16 +70,6 @@ const MarqueeSection: React.FC<MarqueeSectionProps> = ({
           </div>
         ))}
       </div>
-      <style jsx global>{`
-        @keyframes infinite-marquee-scroll {
-          from {
-            transform: translateX(0);
-          }
-          to {
-            transform: translateX(-50%);
-          }
-        }
-      `}</style>
     </div>
   );
 };

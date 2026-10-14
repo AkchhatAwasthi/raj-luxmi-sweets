@@ -290,7 +290,6 @@ export function buildCategoryTree(
     if (parent && child) {
       if (!child.parent_ids.includes(parent.id)) {
         child.parent_ids.push(parent.id);
-        child.parents!.push(parent);
       }
       if (!parent.subcategories!.some(s => s.id === child.id)) {
         parent.subcategories!.push(child);

@@ -105,7 +105,7 @@ const Cart = () => {
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-6">
             {cartItems.map((item) => (
-              <Card key={item.id} className="overflow-hidden border border-[#E6D5B8] bg-white shadow-sm hover:shadow-md transition-shadow duration-300">
+              <Card key={item.cartItemId || item.id} className="overflow-hidden border border-[#E6D5B8] bg-white shadow-sm hover:shadow-md transition-shadow duration-300">
                 <CardContent className="p-0">
                   <div className="flex flex-col sm:flex-row">
                     {/* Image */}
@@ -122,9 +122,15 @@ const Cart = () => {
                       <div className="flex justify-between items-start mb-4">
                         <div>
                           <h3 className="text-xl text-[#783838] uppercase font-instrument font-normal tracking-wide mb-1">{item.name}</h3>
-                          <p className="text-sm text-[#5D4037] font-medium uppercase tracking-wide">
-                            {item.weight}{item.pieces && ` • ${item.pieces}`}
-                          </p>
+                          {item.variantTitle ? (
+                            <p className="text-sm font-semibold text-[#8B2131] uppercase tracking-wide">
+                              Option: {item.variantTitle} {item.weight && item.weight !== item.variantTitle ? `• ${item.weight}` : ''} {item.pieces && `• ${item.pieces}`}
+                            </p>
+                          ) : (
+                            <p className="text-sm text-[#5D4037] font-medium uppercase tracking-wide">
+                              {item.weight}{item.pieces && ` • ${item.pieces}`}
+                            </p>
+                          )}
                         </div>
                         <p className="font-instrument text-xl text-[#8B2131] font-normal">
                           {formatCurrency(item.price, settings.currency_symbol)}
@@ -137,7 +143,7 @@ const Cart = () => {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            onClick={() => updateQuantity(item.cartItemId || item.id, item.quantity - 1)}
                             className="h-9 w-9 p-0 hover:bg-[#FFF0DE] text-[#8B2131]"
                           >
                             <Minus className="h-3 w-3" />
@@ -148,7 +154,7 @@ const Cart = () => {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            onClick={() => updateQuantity(item.cartItemId || item.id, item.quantity + 1)}
                             className="h-9 w-9 p-0 hover:bg-[#FFF0DE] text-[#8B2131]"
                           >
                             <Plus className="h-3 w-3" />
@@ -162,7 +168,7 @@ const Cart = () => {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => removeFromCart(item.id)}
+                            onClick={() => removeFromCart(item.cartItemId || item.id)}
                             className="text-[#5D4037]/60 hover:text-[#C53030] hover:bg-red-50 transition-colors"
                           >
                             <Trash2 className="h-4 w-4" />

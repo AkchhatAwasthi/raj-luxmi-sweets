@@ -51,7 +51,7 @@ const DualDeliverySpotlight = () => {
             {/* Content Layer */}
             <div className="relative z-10 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#FAF9F6]/20 backdrop-blur-md text-[#FAF9F6] text-[9.5px] font-orange-avenue uppercase tracking-wider border border-white/20">
+                <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#1A0B06]/80 text-[#FAF9F6] text-[9.5px] font-orange-avenue uppercase tracking-wider border border-[#E6C687]/40">
                   <Clock className="w-3 h-3 text-[#E6C687]" />
                   <span>2–4 Hours in Lucknow</span>
                 </span>
@@ -100,7 +100,7 @@ const DualDeliverySpotlight = () => {
             {/* Content Layer */}
             <div className="relative z-10 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#FAF9F6]/20 backdrop-blur-md text-[#FAF9F6] text-[9.5px] font-orange-avenue uppercase tracking-wider border border-white/20">
+                <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#1A0B06]/80 text-[#FAF9F6] text-[9.5px] font-orange-avenue uppercase tracking-wider border border-[#E6C687]/40">
                   <Plane className="w-3 h-3 text-[#E6C687]" />
                   <span>5–6 Days Pan-India</span>
                 </span>

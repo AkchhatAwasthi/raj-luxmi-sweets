@@ -693,7 +693,7 @@ const Products = ({
       {/* Pan-India Bengali & Chena Sweets Restriction Alert Modal */}
       <AnimatePresence>
         {showPanIndiaSweetsAlert && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 12 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}

@@ -1,7 +1,20 @@
 'use client';
 
+import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+
+export interface ProductVariant {
+  id: string;
+  title: string;
+  price: number;
+  original_price?: number | null;
+  weight?: string | null;
+  pieces?: string | null;
+  stock_quantity?: number | null;
+  sku?: string | null;
+  is_default?: boolean | null;
+}
 
 export interface ProductItem {
   id: string;
@@ -24,6 +37,7 @@ export interface ProductItem {
   categories?: {
     name: string;
   } | null;
+  variants?: ProductVariant[] | null;
   [key: string]: any;
 }
 
@@ -55,6 +69,8 @@ async function fetchActiveProducts(): Promise<ProductItem[]> {
   });
 }
 
+const EMPTY_PRODUCTS: ProductItem[] = [];
+
 export const useProducts = () => {
   const { data, isLoading, error, refetch } = useQuery<ProductItem[], Error>({
     queryKey: ['active_products'],
@@ -62,10 +78,18 @@ export const useProducts = () => {
     staleTime: 5 * 60 * 1000, // Cache valid for 5 minutes
     gcTime: 10 * 60 * 1000,    // Keep in cache for 10 minutes
     retry: 1,
-    placeholderData: [],
   });
 
-  const products = data ?? [];
+  const products = data ?? EMPTY_PRODUCTS;
+
+  const bestSellers = React.useMemo(
+    () => products.filter(p => p.is_bestseller === true),
+    [products]
+  );
+  const newArrivals = React.useMemo(
+    () => products.filter(p => p.new_arrival === true),
+    [products]
+  );
 
   return {
     products,
@@ -73,8 +97,8 @@ export const useProducts = () => {
     error: error?.message ?? null,
     refetch,
     // Helper filtered lists
-    bestSellers: products.filter(p => p.is_bestseller === true),
-    newArrivals: products.filter(p => p.new_arrival === true),
+    bestSellers,
+    newArrivals,
   };
 };
 

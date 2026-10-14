@@ -458,6 +458,19 @@ const Checkout = () => {
 
       const { data: { user } } = await supabase.auth.getUser();
 
+      const formatCartItemForOrder = (item: any) => ({
+        id: item.id,
+        cartItemId: item.cartItemId,
+        variantId: item.variantId,
+        variantTitle: item.variantTitle,
+        name: item.variantTitle ? `${item.name} (${item.variantTitle})` : item.name,
+        price: item.price,
+        quantity: item.quantity,
+        weight: item.weight,
+        image: item.image,
+        category: item.category || 'bulk'
+      });
+
       const orderData = {
         user_id: user?.id || null,
         order_number: orderNumber,
@@ -469,15 +482,7 @@ const Checkout = () => {
           latitude: null,
           longitude: null
         } as any,
-        items: cartItems.map(item => ({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          weight: item.weight,
-          image: item.image,
-          category: item.category || 'bulk'
-        })) as any,
+        items: cartItems.map(formatCartItemForOrder) as any,
         subtotal: subtotal,
         tax: tax,
         delivery_fee: deliveryFee,
@@ -519,15 +524,7 @@ const Checkout = () => {
         sendOrderEmailsAsync({
           orderNumber,
           customerInfo,
-          items: cartItems.map(item => ({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-            weight: item.weight,
-            image: item.image,
-            category: item.category || 'bulk'
-          })),
+          items: cartItems.map(formatCartItemForOrder),
           subtotal,
           tax,
           deliveryFee,
@@ -554,15 +551,7 @@ const Checkout = () => {
           const guestOrder = {
             orderNumber: orderNumber,
             customerInfo: customerInfo,
-            items: cartItems.map(item => ({
-              id: item.id,
-              name: item.name,
-              price: item.price,
-              quantity: item.quantity,
-              weight: item.weight,
-              image: item.image,
-              category: item.category || 'bulk'
-            })),
+            items: cartItems.map(formatCartItemForOrder),
             subtotal: subtotal,
             tax: tax,
             deliveryFee: deliveryFee,
@@ -649,15 +638,7 @@ const Checkout = () => {
               sendOrderEmailsAsync({
                 orderNumber,
                 customerInfo,
-                items: cartItems.map(item => ({
-                  id: item.id,
-                  name: item.name,
-                  price: item.price,
-                  quantity: item.quantity,
-                  weight: item.weight,
-                  image: item.image,
-                  category: item.category || 'bulk'
-                })),
+                items: cartItems.map(formatCartItemForOrder),
                 subtotal,
                 tax,
                 deliveryFee,
@@ -684,15 +665,7 @@ const Checkout = () => {
                 const guestOrder = {
                   orderNumber: orderNumber,
                   customerInfo: customerInfo,
-                  items: cartItems.map(item => ({
-                    id: item.id,
-                    name: item.name,
-                    price: item.price,
-                    quantity: item.quantity,
-                    weight: item.weight,
-                    image: item.image,
-                    category: item.category || 'bulk'
-                  })),
+                  items: cartItems.map(formatCartItemForOrder),
                   subtotal: subtotal,
                   tax: tax,
                   deliveryFee: deliveryFee,

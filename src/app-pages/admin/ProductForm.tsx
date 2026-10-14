@@ -10,11 +10,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Upload, X, ChevronUp, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Upload, X, ChevronUp, ChevronDown, Plus, Trash2, Layers, Sparkles, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { slugify } from '@/utils/slugify';
 import { fetchCategoryRelationships } from '@/lib/categoryHierarchy';
+import { ProductVariant } from '@/store/useStore';
 
 interface Product {
   id?: string;
@@ -40,6 +41,7 @@ interface Product {
   meta_description?: string;
   meta_keywords?: string;
   faqs?: any;
+  variants?: ProductVariant[];
 }
 
 interface ProductFormProps {
@@ -171,6 +173,190 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
     });
   };
 
+  // Product Variants state
+  const [hasVariants, setHasVariants] = useState(false);
+  const [variantsList, setVariantsList] = useState<ProductVariant[]>([]);
+
+  const generateVariantId = () => `var_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+
+  const addEmptyVariant = () => {
+    const newVariant: ProductVariant = {
+      id: generateVariantId(),
+      title: '',
+      price: Number(formData.price) || 0,
+      original_price: formData.original_price ? Number(formData.original_price) : undefined,
+      weight: formData.weight || '',
+      pieces: formData.pieces || '',
+      stock_quantity: Number(formData.stock_quantity) || 50,
+      sku: '',
+      is_default: variantsList.length === 0,
+    };
+    setVariantsList(prev => [...prev, newVariant]);
+    setHasVariants(true);
+  };
+
+  const updateVariant = (index: number, field: keyof ProductVariant, value: any) => {
+    setVariantsList(prev => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      return updated;
+    });
+  };
+
+  const setDefaultVariant = (index: number) => {
+    setVariantsList(prev =>
+      prev.map((v, i) => ({
+        ...v,
+        is_default: i === index,
+      }))
+    );
+  };
+
+  const removeVariant = (index: number) => {
+    setVariantsList(prev => {
+      const updated = prev.filter((_, i) => i !== index);
+      if (updated.length > 0 && !updated.some(v => v.is_default)) {
+        updated[0].is_default = true;
+      }
+      if (updated.length === 0) {
+        setHasVariants(false);
+      }
+      return updated;
+    });
+  };
+
+  const moveVariant = (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= variantsList.length) return;
+    setVariantsList(prev => {
+      const updated = [...prev];
+      [updated[index], updated[targetIndex]] = [updated[targetIndex], updated[index]];
+      return updated;
+    });
+  };
+
+  const applySweetsPreset = () => {
+    const baseP = Number(formData.price) || 500;
+    const baseOrig = Number(formData.original_price) || Math.round(baseP * 1.1);
+
+    const presets: ProductVariant[] = [
+      {
+        id: generateVariantId(),
+        title: '250g Box',
+        price: Math.max(50, Math.round((baseP * 0.53) / 10) * 10),
+        original_price: Math.round((baseOrig * 0.53) / 10) * 10,
+        weight: '250g',
+        pieces: '6-8 pcs',
+        stock_quantity: 50,
+        is_default: false,
+      },
+      {
+        id: generateVariantId(),
+        title: '500g Box',
+        price: baseP,
+        original_price: baseOrig,
+        weight: '500g',
+        pieces: '12-16 pcs',
+        stock_quantity: 50,
+        is_default: true,
+      },
+      {
+        id: generateVariantId(),
+        title: '1kg Box (Best Value)',
+        price: Math.round((baseP * 1.95) / 10) * 10,
+        original_price: Math.round((baseOrig * 1.95) / 10) * 10,
+        weight: '1kg',
+        pieces: '24-30 pcs',
+        stock_quantity: 50,
+        is_default: false,
+      },
+    ];
+
+    setVariantsList(presets);
+    setHasVariants(true);
+    toast({
+      title: "Sweets Presets Loaded",
+      description: "Added 250g, 500g, and 1kg options with proportional pricing.",
+    });
+  };
+
+  const applyNamkeenPreset = () => {
+    const baseP = Number(formData.price) || 200;
+    const presets: ProductVariant[] = [
+      {
+        id: generateVariantId(),
+        title: '200g Pack',
+        price: Math.max(30, Math.round((baseP * 0.55) / 10) * 10),
+        weight: '200g',
+        stock_quantity: 50,
+        is_default: false,
+      },
+      {
+        id: generateVariantId(),
+        title: '400g Pack',
+        price: baseP,
+        weight: '400g',
+        stock_quantity: 50,
+        is_default: true,
+      },
+      {
+        id: generateVariantId(),
+        title: '1kg Family Pack',
+        price: Math.round((baseP * 2.3) / 10) * 10,
+        weight: '1kg',
+        stock_quantity: 50,
+        is_default: false,
+      },
+    ];
+
+    setVariantsList(presets);
+    setHasVariants(true);
+    toast({
+      title: "Namkeen Presets Loaded",
+      description: "Added 200g, 400g, and 1kg options.",
+    });
+  };
+
+  const applyPcsPreset = () => {
+    const baseP = Number(formData.price) || 450;
+    const presets: ProductVariant[] = [
+      {
+        id: generateVariantId(),
+        title: 'Box of 8 pcs',
+        price: Math.max(50, Math.round((baseP * 0.55) / 10) * 10),
+        pieces: '8 pcs',
+        weight: '300g',
+        stock_quantity: 40,
+        is_default: false,
+      },
+      {
+        id: generateVariantId(),
+        title: 'Box of 16 pcs',
+        price: baseP,
+        pieces: '16 pcs',
+        weight: '600g',
+        stock_quantity: 40,
+        is_default: true,
+      },
+      {
+        id: generateVariantId(),
+        title: 'Box of 24 pcs',
+        price: Math.round((baseP * 1.45) / 10) * 10,
+        pieces: '24 pcs',
+        weight: '900g',
+        stock_quantity: 40,
+        is_default: false,
+      },
+    ];
+
+    setVariantsList(presets);
+    setHasVariants(true);
+    toast({
+      title: "Pack Size Presets Loaded",
+      description: "Added Box of 8, 16, and 24 pcs options.",
+    });
+  };
+
   useEffect(() => {
     fetchCategories();
     fetchAvailableFeatures();
@@ -179,6 +365,10 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
     } else if (propProduct) {
       setFormData(propProduct);
       setImages(propProduct.images || []);
+      if (propProduct.variants && Array.isArray(propProduct.variants) && propProduct.variants.length > 0) {
+        setHasVariants(true);
+        setVariantsList(propProduct.variants);
+      }
     }
   }, [id, isEdit, propProduct]);
 
@@ -311,6 +501,13 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
       });
       if ((data as any).faqs && Array.isArray((data as any).faqs)) {
         setFaqsList((data as any).faqs);
+      }
+      if ((data as any).variants && Array.isArray((data as any).variants) && (data as any).variants.length > 0) {
+        setHasVariants(true);
+        setVariantsList((data as any).variants);
+      } else {
+        setHasVariants(false);
+        setVariantsList([]);
       }
     } catch (error) {
       console.error('Error fetching product:', error);
@@ -515,12 +712,34 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
 
     setLoading(true);
     try {
-      const productData = {
+      const cleanedVariants = hasVariants
+        ? variantsList
+            .filter(v => v.title && v.title.trim() !== '' && Number(v.price) > 0)
+            .map(v => ({
+              id: v.id || generateVariantId(),
+              title: v.title.trim(),
+              price: Number(v.price),
+              original_price: v.original_price ? Number(v.original_price) : undefined,
+              weight: v.weight ? v.weight.trim() : undefined,
+              pieces: v.pieces ? v.pieces.trim() : undefined,
+              stock_quantity: v.stock_quantity !== undefined ? Number(v.stock_quantity) : undefined,
+              sku: v.sku ? v.sku.trim() : undefined,
+              is_default: !!v.is_default,
+            }))
+        : [];
+
+      if (cleanedVariants.length > 0 && !cleanedVariants.some(v => v.is_default)) {
+        cleanedVariants[0].is_default = true;
+      }
+
+      const defaultVar = cleanedVariants.find(v => v.is_default) || cleanedVariants[0];
+
+      const productData: any = {
         name: formData.name,
-        price: Number(formData.price),
-        original_price: Number(formData.original_price) || Number(formData.price),
+        price: defaultVar ? defaultVar.price : Number(formData.price),
+        original_price: defaultVar?.original_price ? defaultVar.original_price : (Number(formData.original_price) || Number(formData.price)),
         category_id: formData.category_id,
-        weight: formData.weight,
+        weight: defaultVar?.weight || formData.weight,
         description: formData.description,
         stock_quantity: Number(formData.stock_quantity) || 0,
         is_active: formData.is_active,
@@ -530,7 +749,7 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
         features: selectedFeatures,
         nutritional_info: productSpecs,
         sku: formData.sku,
-        pieces: formData.pieces,
+        pieces: defaultVar?.pieces || formData.pieces,
         serves: Number(formData.serves) || 0,
         storage_instructions: formData.storage_instructions,
         marketing_info: marketingInfo,
@@ -538,6 +757,7 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
         meta_description: seoData.meta_description || null,
         meta_keywords: seoData.meta_keywords || null,
         faqs: faqsList.filter(f => f.question.trim() !== '' && f.answer.trim() !== ''),
+        variants: cleanedVariants,
       };
 
       if (isEdit && id) {
@@ -571,6 +791,13 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
           title: "Duplicate SKU",
           description: "This SKU is already in use. Please enter a unique SKU or click 'Generate' to create one.",
           variant: "destructive",
+        });
+      } else if (error.message?.includes('variants') && error.message?.includes('column')) {
+        toast({
+          title: "Database Migration Required",
+          description: "The 'variants' column needs to be created in your Supabase SQL Editor: ALTER TABLE products ADD COLUMN IF NOT EXISTS variants JSONB DEFAULT '[]'::jsonb;",
+          variant: "destructive",
+          duration: 12000,
         });
       } else {
         toast({
@@ -786,6 +1013,272 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
                   <Label htmlFor="new_arrival">Mark as New Arrival</Label>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Product Variants Section */}
+          <Card className="border-amber-200/80 bg-gradient-to-br from-amber-50/40 via-white to-orange-50/20 shadow-sm">
+            <CardHeader className="pb-3 border-b border-amber-100">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-lg bg-amber-500/10 text-amber-800 border border-amber-200">
+                    <Layers className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg text-amber-950 font-bold flex items-center gap-2">
+                      Product Variants &amp; Weight Options
+                      {hasVariants && variantsList.length > 0 && (
+                        <Badge variant="outline" className="bg-amber-100 text-amber-900 border-amber-300 text-xs">
+                          {variantsList.length} {variantsList.length === 1 ? 'option' : 'options'}
+                        </Badge>
+                      )}
+                    </CardTitle>
+                    <p className="text-xs text-stone-600 mt-0.5">
+                      Sell this product in multiple weights (250g, 500g, 1kg) or pack sizes with independent prices and inventory.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-2 bg-white px-3 py-1.5 rounded-full border border-amber-300 shadow-sm self-start sm:self-auto">
+                  <Checkbox
+                    id="has_variants"
+                    checked={hasVariants}
+                    onCheckedChange={(checked) => {
+                      const enabled = !!checked;
+                      setHasVariants(enabled);
+                      if (enabled && variantsList.length === 0) {
+                        applySweetsPreset();
+                      }
+                    }}
+                  />
+                  <Label htmlFor="has_variants" className="text-xs font-bold cursor-pointer text-amber-950 select-none">
+                    Enable Variants
+                  </Label>
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent className="pt-4 space-y-4">
+              {!hasVariants ? (
+                <div className="text-center py-6 px-4 bg-white/80 rounded-xl border border-dashed border-amber-200">
+                  <Layers className="h-10 w-10 text-amber-400 mx-auto mb-2 opacity-60" />
+                  <p className="text-sm font-semibold text-stone-800">Single option product</p>
+                  <p className="text-xs text-muted-foreground max-w-md mx-auto mt-1 mb-4">
+                    This product currently sells at a single base price and weight. Enable variants to let your customers choose 250g, 500g, 1kg, or custom pack sizes.
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 font-medium"
+                    onClick={() => {
+                      setHasVariants(true);
+                      applySweetsPreset();
+                    }}
+                  >
+                    <Sparkles className="h-3.5 w-3.5 mr-1.5 text-amber-600" />
+                    Enable &amp; Quick Add Mithai Weights (250g, 500g, 1kg)
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Preset quick buttons */}
+                  <div className="bg-amber-50/90 p-3 rounded-xl border border-amber-200 flex flex-wrap items-center justify-between gap-2.5">
+                    <div className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
+                      <Sparkles className="h-3.5 w-3.5 text-amber-600" />
+                      Quick Presets:
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        className="h-7 text-xs bg-white hover:bg-amber-100 text-amber-900 border border-amber-200 font-medium"
+                        onClick={applySweetsPreset}
+                      >
+                        Mithai (250g, 500g, 1kg)
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        className="h-7 text-xs bg-white hover:bg-amber-100 text-amber-900 border border-amber-200 font-medium"
+                        onClick={applyNamkeenPreset}
+                      >
+                        Namkeen (200g, 400g, 1kg)
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        className="h-7 text-xs bg-white hover:bg-amber-100 text-amber-900 border border-amber-200 font-medium"
+                        onClick={applyPcsPreset}
+                      >
+                        Gift Boxes (8, 16, 24 pcs)
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="default"
+                        className="h-7 text-xs bg-amber-600 hover:bg-amber-700 text-white font-medium"
+                        onClick={addEmptyVariant}
+                      >
+                        <Plus className="h-3.5 w-3.5 mr-1" />
+                        Add Variant
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Variants List */}
+                  <div className="space-y-3">
+                    {variantsList.map((variant, index) => (
+                      <div
+                        key={variant.id || index}
+                        className={`p-3.5 rounded-xl border transition-all ${
+                          variant.is_default
+                            ? 'bg-amber-50/50 border-amber-400 shadow-sm ring-1 ring-amber-300'
+                            : 'bg-white border-stone-200 hover:border-amber-200'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between pb-2 mb-3 border-b border-stone-100">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-stone-500 bg-stone-100 px-2 py-0.5 rounded-md">
+                              Option #{index + 1}
+                            </span>
+                            <span className="text-sm font-bold text-stone-800">
+                              {variant.title || 'Untitled Variant'}
+                            </span>
+                            {variant.is_default && (
+                              <Badge className="bg-amber-600 hover:bg-amber-600 text-white text-[10px] font-semibold flex items-center gap-1">
+                                <CheckCircle2 className="h-3 w-3" /> Default (Shown First)
+                              </Badge>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-1">
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant={variant.is_default ? "secondary" : "outline"}
+                              className={`h-7 text-xs px-2.5 font-medium ${
+                                variant.is_default
+                                  ? 'bg-amber-600 text-white hover:bg-amber-700'
+                                  : 'text-stone-700 hover:bg-amber-50'
+                              }`}
+                              onClick={() => setDefaultVariant(index)}
+                            >
+                              {variant.is_default ? 'Default' : 'Make Default'}
+                            </Button>
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="ghost"
+                              className="h-7 w-7 text-stone-500 hover:text-stone-800"
+                              disabled={index === 0}
+                              onClick={() => moveVariant(index, 'up')}
+                              title="Move Up"
+                            >
+                              <ChevronUp className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="ghost"
+                              className="h-7 w-7 text-stone-500 hover:text-stone-800"
+                              disabled={index === variantsList.length - 1}
+                              onClick={() => moveVariant(index, 'down')}
+                              title="Move Down"
+                            >
+                              <ChevronDown className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="ghost"
+                              className="h-7 w-7 text-red-500 hover:text-red-700 hover:bg-red-50"
+                              onClick={() => removeVariant(index)}
+                              title="Delete Variant"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Variant fields */}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                          <div className="col-span-2 sm:col-span-1 md:col-span-2 space-y-1">
+                            <Label className="text-xs font-semibold text-stone-700">Option Name *</Label>
+                            <Input
+                              value={variant.title}
+                              onChange={(e) => updateVariant(index, 'title', e.target.value)}
+                              placeholder="e.g. 500g Box, 1kg, Pack of 16"
+                              className="h-8 text-xs font-medium"
+                              required={hasVariants}
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <Label className="text-xs font-semibold text-stone-700">Selling Price (₹) *</Label>
+                            <Input
+                              type="number"
+                              value={variant.price || ''}
+                              onChange={(e) => updateVariant(index, 'price', Number(e.target.value))}
+                              placeholder="450"
+                              min="0"
+                              step="0.01"
+                              className="h-8 text-xs font-bold text-amber-900"
+                              required={hasVariants}
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <Label className="text-xs font-semibold text-stone-700">MRP / Cut Price (₹)</Label>
+                            <Input
+                              type="number"
+                              value={variant.original_price || ''}
+                              onChange={(e) => updateVariant(index, 'original_price', e.target.value ? Number(e.target.value) : undefined)}
+                              placeholder="500"
+                              min="0"
+                              step="0.01"
+                              className="h-8 text-xs"
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <Label className="text-xs font-semibold text-stone-700">Weight (for shipping)</Label>
+                            <Input
+                              value={variant.weight || ''}
+                              onChange={(e) => updateVariant(index, 'weight', e.target.value)}
+                              placeholder="e.g. 500g, 1kg"
+                              className="h-8 text-xs font-medium"
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <Label className="text-xs font-semibold text-stone-700">Pieces / Info</Label>
+                            <Input
+                              value={variant.pieces || ''}
+                              onChange={(e) => updateVariant(index, 'pieces', e.target.value)}
+                              placeholder="e.g. 12-14 pcs"
+                              className="h-8 text-xs font-medium"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-full border-dashed border-amber-300 text-amber-900 hover:bg-amber-50 font-medium py-4"
+                    onClick={addEmptyVariant}
+                  >
+                    <Plus className="h-4 w-4 mr-1 text-amber-600" /> Add Another Option / Variant
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
 

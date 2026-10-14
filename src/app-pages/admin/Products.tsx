@@ -280,12 +280,30 @@ const AdminProducts = () => {
                         className="w-12 h-12 rounded object-cover"
                       />
                       <div>
-                        <p className="font-medium">{product.name}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium">{product.name}</p>
+                          {product.variants && Array.isArray(product.variants) && product.variants.length > 0 && (
+                            <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-300 text-[10px] font-semibold py-0 px-1.5">
+                              {product.variants.length} Variants
+                            </Badge>
+                          )}
+                        </div>
                         <p className="text-sm text-muted-foreground">SKU: {product.sku}</p>
                       </div>
                     </TableCell>
                     <TableCell>{product.categories?.name || 'Unknown'}</TableCell>
-                    <TableCell>₹{product.price}</TableCell>
+                    <TableCell>
+                      {product.variants && Array.isArray(product.variants) && product.variants.length > 0 ? (
+                        <div>
+                          <span className="font-medium">₹{product.price}</span>
+                          <span className="text-[10px] text-muted-foreground block font-normal">
+                            ({product.variants.length} sizes)
+                          </span>
+                        </div>
+                      ) : (
+                        `₹${product.price}`
+                      )}
+                    </TableCell>
                     <TableCell>{product.stock_quantity}</TableCell>
                     <TableCell>
                       <Badge className={getStatusColor(product)}>

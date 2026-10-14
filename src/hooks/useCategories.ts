@@ -21,6 +21,9 @@ export interface Category {
   subcategories?: Category[];
 }
 
+const EMPTY_ARRAY: any[] = [];
+const EMPTY_RECORD: Record<string, any> = {};
+
 // ---------------------------------------------------------------------------
 // Standalone fetch function — extracted so it can be used by useQuery.
 // React Query deduplicates all simultaneous callers sharing the key
@@ -49,11 +52,10 @@ export const useCategories = () => {
     staleTime: 10 * 60 * 1000,  // 10 minutes — categories change rarely
     gcTime: 15 * 60 * 1000,     // keep in cache 15 minutes after last use
     retry: 1,
-    placeholderData: [],
   });
 
   return {
-    categories: data ?? [],
+    categories: data ?? EMPTY_ARRAY,
     loading: isLoading,
     error: error?.message ?? null,
     refetch,
@@ -91,12 +93,12 @@ export const useCategoryTree = () => {
   });
 
   return {
-    categories: data?.allWithMeta ?? [],
-    rootCategories: data?.rootCategories ?? [],
-    subcategories: data?.subcategoriesList ?? [],
-    subcategoriesByParentId: data?.subcategoriesByParentId ?? {},
-    parentsByChildId: data?.parentsByChildId ?? {},
-    relationships: data?.relationships ?? [],
+    categories: data?.allWithMeta ?? EMPTY_ARRAY,
+    rootCategories: data?.rootCategories ?? EMPTY_ARRAY,
+    subcategories: data?.subcategoriesList ?? EMPTY_ARRAY,
+    subcategoriesByParentId: data?.subcategoriesByParentId ?? EMPTY_RECORD,
+    parentsByChildId: data?.parentsByChildId ?? EMPTY_RECORD,
+    relationships: data?.relationships ?? EMPTY_ARRAY,
     loading: isLoading,
     error: error?.message ?? null,
     refetch,

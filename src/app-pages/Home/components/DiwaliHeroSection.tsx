@@ -90,7 +90,7 @@ const DiwaliHeroSection: React.FC = () => {
             {/* 2. Play Film */}
             <button
               onClick={() => setIsFilmModalOpen(true)}
-              className="group inline-flex items-center space-x-1.5 px-3 lg:px-3.5 py-1.5 lg:py-2 rounded border border-[#E5B56E]/60 bg-black/60 hover:bg-[#E5B56E]/20 text-[#FFF6E9] hover:text-white font-orange-avenue text-[10.5px] lg:text-[11px] tracking-[0.14em] uppercase transition-all duration-200 backdrop-blur-sm cursor-pointer shadow-sm hover:border-[#E5B56E] active:scale-95 whitespace-nowrap"
+              className="group inline-flex items-center space-x-1.5 px-3 lg:px-3.5 py-1.5 lg:py-2 rounded border border-[#E5B56E]/60 bg-black/80 hover:bg-[#E5B56E]/20 text-[#FFF6E9] hover:text-white font-orange-avenue text-[10.5px] lg:text-[11px] tracking-[0.14em] uppercase transition-all duration-200 cursor-pointer shadow-sm hover:border-[#E5B56E] active:scale-95 whitespace-nowrap"
             >
               <span className="w-3.5 h-3.5 rounded-full bg-[#E5B56E] text-[#2C1810] flex items-center justify-center group-hover:scale-105 transition-transform">
                 <Play className="w-2 h-2 fill-current ml-0.5" />
@@ -126,7 +126,7 @@ const DiwaliHeroSection: React.FC = () => {
             {/* 2. Play Film */}
             <button
               onClick={() => setIsFilmModalOpen(true)}
-              className="group inline-flex items-center space-x-1 px-3 sm:px-3.5 py-2 sm:py-2.5 rounded border border-[#E5B56E]/80 bg-black/75 hover:bg-[#E5B56E]/20 text-[#FFF6E9] font-orange-avenue text-[10px] sm:text-[11px] tracking-[0.12em] uppercase transition-all duration-200 backdrop-blur-md cursor-pointer shadow-xl active:scale-95 whitespace-nowrap"
+              className="group inline-flex items-center space-x-1 px-3 sm:px-3.5 py-2 sm:py-2.5 rounded border border-[#E5B56E]/80 bg-black/85 hover:bg-[#E5B56E]/20 text-[#FFF6E9] font-orange-avenue text-[10px] sm:text-[11px] tracking-[0.12em] uppercase transition-all duration-200 cursor-pointer shadow-xl active:scale-95 whitespace-nowrap"
             >
               <span className="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-[#E5B56E] text-[#2C1810] flex items-center justify-center">
                 <Play className="w-1.5 h-1.5 fill-current ml-0.5" />
@@ -146,7 +146,7 @@ const DiwaliHeroSection: React.FC = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={handleCloseModal}
-              className="absolute inset-0 bg-black/85 backdrop-blur-md"
+              className="absolute inset-0 bg-black/90"
             />
 
             <motion.div

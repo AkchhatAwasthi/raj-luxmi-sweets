@@ -2,6 +2,18 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { isBengaliSweetItem } from '@/utils/deliveryCalculator';
 
+export interface ProductVariant {
+  id: string;
+  title: string;
+  price: number;
+  original_price?: number;
+  weight?: string;
+  pieces?: string;
+  stock_quantity?: number;
+  sku?: string;
+  is_default?: boolean;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -17,6 +29,11 @@ export interface Product {
   inStock: boolean;
   slug: string;
   serves?: number;
+  variants?: ProductVariant[];
+  selectedVariant?: ProductVariant;
+  variantId?: string;
+  variantTitle?: string;
+  cartItemId?: string;
   nutritionalInfo?: {
     totalEnergy: string;
     carbohydrate: string;
@@ -43,6 +60,10 @@ export interface Product {
 
 export interface CartItem extends Product {
   quantity: number;
+  cartItemId?: string;
+  variantId?: string;
+  variantTitle?: string;
+  selectedVariant?: ProductVariant;
 }
 
 
@@ -109,40 +130,49 @@ export const useStore = create<Store>()(
       // Cart actions
       addToCart: (product) => {
         const { cartItems } = get();
-        const existingItem = cartItems.find(item => item.id === product.id);
+        const itemKey = product.cartItemId || (product.variantId ? `${product.id}_${product.variantId}` : product.id);
+        const existingItem = cartItems.find(item => (item.cartItemId || (item.variantId ? `${item.id}_${item.variantId}` : item.id)) === itemKey);
 
         let updatedCartItems;
         if (existingItem) {
-          updatedCartItems = cartItems.map(item =>
-            item.id === product.id
+          updatedCartItems = cartItems.map(item => {
+            const currentKey = item.cartItemId || (item.variantId ? `${item.id}_${item.variantId}` : item.id);
+            return currentKey === itemKey
               ? { ...item, quantity: item.quantity + 1 }
-              : item
-          );
+              : item;
+          });
         } else {
-          updatedCartItems = [...cartItems, { ...product, quantity: 1 }];
+          updatedCartItems = [...cartItems, { ...product, cartItemId: itemKey, quantity: 1 }];
         }
 
         set({ cartItems: updatedCartItems });
         saveCartToLocalStorage(updatedCartItems);
       },
 
-      removeFromCart: (productId) => {
-        const updatedCartItems = get().cartItems.filter(item => item.id !== productId);
+      removeFromCart: (cartItemIdOrProductId) => {
+        const cart = get().cartItems;
+        const hasKeyMatch = cart.some(item => (item.cartItemId || (item.variantId ? `${item.id}_${item.variantId}` : item.id)) === cartItemIdOrProductId);
+        const updatedCartItems = cart.filter(item => {
+          const key = item.cartItemId || (item.variantId ? `${item.id}_${item.variantId}` : item.id);
+          return hasKeyMatch ? key !== cartItemIdOrProductId : item.id !== cartItemIdOrProductId;
+        });
         set({ cartItems: updatedCartItems });
         saveCartToLocalStorage(updatedCartItems);
       },
 
-      updateQuantity: (productId, quantity) => {
+      updateQuantity: (cartItemIdOrProductId, quantity) => {
         if (quantity <= 0) {
-          get().removeFromCart(productId);
+          get().removeFromCart(cartItemIdOrProductId);
           return;
         }
 
-        const updatedCartItems = get().cartItems.map(item =>
-          item.id === productId
-            ? { ...item, quantity }
-            : item
-        );
+        const cart = get().cartItems;
+        const hasKeyMatch = cart.some(item => (item.cartItemId || (item.variantId ? `${item.id}_${item.variantId}` : item.id)) === cartItemIdOrProductId);
+        const updatedCartItems = cart.map(item => {
+          const key = item.cartItemId || (item.variantId ? `${item.id}_${item.variantId}` : item.id);
+          const isMatch = hasKeyMatch ? key === cartItemIdOrProductId : item.id === cartItemIdOrProductId;
+          return isMatch ? { ...item, quantity } : item;
+        });
 
         set({ cartItems: updatedCartItems });
         saveCartToLocalStorage(updatedCartItems);

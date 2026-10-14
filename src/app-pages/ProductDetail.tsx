@@ -321,10 +321,30 @@ const ProductDetail = ({ product }: { product: any }) => {
 
   useEffect(() => {
     scrollToTopInstant();
+    let isCancelled = false;
+
     if (product?.category_id) {
-      fetchRelatedProducts(product.category_id, product.id);
+      supabase
+        .from('products')
+        .select('*')
+        .eq('category_id', product.category_id)
+        .neq('id', product.id)
+        .eq('is_active', true)
+        .limit(12)
+        .then(({ data, error }) => {
+          if (!isCancelled && !error && data) {
+            setRelatedProducts(data);
+          }
+        })
+        .catch((err) => {
+          if (!isCancelled) console.error('Error fetching related products:', err);
+        });
     }
-  }, [product?.id]);
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [product?.id, product?.category_id]);
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
@@ -348,23 +368,6 @@ const ProductDetail = ({ product }: { product: any }) => {
     };
   }, []);
 
-  const fetchRelatedProducts = async (categoryId: string, productId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('category_id', categoryId)
-        .neq('id', productId)
-        .eq('is_active', true)
-        .limit(12);
-
-      if (error) throw error;
-      setRelatedProducts(data || []);
-    } catch (error) {
-      console.error('Error fetching related products:', error);
-    }
-  };
-
   const nextRelatedSlide = () => {
     setRelatedCurrentIndex(prev => {
       const maxIndex = Math.max(0, relatedProducts.length - itemsPerView);
@@ -382,14 +385,50 @@ const ProductDetail = ({ product }: { product: any }) => {
   const canGoNextRelated = relatedCurrentIndex < maxRelatedIndex;
   const canGoPrevRelated = relatedCurrentIndex > 0;
 
+  const variants = (Array.isArray(product?.variants) && product.variants.length > 0) ? product.variants : [];
+  const hasVariants = variants.length > 0;
+  const initialVariant = variants.find((v: any) => v.is_default) || variants[0] || null;
+  const [selectedVariant, setSelectedVariant] = useState(initialVariant);
+
+  useEffect(() => {
+    if (product?.variants && Array.isArray(product.variants) && product.variants.length > 0) {
+      const def = product.variants.find((v: any) => v.is_default) || product.variants[0];
+      setSelectedVariant(def);
+    } else {
+      setSelectedVariant(null);
+    }
+  }, [product?.id]);
+
+  const activePrice = selectedVariant ? Number(selectedVariant.price) : Number(product?.price || 0);
+  const activeOriginalPrice = selectedVariant?.original_price !== undefined && selectedVariant?.original_price !== null
+    ? (selectedVariant.original_price ? Number(selectedVariant.original_price) : undefined)
+    : (product?.original_price ? Number(product.original_price) : undefined);
+  const activeWeight = selectedVariant?.weight || product?.nutritional_info?.weight_per_unit || product?.weight || '';
+  const activePieces = selectedVariant?.pieces || product?.pieces || '';
+  const activeStock = selectedVariant?.stock_quantity !== undefined ? selectedVariant.stock_quantity : product?.stock_quantity;
+  const activeSku = selectedVariant?.sku || product?.sku;
+
+  const discountPercentage = activeOriginalPrice && activeOriginalPrice > activePrice
+    ? calculateDiscount(activeOriginalPrice, activePrice)
+    : 0;
+
   const handleAddToCart = () => {
+    const cartItemKey = selectedVariant ? `${product.id}_${selectedVariant.id}` : product.id;
     for (let i = 0; i < quantity; i++) {
       addToCart({
         ...product,
+        cartItemId: cartItemKey,
+        variantId: selectedVariant?.id,
+        variantTitle: selectedVariant?.title,
+        selectedVariant: selectedVariant || undefined,
+        price: activePrice,
+        originalPrice: activeOriginalPrice,
+        weight: activeWeight,
+        pieces: activePieces,
         image: product.images?.[0] || '/placeholder.svg',
         slug: product.sku || product.id,
         category: product.categories?.name || 'Unknown',
-        inStock: product.stock_quantity > 0
+        inStock: (activeStock ?? 1) > 0
       });
     }
   };
@@ -398,10 +437,6 @@ const ProductDetail = ({ product }: { product: any }) => {
     handleAddToCart();
     router.push('/checkout');
   };
-
-  const discountPercentage = product.original_price
-    ? calculateDiscount(product.original_price, product.price)
-    : 0;
 
   const nextImage = () => {
     if (product.images && product.images.length > 1) {
@@ -419,7 +454,7 @@ const ProductDetail = ({ product }: { product: any }) => {
     setCurrentImageIndex(index);
   };
 
-  const productWeight = product.nutritional_info?.weight_per_unit || product.weight || '';
+  const productWeight = activeWeight;
 
   // Get subcategory/category specific info
   const categoryInfo = getProductCategoryInfo(product);
@@ -497,7 +532,7 @@ const ProductDetail = ({ product }: { product: any }) => {
                   >
                     <ChevronRight className="w-5 h-5" />
                   </button>
-                  <div className="absolute bottom-3 right-3 bg-black/50 text-white text-[11px] px-2.5 py-0.5 rounded-full backdrop-blur-xs">
+                  <div className="absolute bottom-3 right-3 bg-black/70 text-white text-[11px] px-2.5 py-0.5 rounded-full shadow-sm">
                     {currentImageIndex + 1} / {product.images.length}
                   </div>
                 </>
@@ -530,7 +565,7 @@ const ProductDetail = ({ product }: { product: any }) => {
             {/* Stock status & Rating Row */}
             <div className="flex items-center justify-between gap-4 mb-4">
               <div>
-                {product.stock_quantity > 0 ? (
+                {(activeStock ?? 1) > 0 ? (
                   <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-emerald-800">
                     <span className="w-2 h-2 rounded-full bg-emerald-600"></span> In Stock
                   </span>
@@ -560,36 +595,114 @@ const ProductDetail = ({ product }: { product: any }) => {
             </h1>
 
             {/* Net weight & SKU if available */}
-            {(productWeight || product.sku) && (
-              <div className="flex items-center gap-3 text-sm text-[#5D4037] mb-6">
-                {productWeight && (
-                  <span>Net Content: <strong className="text-[#2C1810] font-medium">{productWeight}</strong></span>
+            {(activeWeight || activeSku || activePieces) && (
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-sm text-[#5D4037] mb-5">
+                {activeWeight && (
+                  <span>Net Content: <strong className="text-[#2C1810] font-medium">{activeWeight}</strong></span>
                 )}
-                {productWeight && product.sku && <span className="text-[#E6D5B8]">•</span>}
-                {product.sku && (
-                  <span className="text-xs text-[#5D4037]/70 font-mono">SKU: {product.sku}</span>
+                {activeWeight && activePieces && <span className="text-[#E6D5B8]">•</span>}
+                {activePieces && (
+                  <span>Pieces: <strong className="text-[#2C1810] font-medium">{activePieces}</strong></span>
                 )}
+                {(activeWeight || activePieces) && activeSku && <span className="text-[#E6D5B8]">•</span>}
+                {activeSku && (
+                  <span className="text-xs text-[#5D4037]/70 font-mono">SKU: {activeSku}</span>
+                )}
+              </div>
+            )}
+
+            {/* Variant Selector (e.g. 250g, 500g, 1kg) */}
+            {hasVariants && (
+              <div className="mb-6 p-4 sm:p-5 bg-gradient-to-b from-[#FDFCF8] to-[#F7F2E8] border border-[#E8DEC8] rounded-2xl shadow-xs space-y-3.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#8B2131]" />
+                    <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[#5D4037]">
+                      Select Option / Weight
+                    </span>
+                  </div>
+                  {selectedVariant && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#8B2131]/10 text-[#8B2131] border border-[#8B2131]/20">
+                      <span>Selected:</span>
+                      <strong className="font-bold">{selectedVariant.title}</strong>
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  {variants.map((v: any) => {
+                    const isSelected = selectedVariant?.id === v.id;
+                    const vDiscount = v.original_price && v.original_price > v.price
+                      ? calculateDiscount(v.original_price, v.price)
+                      : 0;
+
+                    return (
+                      <button
+                        key={v.id}
+                        type="button"
+                        onClick={() => setSelectedVariant(v)}
+                        className={`group relative flex flex-col justify-between p-3.5 sm:p-4 rounded-xl border text-left cursor-pointer transition-all duration-200 min-w-[130px] flex-1 sm:flex-initial ${
+                          isSelected
+                            ? 'border-[#8B2131] bg-white text-[#2C1810] shadow-sm ring-2 ring-[#8B2131]/20 -translate-y-0.5'
+                            : 'border-[#E6D5B8]/80 bg-white/70 text-[#5D4037] hover:border-[#B38B46]/60 hover:bg-white hover:shadow-xs'
+                        }`}
+                      >
+                        {/* Top: Title + Discount Pill */}
+                        <div className="flex items-center justify-between gap-2 w-full mb-1.5">
+                          <span className={`text-xs sm:text-sm font-bold tracking-wide uppercase ${
+                            isSelected ? 'text-[#8B2131]' : 'text-[#2C1810]'
+                          }`}>
+                            {v.title}
+                          </span>
+                          {vDiscount > 0 && (
+                            <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-[#8B2131] text-white shadow-xs">
+                              {vDiscount}% OFF
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Middle optional details if pieces exists */}
+                        {v.pieces && (
+                          <span className="text-[11px] text-[#5D4037]/75 font-normal mb-1.5">
+                            {v.pieces}
+                          </span>
+                        )}
+
+                        {/* Bottom Row: Price & Strike-through */}
+                        <div className="flex items-baseline gap-2 pt-1 border-t border-[#E6D5B8]/40 w-full">
+                          <span className={`text-sm sm:text-base font-orange-avenue font-normal ${
+                            isSelected ? 'text-[#8B2131]' : 'text-[#2C1810]'
+                          }`}>
+                            {formatPrice(v.price)}
+                          </span>
+                          {v.original_price && v.original_price > v.price && (
+                            <span className="text-[11px] text-[#5D4037]/45 line-through font-light">
+                              {formatPrice(v.original_price)}
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             )}
 
             {/* Price Row */}
             <div className="flex items-baseline gap-4 mb-6 pb-6 border-b border-[#E6D5B8]">
               <span className="text-3xl sm:text-4xl font-orange-avenue font-normal text-[#8B2131]">
-                {formatPrice(product.price)}
+                {formatPrice(activePrice)}
               </span>
-              {product.original_price && product.original_price > product.price && (
+              {activeOriginalPrice && activeOriginalPrice > activePrice && (
                 <span className="text-xl text-[#5D4037]/50 line-through font-orange-avenue">
-                  {formatPrice(product.original_price)}
+                  {formatPrice(activeOriginalPrice)}
                 </span>
               )}
               {discountPercentage > 0 && (
-                <span className="text-xs font-bold text-[#8B2131] border border-[#8B2131] px-2.5 py-0.5 uppercase tracking-wider">
+                <span className="text-xs font-bold text-[#8B2131] bg-[#8B2131]/10 border border-[#8B2131]/30 px-3 py-1 rounded-full uppercase tracking-wider">
                   Save {discountPercentage}%
                 </span>
               )}
-              <span className="text-xs text-[#5D4037]/70 block ml-auto">
-                Inclusive of all taxes
-              </span>
             </div>
 
             {/* Clean Description */}
@@ -663,7 +776,7 @@ const ProductDetail = ({ product }: { product: any }) => {
                     </span>
                     <button
                       onClick={() => setQuantity(quantity + 1)}
-                      disabled={product.stock_quantity <= quantity}
+                      disabled={(activeStock ?? 1) <= quantity}
                       aria-label="Increase quantity"
                       className="w-12 h-12 flex items-center justify-center text-[#2C1810] hover:bg-[#FAF6EE] transition-colors disabled:opacity-30"
                     >
@@ -675,16 +788,16 @@ const ProductDetail = ({ product }: { product: any }) => {
                   <div className="flex flex-1 flex-col sm:flex-row gap-3">
                     <Button
                       onClick={handleAddToCart}
-                      disabled={product.stock_quantity === 0}
+                      disabled={(activeStock ?? 1) === 0}
                       className="flex-1 bg-white hover:bg-[#FAF6EE] text-[#2C1810] border border-[#2C1810] h-[52px] rounded-none uppercase tracking-[0.2em] font-medium text-xs sm:text-sm transition-all duration-300 shadow-xs flex items-center justify-center gap-2 hover:border-[#8B2131] hover:text-[#8B2131]"
                     >
                       <ShoppingCart className="w-4 h-4" />
-                      {product.stock_quantity === 0 ? 'Out of Stock' : 'Add to Cart'}
+                      {(activeStock ?? 1) === 0 ? 'Out of Stock' : 'Add to Cart'}
                     </Button>
 
                     <Button
                       onClick={handleBuyNow}
-                      disabled={product.stock_quantity === 0}
+                      disabled={(activeStock ?? 1) === 0}
                       className="flex-1 bg-[#8B2131] hover:bg-[#6d1a26] text-white h-[52px] rounded-none uppercase tracking-[0.2em] font-medium text-xs sm:text-sm transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center gap-2"
                     >
                       <Sparkles className="w-4 h-4 text-[#E6D5B8]" />

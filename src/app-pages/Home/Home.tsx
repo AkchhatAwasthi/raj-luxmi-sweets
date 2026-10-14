@@ -45,14 +45,10 @@ const Home = () => {
         <CorporateWeddingGifting />
 
         {/* 8. Our Legacy of Taste (Purity Standard) */}
-        <div className="section-content-visibility">
-          <LegacyOfTaste />
-        </div>
+        <LegacyOfTaste />
 
         {/* 9. Dual Delivery Spotlight (Lucknow Same-Day & Pan-India Air Express) */}
-        <div className="section-content-visibility">
-          <DualDeliverySpotlight />
-        </div>
+        <DualDeliverySpotlight />
 
         {/* 10. Minimal Brand & Festive Ticker */}
         <MarqueeSection
@@ -69,19 +65,13 @@ const Home = () => {
         />
 
         {/* 11. Heritage, Authenticity & Trust Scroll */}
-        <div className="section-content-visibility">
-          <HeritageScroll />
-        </div>
+        <HeritageScroll />
 
         {/* 12. Customer Reviews & Social Proof */}
-        <div className="section-content-visibility">
-          <Testimonials />
-        </div>
+        <Testimonials />
 
         {/* 13. Same Day Lucknow Delivery & Security Badges */}
-        <div className="section-content-visibility">
-          <DeliverySection />
-        </div>
+        <DeliverySection />
       </div>
     </main>
   );

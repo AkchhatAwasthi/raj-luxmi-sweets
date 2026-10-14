@@ -38,7 +38,7 @@ const Testimonials = () => {
   return (
     <section className="py-24 relative bg-[#F9F3EA] overflow-hidden">
       {/* Royal Background Accent */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#FFEBE8] rounded-full filter blur-[120px] opacity-40 pointer-events-none"></div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[radial-gradient(circle,_#FFEBE8_0%,_transparent_70%)] opacity-60 pointer-events-none"></div>
 
       <div className="max-w-[1600px] mx-auto px-6 relative z-10">
         <motion.div

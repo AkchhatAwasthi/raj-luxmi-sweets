@@ -73,7 +73,7 @@ const DiwaliBannersSection: React.FC = () => {
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#23130D]/70 hidden lg:block" />
 
               {/* Float badge on image */}
-              <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 z-10 bg-[#1A0B06]/85 backdrop-blur-md border border-[#E5B56E]/40 px-4 py-2 rounded-lg">
+              <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 z-10 bg-[#1A0B06]/90 border border-[#E5B56E]/40 px-4 py-2 rounded-lg">
                 <span className="text-[10px] sm:text-xs uppercase tracking-widest text-[#E5B56E] font-normal font-orange-avenue">
                   The Royal Wicker Hamper 2026
                 </span>
@@ -100,17 +100,17 @@ const DiwaliBannersSection: React.FC = () => {
 
               {/* 3 Value Pillars */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                <div className="p-3 rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm">
+                <div className="p-3 rounded-lg bg-white/10 border border-white/15">
                   <ShieldCheck className="w-4 h-4 text-[#E5B56E] mb-1.5" />
                   <div className="text-xs font-normal text-white uppercase font-orange-avenue tracking-wide">Custom Branding</div>
                   <div className="text-[11px] text-[#C4B29E] font-orange-avenue">Personalized sleeves & cards</div>
                 </div>
-                <div className="p-3 rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm">
+                <div className="p-3 rounded-lg bg-white/10 border border-white/15">
                   <Truck className="w-4 h-4 text-[#E5B56E] mb-1.5" />
                   <div className="text-xs font-normal text-white uppercase font-orange-avenue tracking-wide">Pan-India Express</div>
                   <div className="text-[11px] text-[#C4B29E] font-orange-avenue">Direct doorstep dispatch</div>
                 </div>
-                <div className="p-3 rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm">
+                <div className="p-3 rounded-lg bg-white/10 border border-white/15">
                   <Sparkles className="w-4 h-4 text-[#E5B56E] mb-1.5" />
                   <div className="text-xs font-normal text-white uppercase font-orange-avenue tracking-wide">Bespoke Curation</div>
                   <div className="text-[11px] text-[#C4B29E] font-orange-avenue">Custom sweet assortments</div>

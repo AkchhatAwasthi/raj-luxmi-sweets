@@ -13,6 +13,11 @@ export const createClient = () =>
         autoRefreshToken: true,
         detectSessionInUrl: true,
         flowType: 'pkce',
+        // In-memory pass-through lock prevents browser-level navigator.locks 5000ms deadlocks
+        // and contention across multiple open tabs / React component remounts
+        lock: async (_name: string, _acquireTimeout: number, fn: () => Promise<any>) => {
+          return await fn();
+        },
       },
       db: { schema: 'public' },
       global: {

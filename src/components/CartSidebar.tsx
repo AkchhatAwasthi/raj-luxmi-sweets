@@ -82,7 +82,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isAdminRoute = false }) => {
         <>
           {/* Backdrop */}
           <motion.div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-black/75 z-50"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -130,7 +130,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isAdminRoute = false }) => {
                 <div className="space-y-6">
                   {cartItems.map((item) => (
                     <motion.div
-                      key={item.id}
+                      key={item.cartItemId || item.id}
                       className="flex space-x-4 pb-6 border-b border-[#E6D5B8] last:border-0"
                       layout
                       initial={{ opacity: 0 }}
@@ -148,15 +148,23 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isAdminRoute = false }) => {
                           <h4 className="text-base text-[#783838] uppercase font-instrument font-normal tracking-wide line-clamp-2 leading-tight">
                             {item.name}
                           </h4>
-                          <p className="text-sm text-[#5D4037] mt-1">
-                            {item.weight}
-                          </p>
+                          {item.variantTitle ? (
+                            <p className="text-xs text-[#8B2131] font-semibold mt-1">
+                              Option: {item.variantTitle} {item.weight && item.weight !== item.variantTitle ? `(${item.weight})` : ''}
+                            </p>
+                          ) : (
+                            item.weight && (
+                              <p className="text-sm text-[#5D4037] mt-1">
+                                {item.weight}
+                              </p>
+                            )
+                          )}
                         </div>
 
                         <div className="flex items-center justify-between mt-3">
                           <div className="flex items-center border border-[#E6D5B8] rounded-sm">
                             <button
-                              onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                              onClick={() => updateQuantity(item.cartItemId || item.id, item.quantity - 1)}
                               className="p-1.5 hover:bg-[#FFF0DE] text-[#8B2131] transition-colors"
                             >
                               <Minus className="w-3 h-3" />
@@ -165,7 +173,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isAdminRoute = false }) => {
                               {item.quantity}
                             </span>
                             <button
-                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                              onClick={() => updateQuantity(item.cartItemId || item.id, item.quantity + 1)}
                               className="p-1.5 hover:bg-[#FFF0DE] text-[#8B2131] transition-colors"
                             >
                               <Plus className="w-3 h-3" />
@@ -177,7 +185,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isAdminRoute = false }) => {
                               {formatCurrency(item.price * item.quantity, settings.currency_symbol)}
                             </span>
                             <button
-                              onClick={() => removeFromCart(item.id)}
+                              onClick={() => removeFromCart(item.cartItemId || item.id)}
                               className="text-[#5D4037]/60 hover:text-[#8B2131] transition-colors"
                             >
                               <X className="w-4 h-4" />
