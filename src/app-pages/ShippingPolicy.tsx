@@ -114,11 +114,15 @@ const ShippingPolicy = () => {
               <div className="w-8 h-8 rounded-lg bg-[#FAF7F2] border border-[#D4C3A3]/50 flex items-center justify-center text-[#B38B46]">
                 <AlertTriangle className="w-4 h-4" />
               </div>
-              <h2 className="text-xl font-serif text-[#4A1C1F] font-semibold">4. Shipping Charges & Tracking</h2>
+              <h2 className="text-xl font-serif text-[#4A1C1F] font-semibold">4. Minimum Order Limits & Shipping Charges</h2>
             </div>
             <div className="text-sm md:text-base pl-11 space-y-2">
               <ul className="list-disc pl-5 space-y-1.5 text-sm">
-                <li>Shipping costs are calculated automatically at checkout based on destination pincode and package weight.</li>
+                <li><strong>Minimum Order in Lucknow:</strong> ₹2,000 minimum order value for all local Lucknow deliveries.</li>
+                <li><strong>Minimum Order Outside Lucknow (Pan-India):</strong> ₹4,000 minimum order value for all deliveries outside Lucknow to ensure optimal freshness batching and specialized courier packaging.</li>
+                <li><strong>Local Delivery Charges (Lucknow):</strong> Free delivery within 6 km of our Ashiyana store. For 7–20 km across Lucknow, a flat ₹150 delivery fee applies (Free for orders 10 kg and above).</li>
+                <li><strong>Pan-India Shipping Charges:</strong> ₹100 per kg based on total package weight.</li>
+                <li><strong>Special Category Restrictions:</strong> Fresh Bengali &amp; Chhena sweets are highly perishable and are delivered strictly within Lucknow city only.</li>
                 <li>Once dispatched, you will receive an SMS and WhatsApp update with your tracking link and AWB number.</li>
                 <li>You can also track your live delivery status anytime on our <Link href="/order-detail" className="text-[#B38B46] hover:underline font-medium">Order Tracking</Link> page.</li>
               </ul>

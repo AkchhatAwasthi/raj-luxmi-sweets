@@ -215,6 +215,9 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isAdminRoute = false }) => {
                   <p className="text-xs text-[#5D4037]/80 text-center pt-1">
                     Shipping & Taxes calculated at checkout
                   </p>
+                  <p className="text-[11px] font-medium text-[#8B2131] text-center">
+                    Min. Order: ₹2,000 (Lucknow) | ₹4,000 (Outside Lucknow)
+                  </p>
                 </div>
 
                 <motion.button

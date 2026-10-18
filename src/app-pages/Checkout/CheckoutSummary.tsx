@@ -283,6 +283,12 @@ const CheckoutSummary = ({
                   </div>
                 )}
 
+                {!isMinOrderMet && (
+                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-xs text-center">
+                    Minimum order requirement not met. Please add ₹{minOrderShortfall.toLocaleString('en-IN')} more to proceed.
+                  </div>
+                )}
+
                 {/* Place Order Button */}
                 <Button
                   className="w-full bg-[#8B2131] hover:bg-[#701a26] text-white font-instrument font-normal tracking-wider text-lg py-6 shadow-md hover:shadow-lg transition-all"

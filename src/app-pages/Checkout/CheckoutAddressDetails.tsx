@@ -17,6 +17,8 @@ import {
   hasBengaliSweets,
   getBengaliSweetsInCart,
   estimatedRoadKm,
+  MIN_ORDER_LUCKNOW,
+  MIN_ORDER_OUTSIDE,
   MOQ_LUCKNOW_KG,
   MOQ_OUTSIDE_KG,
   type DeliveryZone,
@@ -130,10 +132,10 @@ const CheckoutAddressDetails = ({
     const distKm = customerCoords
       ? estimatedRoadKm(customerCoords.lat, customerCoords.lng)
       : undefined;
-    const result = calculateDelivery(cartItems, zone, distKm);
+    const result = calculateDelivery(cartItems, zone, distKm, subtotal);
     setDeliveryResult(result);
     onDeliveryResult?.(result);
-  }, [zone, cartItems, customerCoords]);
+  }, [zone, cartItems, customerCoords, subtotal]);
 
   // Auto-detect zone from pincode when pincode changes (fallback)
   useEffect(() => {
@@ -283,11 +285,12 @@ const CheckoutAddressDetails = ({
       return;
     }
 
-    // Block if below MOQ
-    if (deliveryResult && !deliveryResult.isAboveMoq) {
-      const moq = deliveryResult.moqKg;
+    // Block if below minimum order amount (₹2,000 Lucknow, ₹4,000 outside Lucknow)
+    const requiredMin = zone === 'outside' ? MIN_ORDER_OUTSIDE : MIN_ORDER_LUCKNOW;
+    if (subtotal < requiredMin) {
+      const zoneLabel = zone === 'outside' ? 'outside Lucknow' : 'within Lucknow';
       setAddressErrors([
-        `Minimum order is ${moq} kg for your delivery zone. Your cart is ${deliveryResult.totalWeightKg.toFixed(2)} kg. Please add more items.`,
+        `Minimum order is ₹${requiredMin.toLocaleString('en-IN')} for delivery ${zoneLabel}. Your cart is ₹${subtotal.toLocaleString('en-IN')}. Please add ₹${(requiredMin - subtotal).toLocaleString('en-IN')} more to proceed.`,
       ]);
       return;
     }
@@ -421,7 +424,7 @@ const CheckoutAddressDetails = ({
                 <span className="text-[#8B2131] font-bold">{totalWeightKg.toFixed(2)} kg</span>
               </p>
               <p className="text-xs text-[#5D4037] mt-0.5">
-                Min. order: {zone === 'outside' ? MOQ_OUTSIDE_KG : MOQ_LUCKNOW_KG} kg for your zone
+                Min. order: <span className="font-semibold text-[#8B2131]">₹{(zone === 'outside' ? MIN_ORDER_OUTSIDE : MIN_ORDER_LUCKNOW).toLocaleString('en-IN')}</span> for your zone ({zone === 'outside' ? 'Outside Lucknow' : 'Lucknow'})
               </p>
             </div>
             {bengaliInCart && (
@@ -526,13 +529,15 @@ const CheckoutAddressDetails = ({
                     </div>
                   )}
 
-                  {/* MOQ warning */}
-                  {!deliveryResult.isAboveMoq && (
-                    <div className="mt-2 flex items-center gap-1 text-xs text-red-700 bg-red-50 border border-red-200 rounded px-2 py-1">
-                      <AlertTriangle className="h-3 w-3 shrink-0" />
-                      Minimum order is {deliveryResult.moqKg} kg.
-                      Your cart: {deliveryResult.totalWeightKg.toFixed(2)} kg —
-                      add {(deliveryResult.moqKg - deliveryResult.totalWeightKg).toFixed(2)} kg more.
+                  {/* Minimum order warning */}
+                  {(!deliveryResult.isAboveMinOrder || subtotal < (zone === 'outside' ? MIN_ORDER_OUTSIDE : MIN_ORDER_LUCKNOW)) && (
+                    <div className="mt-2 flex items-center gap-1.5 text-xs text-red-700 bg-red-50 border border-red-200 rounded px-2.5 py-1.5">
+                      <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-red-600" />
+                      <span>
+                        Minimum order is <strong>₹{(zone === 'outside' ? MIN_ORDER_OUTSIDE : MIN_ORDER_LUCKNOW).toLocaleString('en-IN')}</strong> for {zone === 'outside' ? 'outside Lucknow' : 'Lucknow'}.
+                        Your cart: ₹{subtotal.toLocaleString('en-IN')} —
+                        add <strong>₹{Math.max(0, (zone === 'outside' ? MIN_ORDER_OUTSIDE : MIN_ORDER_LUCKNOW) - subtotal).toLocaleString('en-IN')}</strong> more.
+                      </span>
                     </div>
                   )}
                 </div>

@@ -21,7 +21,7 @@ import { validateContactInfo, validateAddressDetails, validatePaymentMethod } fr
 import { useSettings } from '@/hooks/useSettings';
 import { toNumber, formatCurrency, calculatePercentage, meetsThreshold } from '@/utils/settingsHelpers';
 import { sendOrderEmailsAsync } from '@/utils/emailService';
-import { calculateDelivery, totalCartWeightKg, type DeliveryResult } from '@/utils/deliveryCalculator';
+import { calculateDelivery, totalCartWeightKg, MIN_ORDER_LUCKNOW, MIN_ORDER_OUTSIDE, type DeliveryResult } from '@/utils/deliveryCalculator';
 
 // Import the new components
 import CheckoutContactInfo from './Checkout/CheckoutContactInfo';
@@ -244,11 +244,14 @@ const Checkout = () => {
   const codFee = 0; // COD fee removed as per requirement
   const total = subtotal + tax + deliveryFee + codFee - discount;
 
-  // Weight-based MOQ (replaces amount-based MOQ)
+  // Zone-aware Minimum Order (₹2,000 Lucknow, ₹4,000 Outside Lucknow)
   const totalWeightKg = totalCartWeightKg(cartItems);
+  const isOutsideZone = deliveryResult?.zone === 'outside' ||
+    (!deliveryResult && addressDetails.pincode.replace(/\D/g, '').length === 6 && !addressDetails.pincode.replace(/\D/g, '').startsWith('226'));
+  const minOrderAmount = deliveryResult ? deliveryResult.minOrderAmount : (isOutsideZone ? MIN_ORDER_OUTSIDE : MIN_ORDER_LUCKNOW);
+  const isMinOrderMet = subtotal >= minOrderAmount;
+  const minOrderShortfall = Math.max(0, minOrderAmount - subtotal);
   const moqKg = deliveryResult ? deliveryResult.moqKg : 1;
-  const isMinOrderMet = deliveryResult ? deliveryResult.isAboveMoq : totalWeightKg >= 1;
-  const minOrderShortfall = Math.max(0, moqKg - totalWeightKg);
 
   const applyCoupon = async () => {
     try {
@@ -323,10 +326,10 @@ const Checkout = () => {
   };
 
   const handleNextStep = () => {
-    if (subtotal < toNumber(settings.min_order_amount)) {
+    if (subtotal < minOrderAmount) {
       toast({
         title: "Minimum Order Not Met",
-        description: `Minimum order amount is ${formatCurrency(settings.min_order_amount, settings.currency_symbol)}. Please add more items to your cart.`,
+        description: `Minimum order is ₹${minOrderAmount.toLocaleString('en-IN')} (${minOrderAmount === MIN_ORDER_OUTSIDE ? 'Outside Lucknow' : 'Lucknow'}). Please add ₹${minOrderShortfall.toLocaleString('en-IN')} more to your cart.`,
         variant: "destructive",
       });
       return;
@@ -419,10 +422,10 @@ const Checkout = () => {
     }
 
     // Validate minimum order amount
-    if (subtotal < Number(settings.min_order_amount)) {
+    if (subtotal < minOrderAmount) {
       toast({
         title: "Minimum Order Not Met",
-        description: `Minimum order amount is ${settings.currency_symbol}${Number(settings.min_order_amount).toFixed(2)}. Please add more items.`,
+        description: `Minimum order is ₹${minOrderAmount.toLocaleString('en-IN')} (${minOrderAmount === MIN_ORDER_OUTSIDE ? 'Outside Lucknow' : 'Lucknow'}). Please add ₹${minOrderShortfall.toLocaleString('en-IN')} more items.`,
         variant: "destructive",
       });
       return;
@@ -1013,17 +1016,17 @@ const Checkout = () => {
                   <span className="text-[#783838]">{formatPrice(total)}</span>
                 </div>
 
-                {/* Weight-based Minimum Order Warning */}
+                {/* Minimum Order Warning */}
                 {!isMinOrderMet && (
                   <div className="bg-[#FFFAF0] border border-[#FEEBC8] rounded-sm p-3 mt-3">
                     <div className="flex items-center space-x-2">
                       <span className="text-[#C05621]">⚠️</span>
                       <div>
                         <p className="text-sm text-[#9C4221] font-medium">
-                          Minimum Order: {moqKg} kg
+                          Minimum Order: ₹{minOrderAmount.toLocaleString('en-IN')}
                         </p>
                         <p className="text-xs text-[#C05621]">
-                          Your cart: {totalWeightKg.toFixed(2)} kg — add {minOrderShortfall.toFixed(2)} kg more to proceed
+                          Your cart: ₹{subtotal.toLocaleString('en-IN')} — add ₹{minOrderShortfall.toLocaleString('en-IN')} more to proceed ({minOrderAmount === MIN_ORDER_OUTSIDE ? 'Outside Lucknow min. ₹4,000' : 'Lucknow min. ₹2,000'})
                         </p>
                       </div>
                     </div>

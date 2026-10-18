@@ -15,7 +15,11 @@ export const FREE_DELIVERY_DISTANCE_KM = 6;    // ≤ 6 km = free delivery
 export const LUCKNOW_RADIUS_KM = 20;           // Lucknow service radius
 export const ROAD_FACTOR = 1.3;                // Straight-line → road distance multiplier
 
-// Minimum order weights (in kg)
+// Minimum order amounts (in INR)
+export const MIN_ORDER_LUCKNOW = 2000;         // ₹2,000 minimum order within Lucknow
+export const MIN_ORDER_OUTSIDE = 4000;         // ₹4,000 minimum order outside Lucknow
+
+// Minimum order weights (in kg) — retained for reference
 export const MOQ_LUCKNOW_KG = 1;               // Min 1 kg within Lucknow
 export const MOQ_OUTSIDE_KG = 5;               // Min 5 kg outside Lucknow
 
@@ -26,7 +30,7 @@ export const BENGALI_SWEETS_CATEGORY = 'Bengali Sweets';
 export type DeliveryZone =
     | 'lucknow_free'      // ≤ 6 km → free
     | 'lucknow_flat'      // 7–20 km → ₹150 flat (free if ≥ 10 kg)
-    | 'outside'           // > 20 km → ₹100/kg, MOQ 5 kg, no Bengali sweets
+    | 'outside'           // > 20 km → ₹100/kg, min order ₹4,000, no Bengali sweets
     | 'unknown';          // pincode entered but no live location yet
 
 // ─── Haversine Distance (straight-line, in km) ───────────────────────────────
@@ -139,23 +143,38 @@ export interface DeliveryResult {
     deliveryFee: number;
     isFree: boolean;
     totalWeightKg: number;
+    subtotal: number;
+    minOrderAmount: number;
+    isAboveMinOrder: boolean;
+    minOrderShortfall: number;
     moqKg: number;
-    isAboveMoq: boolean;
+    isAboveMoq: boolean;             // Mirrors isAboveMinOrder for backwards-compatibility
     bengaliSweetsBlocked: boolean;
     distanceKm?: number;             // Available only when GPS used
     message: string;                 // Human-readable explanation
 }
 
 export function calculateDelivery(
-    cartItems: Array<{ weight: string; quantity: number; category?: string }>,
+    cartItems: Array<{ weight: string; quantity: number; category?: string; price?: number | string }>,
     zone: DeliveryZone,
-    distanceKm?: number
+    distanceKm?: number,
+    subtotalOverride?: number
 ): DeliveryResult {
     const totalWeightKg = totalCartWeightKg(cartItems);
+    const subtotal = subtotalOverride !== undefined && subtotalOverride > 0
+        ? subtotalOverride
+        : cartItems.reduce((sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 0), 0);
+
     const bengaliSweetsBlocked = zone === 'outside' && hasBengaliSweets(cartItems);
 
+    const minOrderAmount = zone === 'outside' ? MIN_ORDER_OUTSIDE : MIN_ORDER_LUCKNOW;
+    const isAboveMinOrder = subtotal >= minOrderAmount;
+    const minOrderShortfall = Math.max(0, minOrderAmount - subtotal);
+
     const moqKg = zone === 'outside' ? MOQ_OUTSIDE_KG : MOQ_LUCKNOW_KG;
-    const isAboveMoq = totalWeightKg >= moqKg;
+    // Minimum order is now amount-based (₹2,000 Lucknow, ₹4,000 outside).
+    // isAboveMoq mirrors isAboveMinOrder so existing checks work seamlessly.
+    const isAboveMoq = isAboveMinOrder;
 
     let deliveryFee = 0;
     let isFree = false;
@@ -204,6 +223,10 @@ export function calculateDelivery(
         deliveryFee,
         isFree,
         totalWeightKg,
+        subtotal,
+        minOrderAmount,
+        isAboveMinOrder,
+        minOrderShortfall,
         moqKg,
         isAboveMoq,
         bengaliSweetsBlocked,

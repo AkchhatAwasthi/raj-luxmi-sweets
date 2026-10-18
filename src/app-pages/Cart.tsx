@@ -8,7 +8,7 @@ import { useStore } from '@/store/useStore';
 import { formatPrice } from '@/utils/currency';
 import { useSettings } from '@/hooks/useSettings';
 import { toNumber, formatCurrency } from '@/utils/settingsHelpers';
-import { totalCartWeightKg } from '@/utils/deliveryCalculator';
+import { totalCartWeightKg, MIN_ORDER_LUCKNOW, MIN_ORDER_OUTSIDE } from '@/utils/deliveryCalculator';
 
 const Cart = () => {
   const { cartItems, updateQuantity, removeFromCart } = useStore();
@@ -45,11 +45,10 @@ const Cart = () => {
   const deliveryFee = 0; // shown as 'calculated at checkout'
   const total = subtotal + tax + deliveryFee;
 
-  // Weight-based MOQ: minimum 1 kg within Lucknow
+  // Minimum order validation: ₹2,000 within Lucknow, ₹4,000 outside Lucknow
   const totalWeightKg = totalCartWeightKg(cartItems);
-  const MOQ_KG = 1; // minimum 1 kg (Lucknow default; 5 kg for outside shown at checkout)
-  const isMinOrderMet = totalWeightKg >= MOQ_KG;
-  const minOrderShortfallKg = Math.max(0, MOQ_KG - totalWeightKg);
+  const isMinOrderMet = subtotal >= MIN_ORDER_LUCKNOW;
+  const minOrderShortfall = Math.max(0, MIN_ORDER_LUCKNOW - subtotal);
 
   if (cartItems.length === 0) {
     return (
@@ -239,27 +238,42 @@ const Cart = () => {
                   </p>
                 </div>
 
-                {/* Weight-based Minimum Order Validation */}
+                {/* Minimum Order Validation */}
                 {!isMinOrderMet && (
                   <div className="bg-[#FFFAF0] border border-[#FEEBC8] rounded-sm p-4 animate-pulse">
                     <p className="text-sm text-[#C05621] font-bold text-center">
-                      Minimum order: {MOQ_KG} kg
+                      Minimum order: ₹{MIN_ORDER_LUCKNOW.toLocaleString('en-IN')} for Lucknow (₹{MIN_ORDER_OUTSIDE.toLocaleString('en-IN')} for Outside Lucknow)
                     </p>
                     <p className="text-xs text-[#C05621] mt-1 text-center">
-                      Your cart: {totalWeightKg.toFixed(2)} kg — add {minOrderShortfallKg.toFixed(2)} kg more.
+                      Your cart: ₹{subtotal.toLocaleString('en-IN')} — add ₹{minOrderShortfall.toLocaleString('en-IN')} more to checkout.
                     </p>
                   </div>
                 )}
 
+                {isMinOrderMet && subtotal < MIN_ORDER_OUTSIDE && (
+                  <div className="bg-[#F0FDF4] border border-[#BBF7D0] rounded-sm p-3 text-center text-xs text-[#166534]">
+                    <span className="font-semibold">✓ Eligible for Lucknow delivery (min. ₹2,000)</span>
+                    <p className="text-[#5D4037] mt-0.5">Note: Pan-India / outside Lucknow orders require min. ₹4,000.</p>
+                  </div>
+                )}
+
+                {subtotal >= MIN_ORDER_OUTSIDE && (
+                  <div className="bg-[#F0FDF4] border border-[#BBF7D0] rounded-sm p-2 text-center text-xs text-[#166534] font-medium">
+                    ✓ Eligible for delivery in Lucknow &amp; Pan-India!
+                  </div>
+                )}
+
                 <Button
-                  asChild
-                  className="w-full bg-[#8B2131] hover:bg-[#701a26] text-white h-12 text-base uppercase tracking-widest font-normal shadow-md hover:shadow-lg transition-all font-instrument"
+                  asChild={isMinOrderMet}
+                  className={`w-full bg-[#8B2131] hover:bg-[#701a26] text-white h-12 text-base uppercase tracking-widest font-normal shadow-md hover:shadow-lg transition-all font-instrument ${!isMinOrderMet ? 'opacity-60 cursor-not-allowed' : ''}`}
                   size="lg"
                   disabled={!isMinOrderMet}
                 >
-                  <Link href="/checkout">
-                    {isMinOrderMet ? 'Proceed to Checkout' : 'Add More Items'}
-                  </Link>
+                  {isMinOrderMet ? (
+                    <Link href="/checkout">Proceed to Checkout</Link>
+                  ) : (
+                    <span>Add ₹{minOrderShortfall.toLocaleString('en-IN')} More to Checkout</span>
+                  )}
                 </Button>
 
                 <Button asChild variant="outline" className="w-full border-[#E6D5B8] text-[#5D4037] hover:bg-[#FFF0DE] hover:text-[#2C1810]">
@@ -278,7 +292,7 @@ const Cart = () => {
             {!isMinOrderMet && (
               <div className="bg-[#FFFAF0] border border-[#FEEBC8] rounded-sm p-2 mb-3 text-center">
                 <p className="text-xs text-[#C05621] font-medium">
-                  Add {minOrderShortfallKg.toFixed(2)} kg more to checkout
+                  Add ₹{minOrderShortfall.toLocaleString('en-IN')} more to checkout (Min ₹2,000)
                 </p>
               </div>
             )}
@@ -289,13 +303,15 @@ const Cart = () => {
                 <p className="font-instrument font-normal text-xl text-[#2C1810]">{formatPrice(total)}</p>
               </div>
               <Button
-                asChild
-                className="bg-[#8B2131] hover:bg-[#701a26] text-white px-8 uppercase tracking-widest text-sm font-normal font-instrument"
+                asChild={isMinOrderMet}
+                className={`bg-[#8B2131] hover:bg-[#701a26] text-white px-8 uppercase tracking-widest text-sm font-normal font-instrument ${!isMinOrderMet ? 'opacity-60 cursor-not-allowed' : ''}`}
                 disabled={!isMinOrderMet}
               >
-                <Link href="/checkout">
-                  {isMinOrderMet ? 'Checkout' : 'Add Items'}
-                </Link>
+                {isMinOrderMet ? (
+                  <Link href="/checkout">Checkout</Link>
+                ) : (
+                  <span>Min ₹2,000</span>
+                )}
               </Button>
             </div>
           </div>
