@@ -22,6 +22,7 @@ import { useSettings } from '@/hooks/useSettings';
 import { toNumber, formatCurrency, calculatePercentage, meetsThreshold } from '@/utils/settingsHelpers';
 import { sendOrderEmailsAsync } from '@/utils/emailService';
 import { calculateDelivery, totalCartWeightKg, MIN_ORDER_LUCKNOW, MIN_ORDER_OUTSIDE, type DeliveryResult } from '@/utils/deliveryCalculator';
+import { trackInitiateCheckout, trackPurchase } from '@/lib/metaPixel';
 
 // Import the new components
 import CheckoutContactInfo from './Checkout/CheckoutContactInfo';
@@ -91,6 +92,13 @@ const Checkout = () => {
     fetchProductCoupons();
     fetchSavedAddresses();
     getCurrentUser();
+    if (cartItems.length > 0 && subtotal > 0) {
+      try {
+        trackInitiateCheckout(subtotal, cartItems.length);
+      } catch (e) {
+        // Non-blocking
+      }
+    }
   }, [cartItems]);
 
   const getCurrentUser = async () => {
@@ -593,6 +601,17 @@ const Checkout = () => {
           router.push('/profile?tab=orders');
         }
 
+        // Meta Pixel: Track Purchase (COD)
+        try {
+          trackPurchase({
+            orderNumber,
+            value: total,
+            items: cartItems.map(item => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity })),
+          });
+        } catch (e) {
+          // Non-blocking
+        }
+
         clearCart();
       } else {
         const cashfreeOrderData: CashfreeOrderData = {
@@ -705,6 +724,17 @@ const Checkout = () => {
                 });
 
                 router.push('/profile?tab=orders');
+              }
+
+              // Meta Pixel: Track Purchase (Online)
+              try {
+                trackPurchase({
+                  orderNumber,
+                  value: total,
+                  items: cartItems.map(item => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity })),
+                });
+              } catch (e) {
+                // Non-blocking
               }
 
               clearCart();

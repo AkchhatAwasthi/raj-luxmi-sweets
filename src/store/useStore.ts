@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { isBengaliSweetItem } from '@/utils/deliveryCalculator';
+import { trackAddToCart } from '@/lib/metaPixel';
 
 export interface ProductVariant {
   id: string;
@@ -147,6 +148,19 @@ export const useStore = create<Store>()(
 
         set({ cartItems: updatedCartItems });
         saveCartToLocalStorage(updatedCartItems);
+
+        // Meta Pixel: Track AddToCart
+        try {
+          trackAddToCart({
+            id: product.id,
+            name: product.name,
+            price: Number(product.price) || 0,
+            quantity: 1,
+            category: product.category,
+          });
+        } catch (e) {
+          // Non-blocking
+        }
       },
 
       removeFromCart: (cartItemIdOrProductId) => {

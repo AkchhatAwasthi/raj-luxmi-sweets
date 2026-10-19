@@ -8,6 +8,7 @@ import CartSidebar from '@/components/CartSidebar';
 import FloatingCatalogueButton from '@/components/FloatingCatalogueButton';
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as Sonner } from '@/components/ui/sonner';
+import MetaPixel from '@/components/MetaPixel';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://rajluxmisweets.com'),
@@ -83,6 +84,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Script>
       </head>
       <body suppressHydrationWarning>
+        <MetaPixel />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}

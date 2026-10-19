@@ -19,6 +19,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { scrollToTopInstant } from '@/utils/scrollToTop';
 import FaqAccordion from '@/components/FaqAccordion';
 import ProductReviews from '@/components/ProductReviews';
+import { trackViewContent } from '@/lib/metaPixel';
 
 const BULK_WHATSAPP_NUMBER = '918448447408';
 
@@ -339,6 +340,19 @@ const ProductDetail = ({ product }: { product: any }) => {
         .catch((err) => {
           if (!isCancelled) console.error('Error fetching related products:', err);
         });
+    }
+
+    if (product) {
+      try {
+        trackViewContent({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          category: product.category || product.categories?.name,
+        });
+      } catch (e) {
+        // Non-blocking
+      }
     }
 
     return () => {
