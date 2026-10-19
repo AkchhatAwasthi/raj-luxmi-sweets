@@ -1,16 +1,22 @@
 'use client';
 
 import { usePathname, useSearchParams } from 'next/navigation';
-import { useEffect, Suspense } from 'react';
+import { useEffect, useRef, Suspense } from 'react';
 import Script from 'next/script';
 import { FB_PIXEL_ID, pageview } from '@/lib/metaPixel';
 
 function MetaPixelTracker() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
-    // Tracks PageView on client-side navigation in Next.js SPA
+    // The base snippet already fires PageView on initial script load.
+    // Skip on first render to avoid duplicate PageView on first load; track on all subsequent route changes.
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     pageview();
   }, [pathname, searchParams]);
 

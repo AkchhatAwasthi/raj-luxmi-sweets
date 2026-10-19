@@ -8,11 +8,32 @@ declare global {
 }
 
 /**
+ * Helper to get or safely initialize window.fbq
+ */
+function getFbq(): ((...args: any[]) => void) | null {
+  if (typeof window === 'undefined') return null;
+  if (typeof window.fbq === 'function') return window.fbq;
+
+  // If fbq is not yet ready, initialize the standard queue stub so events are not dropped
+  const stub: any = function (...args: any[]) {
+    stub.queue = stub.queue || [];
+    stub.queue.push(args);
+  };
+  stub.loaded = false;
+  stub.version = '2.0';
+  stub.queue = [];
+  (window as any).fbq = stub;
+  return stub;
+}
+
+/**
  * Trigger standard PageView
  */
 export const pageview = () => {
-  if (typeof window !== 'undefined' && typeof window.fbq === 'function') {
-    window.fbq('track', 'PageView');
+  const fbq = getFbq();
+  if (fbq) {
+    fbq('track', 'PageView');
+    console.log('📊 [Meta Pixel] Event fired: PageView');
   }
 };
 
@@ -21,8 +42,10 @@ export const pageview = () => {
  * https://developers.facebook.com/docs/meta-pixel/reference
  */
 export const trackEvent = (name: string, options: Record<string, any> = {}) => {
-  if (typeof window !== 'undefined' && typeof window.fbq === 'function') {
-    window.fbq('track', name, options);
+  const fbq = getFbq();
+  if (fbq) {
+    fbq('track', name, options);
+    console.log(`📊 [Meta Pixel] Event fired: ${name}`, options);
   }
 };
 
@@ -30,8 +53,10 @@ export const trackEvent = (name: string, options: Record<string, any> = {}) => {
  * Trigger custom Meta Pixel event
  */
 export const trackCustomEvent = (name: string, options: Record<string, any> = {}) => {
-  if (typeof window !== 'undefined' && typeof window.fbq === 'function') {
-    window.fbq('trackCustom', name, options);
+  const fbq = getFbq();
+  if (fbq) {
+    fbq('trackCustom', name, options);
+    console.log(`📊 [Meta Pixel] Custom event fired: ${name}`, options);
   }
 };
 
