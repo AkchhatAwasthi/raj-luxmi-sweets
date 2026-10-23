@@ -4,7 +4,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 export const DIWALI_CATALOGUE_URL =
-  'https://res.cloudinary.com/dmj0smemf/image/upload/v1791800492/Rajluxmi_Diwali_Catalogue_1__compressed_aumrdz.pdf';
+  'https://drive.google.com/file/d/1cabybdl6c3TVbjy96MNJzIkvNEf4s-lR/view?usp=sharing';
 
 const FloatingCatalogueButton: React.FC = () => {
   return (
