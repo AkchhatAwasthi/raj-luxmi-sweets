@@ -1,7 +1,7 @@
 // @ts-nocheck
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -12,66 +12,169 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/utils/currency';
+import { fetchCategoryRelationships } from '@/lib/categoryHierarchy';
+import { DIWALI_CATALOGUE_URL } from '@/components/FloatingCatalogueButton';
 
 // Authentic website imagery & user-provided assets
+const HERO_BANNER_IMG = 'https://res.cloudinary.com/dmj0smemf/image/upload/f_auto,q_auto/v1792763546/Gourmet_Gift_Hamper_Collection_Display_u9fzpk.png';
 const CURATE_HAMPER_IMG = 'https://res.cloudinary.com/dmj0smemf/image/upload/f_auto,q_auto/v1788779457/ChatGPT_Image_Sep_7_2026_04_40_28_PM_ujwucm.png';
 const HALWAI_SWEETS_IMG = 'https://res.cloudinary.com/danag6hn5/image/upload/q_auto/f_auto/v1775412897/DSC08529.jpg';
 const HALWAI_ARTISAN_IMG = 'https://res.cloudinary.com/dmj0smemf/image/upload/f_auto,q_auto/v1788759051/WhatsApp_Image_2026-09-07_at_10.56.07_AM_dskzaj.jpg';
 const PACKAGING_FRESH_IMG = 'https://res.cloudinary.com/dmj0smemf/image/upload/f_auto,q_auto/v1788240115/DSC07987_1_1_ujxahs.jpg';
 const DELIVERY_PAN_INDIA_IMG = 'https://res.cloudinary.com/dmj0smemf/image/upload/f_auto,q_auto/v1788759519/ChatGPT_Image_Sep_7_2026_11_06_47_AM_ylkfg5.png';
-const TASTING_BOX_SAMPLE_IMG = 'https://res.cloudinary.com/danag6hn5/image/upload/q_auto/f_auto/v1775412964/DSC07955.jpg';
+const TASTING_BOX_SAMPLE_IMG = 'https://res.cloudinary.com/dmj0smemf/image/upload/f_auto,q_auto/v1792046639/Luxury_Diwali_Mithai_Gift_Box_s3ynam.png';
+const FALLBACK_BOX_IMG = 'https://res.cloudinary.com/dmj0smemf/image/upload/f_auto,q_auto/v1792733544/Luxurious_Golden_Confectionery_Gift_Box_bjzrkz.png';
 
 const WHATSAPP_NUMBER = '918448447408';
 
 export default function BulkOrderClient() {
-  const [giftBoxes, setGiftBoxes] = useState<any[]>([]);
+  const [diwaliBoxes, setDiwaliBoxes] = useState<any[]>([]);
+  const [subcategories, setSubcategories] = useState<{ id: string; name: string; slug: string | null }[]>([]);
+  const [activeTab, setActiveTab] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const [previewProduct, setPreviewProduct] = useState<any | null>(null);
 
   useEffect(() => {
-    fetchGiftBoxes();
+    fetchDiwaliBoxes();
   }, []);
 
-  const fetchGiftBoxes = async () => {
+  const fetchDiwaliBoxes = async () => {
     try {
       setLoading(true);
 
-      // Query products belonging to Gift Boxes category or named 'Gift Box'
-      const { data, error } = await supabase
+      // 1. Fetch all active categories
+      const { data: categoriesData, error: catError } = await supabase
+        .from('categories')
+        .select('id, name, slug, is_active')
+        .eq('is_active', true);
+
+      if (catError) throw catError;
+
+      // 2. Fetch category relationships to find subcategories under Diwali Special
+      const relsData = await fetchCategoryRelationships();
+
+      // 3. Identify the main Diwali Special category
+      const diwaliMain = (categoriesData || []).find((c: any) => {
+        const n = (c.name || '').trim().toLowerCase();
+        const s = (c.slug || '').trim().toLowerCase();
+        return (
+          n === 'diwali specials' ||
+          s === 'diwali-specials' ||
+          n === 'diwali special' ||
+          s === 'diwali-special' ||
+          n.includes('diwali') ||
+          s.includes('diwali')
+        );
+      });
+
+      // 4. Discover subcategories under Diwali Specials (e.g. MDF Boxes, Gift Hampers, etc.)
+      const subMap = new Map<string, { id: string; name: string; slug: string | null }>();
+      if (diwaliMain) {
+        (relsData || [])
+          .filter((r: any) => r.parent_id === diwaliMain.id)
+          .forEach((r: any) => {
+            const childCat = (categoriesData || []).find((c: any) => c.id === r.child_id);
+            if (childCat) {
+              subMap.set(childCat.id, {
+                id: childCat.id,
+                name: childCat.name,
+                slug: childCat.slug || null,
+              });
+            }
+          });
+      }
+
+      // Also include any categories explicitly mentioning mdf or diwali (except main)
+      (categoriesData || []).forEach((c: any) => {
+        if (diwaliMain && c.id === diwaliMain.id) return;
+        const n = (c.name || '').toLowerCase();
+        const s = (c.slug || '').toLowerCase();
+        if (n.includes('mdf box') || s.includes('mdf-box')) {
+          subMap.set(c.id, { id: c.id, name: c.name, slug: c.slug || null });
+        }
+      });
+
+      const discoveredSubcats = Array.from(subMap.values());
+      setSubcategories(discoveredSubcats);
+
+      const targetCategoryIds = new Set<string>([
+        ...(diwaliMain ? [diwaliMain.id] : []),
+        ...discoveredSubcats.map((s) => s.id),
+      ]);
+
+      // 5. Fetch all active products
+      const { data: productsData, error: prodError } = await supabase
         .from('products')
-        .select('*, categories(name, slug)')
+        .select('*, categories(id, name, slug)')
         .eq('is_active', true)
-        .order('name', { ascending: true });
+        .order('price', { ascending: true });
 
-      if (error) throw error;
+      if (prodError) throw prodError;
 
-      if (data) {
-        // Filter specifically for category 'Gift Boxes' (or slug 'gift-boxes') or name starting with 'Gift Box'
-        const giftBoxCategoryItems = data.filter((p: any) => {
+      if (productsData) {
+        // Strict filter to exclude any previous box from subcategory "Gift Boxes", parent "Gifting"
+        const isOldGiftBox = (p: any) => {
+          const catName = (p.categories?.name || p.category || '').toLowerCase().trim();
+          const catSlug = (p.categories?.slug || '').toLowerCase().trim();
+          const prodName = (p.name || '').toLowerCase().trim();
+
+          // Reject if in category "gift boxes"
+          if (catName === 'gift boxes' || catSlug === 'gift-boxes') return true;
+          // Reject if named "Gift Box 1", "Gift Box 2", etc.
+          if (/^gift\s*box\s*\d+/i.test(prodName)) return true;
+          if (prodName.startsWith('gift box')) return true;
+          return false;
+        };
+
+        // Filter products belonging to Diwali Special category and its subcategories
+        const filtered = productsData.filter((p: any) => {
+          // Strictly exclude previous boxes
+          if (isOldGiftBox(p)) return false;
+
+          // Check category ID matching Diwali main or its subcategories
+          if (p.category_id && targetCategoryIds.has(p.category_id)) return true;
+
           const catName = (p.categories?.name || p.category || '').toLowerCase();
           const catSlug = (p.categories?.slug || '').toLowerCase();
-          const prodName = (p.name || '').toLowerCase();
 
-          return (
-            catName === 'gift boxes' ||
-            catSlug === 'gift-boxes' ||
-            prodName.startsWith('gift box')
-          );
+          if (diwaliMain && catName === (diwaliMain.name || '').toLowerCase()) return true;
+          if (catName.includes('diwali') || catSlug.includes('diwali')) return true;
+          if (catName.includes('mdf') || catSlug.includes('mdf')) return true;
+
+          return false;
         });
 
-        // Show strictly up to 8 products of category gift box
-        const sorted = giftBoxCategoryItems.sort((a, b) => {
-          return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
+        // Sort so that MDF Boxes and Hampers appear first, followed by ascending price
+        const sorted = filtered.sort((a: any, b: any) => {
+          const aIsBox = (a.categories?.name || '').toLowerCase().includes('box') || (a.name || '').toLowerCase().includes('box');
+          const bIsBox = (b.categories?.name || '').toLowerCase().includes('box') || (b.name || '').toLowerCase().includes('box');
+          if (aIsBox && !bIsBox) return -1;
+          if (!aIsBox && bIsBox) return 1;
+          return (Number(a.price) || 0) - (Number(b.price) || 0);
         });
 
-        setGiftBoxes(sorted.slice(0, 8));
+        setDiwaliBoxes(sorted);
       }
     } catch (err) {
-      console.error('Error fetching gift boxes:', err);
+      console.error('Error fetching Diwali boxes:', err);
     } finally {
       setLoading(false);
     }
   };
+
+  const displayedBoxes = useMemo(() => {
+    if (activeTab === 'all') {
+      return diwaliBoxes;
+    }
+    return diwaliBoxes.filter((box: any) => {
+      if (box.category_id === activeTab) return true;
+      const subcat = subcategories.find((s) => s.id === activeTab);
+      if (subcat && (box.categories?.name || '').toLowerCase() === subcat.name.toLowerCase()) {
+        return true;
+      }
+      return false;
+    });
+  }, [diwaliBoxes, activeTab, subcategories]);
 
   const openWhatsApp = (customText?: string) => {
     const text =
@@ -92,18 +195,9 @@ export default function BulkOrderClient() {
           SECTION 1: HERO IMAGE (No Text, No Filter, Responsive)
       ───────────────────────────────────────────────────────────── */}
       <section className="w-full relative overflow-hidden bg-[#FFFDF7]">
-        {/* Desktop Image */}
-        <div className="hidden md:block w-full">
+        <div className="w-full">
           <img
-            src="https://res.cloudinary.com/dmj0smemf/image/upload/f_auto,q_auto/v1788776570/221_oddfck.png"
-            alt="Bulk Orders and Bespoke Gifting"
-            className="w-full h-auto block object-cover"
-          />
-        </div>
-        {/* Mobile Image */}
-        <div className="block md:hidden w-full">
-          <img
-            src="https://res.cloudinary.com/dmj0smemf/image/upload/f_auto,q_auto/v1788776570/222_ra5atv.png"
+            src={HERO_BANNER_IMG}
             alt="Bulk Orders and Bespoke Gifting"
             className="w-full h-auto block object-cover"
           />
@@ -167,10 +261,15 @@ export default function BulkOrderClient() {
                   We share our comprehensive seasonal PDF catalogue with high-definition photos, box sizes, sweet assortments, and wholesale pricing tiers.
                 </p>
               </div>
-              <div className="mt-5 pt-3 border-t border-[#E6D5B8]/60 text-[11px] font-medium text-[#8B2131] flex items-center gap-1">
-                <span>Digital PDF catalogue</span>
+              <a
+                href={DIWALI_CATALOGUE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-5 pt-3 border-t border-[#E6D5B8]/60 text-[11px] font-medium text-[#8B2131] hover:text-[#6d1a26] flex items-center gap-1 cursor-pointer transition-colors"
+              >
+                <span>View Diwali &apos;26 Catalogue</span>
                 <ChevronRight className="w-3.5 h-3.5" />
-              </div>
+              </a>
             </div>
 
             {/* Step 3 */}
@@ -245,39 +344,98 @@ export default function BulkOrderClient() {
       </section>
 
       {/* ─────────────────────────────────────────────────────────────
-          SECTION 3: GIFT BOX COLLECTION (Strictly 8 Products, Viewing Only)
+          SECTION 3: DIWALI SPECIAL BOX COLLECTION (Curated Viewing, WhatsApp Orders)
       ───────────────────────────────────────────────────────────── */}
       <section id="all-gift-boxes" className="py-16 lg:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4 pb-4 border-b border-[#E6D5B8]">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4 pb-4 border-b border-[#E6D5B8]">
           <div>
             <span className="text-xs font-semibold text-[#8B2131] tracking-wider block mb-1 font-orange-avenue">
-              Exclusive gifting catalogue
+              Exclusive Diwali &amp; Bulk Gifting Catalogue
             </span>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-orange-avenue font-normal text-[#2C1810]">
-              The gift box collection
+              Diwali Special Box Collection
             </h2>
             <p className="text-xs sm:text-sm text-[#5D4037] mt-1 font-light max-w-xl">
-              Curated for viewing. All gift boxes are bespoke and ordered exclusively through our WhatsApp concierge to ensure custom sweet combinations, box customization, and bulk volume rates.
+              Curated for royal celebrations, weddings, and executive corporate gifting. All Diwali boxes &amp; hampers are bespoke and ordered exclusively through our WhatsApp concierge.
             </p>
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-[#8B2131] font-semibold bg-[#FAF6EE] border border-[#E6D5B8] px-3.5 py-1.5 rounded-sm font-orange-avenue">
-            <Sparkles className="w-3.5 h-3.5 text-[#8B2131]" />
-            <span>Viewing only • Inquire on WhatsApp</span>
+          <div className="flex flex-wrap items-center gap-3">
+            <a
+              href={DIWALI_CATALOGUE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs text-[#8B2131] font-semibold bg-[#FAF6EE] hover:bg-[#8B2131] hover:text-white border border-[#8B2131] px-3.5 py-1.5 rounded-sm transition-all font-orange-avenue cursor-pointer shadow-xs"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>Diwali PDF Catalogue</span>
+            </a>
+            <div className="flex items-center gap-2 text-xs text-[#8B2131] font-semibold bg-[#FAF6EE] border border-[#E6D5B8] px-3.5 py-1.5 rounded-sm font-orange-avenue">
+              <Sparkles className="w-3.5 h-3.5 text-[#8B2131]" />
+              <span>Viewing only &bull; Inquire on WhatsApp</span>
+            </div>
           </div>
         </div>
 
-        {/* 8 Gift Box Products Grid */}
+        {/* Subcategory Filter Tabs */}
+        {subcategories.length > 0 && (
+          <div className="flex flex-wrap items-center justify-start gap-2 sm:gap-2.5 mb-8">
+            <button
+              onClick={() => setActiveTab('all')}
+              className={`px-4 sm:px-5 py-2 rounded-full text-xs font-semibold tracking-wider transition-all duration-200 cursor-pointer font-orange-avenue ${
+                activeTab === 'all'
+                  ? 'bg-[#8B2131] text-white shadow-xs'
+                  : 'bg-[#FAF6EE] text-[#5D4037] hover:bg-[#8B2131]/10 border border-[#E6D5B8]'
+              }`}
+            >
+              All Diwali Specials ({diwaliBoxes.length})
+            </button>
+            {subcategories.map((sub) => {
+              const count = diwaliBoxes.filter(
+                (b) => b.category_id === sub.id || (b.categories?.name || '').toLowerCase() === sub.name.toLowerCase()
+              ).length;
+              const isActive = activeTab === sub.id;
+              return (
+                <button
+                  key={sub.id}
+                  onClick={() => setActiveTab(sub.id)}
+                  className={`px-4 sm:px-5 py-2 rounded-full text-xs font-semibold tracking-wider transition-all duration-200 cursor-pointer font-orange-avenue ${
+                    isActive
+                      ? 'bg-[#8B2131] text-white shadow-xs'
+                      : 'bg-[#FAF6EE] text-[#5D4037] hover:bg-[#8B2131]/10 border border-[#E6D5B8]'
+                  }`}
+                >
+                  {sub.name} ({count})
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Products Grid */}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
               <div key={n} className="bg-[#FAF6EE] border border-[#E6D5B8] h-96 animate-pulse rounded-sm" />
             ))}
           </div>
+        ) : displayedBoxes.length === 0 ? (
+          <div className="text-center py-16 bg-[#FAF6EE] border border-[#E6D5B8] rounded-sm p-8">
+            <Gift className="w-10 h-10 text-[#8B2131] mx-auto mb-3" />
+            <h3 className="font-orange-avenue text-lg text-[#2C1810] mb-1">No items found in this tab</h3>
+            <p className="text-xs text-[#5D4037] mb-4">Please explore all Diwali specials or contact our concierge directly on WhatsApp.</p>
+            <button
+              onClick={() => setActiveTab('all')}
+              className="px-4 py-2 bg-[#8B2131] text-white text-xs font-orange-avenue rounded-sm"
+            >
+              Show all Diwali specials
+            </button>
+          </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-7">
-            {giftBoxes.map((box) => {
-              const primaryImage = box.images?.[0] || '/placeholder.svg';
+            {displayedBoxes.map((box) => {
+              const primaryImage = box.images?.[0] || FALLBACK_BOX_IMG;
+              const categoryBadge = box.categories?.name?.trim() || 'Diwali Special';
               return (
                 <div
                   key={box.id}
@@ -289,9 +447,10 @@ export default function BulkOrderClient() {
                       src={primaryImage}
                       alt={box.name}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      loading="lazy"
                     />
-                    <div className="absolute top-2.5 left-2.5 bg-[#8B2131] text-white text-[10px] font-orange-avenue font-normal px-2 py-0.5 tracking-wider">
-                      Gift Collection
+                    <div className="absolute top-2.5 left-2.5 bg-[#8B2131] text-white text-[10px] font-orange-avenue font-normal px-2.5 py-0.5 tracking-wider shadow-xs rounded-xs">
+                      {categoryBadge}
                     </div>
                     {box.sku && (
                       <div className="absolute bottom-2.5 left-2.5 bg-white/95 text-[10px] font-mono text-[#5D4037] px-2 py-0.5 border border-[#E6D5B8] shadow-xs">
@@ -300,7 +459,7 @@ export default function BulkOrderClient() {
                     )}
                     <button
                       onClick={() => setPreviewProduct(box)}
-                      className="absolute top-2.5 right-2.5 w-8 h-8 bg-white/90 hover:bg-[#8B2131] hover:text-white text-[#2C1810] flex items-center justify-center transition-colors shadow-xs border border-[#E6D5B8]"
+                      className="absolute top-2.5 right-2.5 w-8 h-8 bg-white/90 hover:bg-[#8B2131] hover:text-white text-[#2C1810] flex items-center justify-center transition-colors shadow-xs border border-[#E6D5B8] cursor-pointer"
                       title="Quick Preview"
                     >
                       <Eye className="w-3.5 h-3.5" />
@@ -320,7 +479,7 @@ export default function BulkOrderClient() {
 
                     <div className="pt-2.5 border-t border-[#E6D5B8]/60 flex items-baseline justify-between">
                       <div>
-                        <span className="text-[10px] text-[#5D4037]/70 block">Starting at</span>
+                        <span className="text-[10px] text-[#5D4037]/70 block font-light">Starting at</span>
                         <span className="text-lg font-orange-avenue font-normal text-[#8B2131]">
                           {formatPrice(box.price)}
                         </span>
@@ -900,7 +1059,7 @@ export default function BulkOrderClient() {
               <div className="grid grid-cols-1 sm:grid-cols-2">
                 <div className="relative aspect-square sm:h-full bg-[#FAF6EE]">
                   <img
-                    src={previewProduct.images?.[0] || '/placeholder.svg'}
+                    src={previewProduct.images?.[0] || FALLBACK_BOX_IMG}
                     alt={previewProduct.name}
                     className="w-full h-full object-cover"
                   />
@@ -909,12 +1068,12 @@ export default function BulkOrderClient() {
                 <div className="p-5 sm:p-7 flex flex-col justify-between space-y-4">
                   <div>
                     <span className="text-[10px] tracking-wider text-[#8B2131] font-semibold block mb-1 font-orange-avenue">
-                      Gift box preview
+                      {previewProduct.categories?.name?.trim() || 'Diwali Special'} &middot; Box Preview
                     </span>
                     <h3 className="font-orange-avenue font-normal text-xl text-[#2C1810] mb-2">
                       {previewProduct.name}
                     </h3>
-                    <p className="text-xs text-[#5D4037] leading-relaxed font-light mb-4">
+                    <p className="text-xs text-[#5D4037] leading-relaxed font-light mb-4 whitespace-pre-line">
                       {previewProduct.description || 'Luxury assorted box crafted for royal celebrations, weddings, and executive gifting.'}
                     </p>
 
@@ -925,10 +1084,14 @@ export default function BulkOrderClient() {
                       </div>
                       {previewProduct.sku && (
                         <div className="flex justify-between">
-                          <span className="text-[#5D4037]/70">SKU:</span>
+                          <span className="text-[#5D4037]/70 font-sans">SKU:</span>
                           <span className="font-mono text-[11px]">{previewProduct.sku}</span>
                         </div>
                       )}
+                      <div className="flex justify-between">
+                        <span className="text-[#5D4037]/70 font-sans">Category:</span>
+                        <span className="font-medium text-[#2C1810] font-sans">{previewProduct.categories?.name || 'Diwali Special'}</span>
+                      </div>
                       <div className="flex justify-between">
                         <span className="text-[#5D4037]/70 font-sans">Order mode:</span>
                         <span className="font-semibold text-emerald-800 font-sans">WhatsApp concierge</span>
